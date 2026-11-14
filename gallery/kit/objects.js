@@ -37,13 +37,41 @@ const store = {
 const tickers = new Set();
 let rafId = 0, lastT = 0;
 function loop(t) {
-  const dt = Math.min(0.05, (t - (lastT || t)) / 1000) || 1 / 60;
+  // __trompeTimeScale (0 freezes) lets motion checks hold every spring on its first frame.
+  const dt = (Math.min(0.05, (t - (lastT || t)) / 1000) || 1 / 60) * (globalThis.__trompeTimeScale ?? 1);
   lastT = t;
   for (const fn of [...tickers]) if (fn(dt) === false) tickers.delete(fn);
   rafId = tickers.size ? requestAnimationFrame(loop) : 0;
   if (!rafId) lastT = 0;
 }
 export function animate(fn) { tickers.add(fn); if (!rafId) rafId = requestAnimationFrame(loop); return () => tickers.delete(fn); }
+
+/**
+ * Runs a DOM change as a view transition, so nothing on the page jumps: what leaves fades
+ * out, what arrives fades in, and every element with a view-transition-name glides from its
+ * old box to its new one (name the regions a change reflows, such as the block below a pane
+ * that changes height). Instant under reduced motion or without the API. Resolves when done.
+ */
+export function morph(update) {
+  if (reduceMotion.matches || !document.startViewTransition || document.visibilityState === "hidden") { update(); return Promise.resolve(); }
+  const vt = document.startViewTransition(update);
+  return vt.finished.catch(() => {});
+}
+
+/**
+ * Swaps an element's text with a short cross-fade: the old text fades out in place while
+ * the new one fades in, and the box eases to its new width instead of snapping.
+ */
+export function swapText(el, text) {
+  if (!el || el.textContent === text) return;
+  if (reduceMotion.matches || !el.isConnected) { el.textContent = text; return; }
+  const w0 = el.getBoundingClientRect().width;
+  el.textContent = text;
+  const w1 = el.getBoundingClientRect().width;
+  el.animate([{ opacity: 0, filter: "blur(2px)" }, { opacity: 1, filter: "none" }], { duration: 200, easing: "ease-out" });
+  if (Math.abs(w1 - w0) > 0.5 && getComputedStyle(el).display !== "inline")
+    el.animate([{ width: w0 + "px" }, { width: w1 + "px" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" });
+}
 
 /* Critically-ish damped spring. zeta < 1 overshoots a little, which is what sells a snap. */
 function springStep(s, target, dt, k = 520, zeta = 0.72) {
@@ -698,8 +726,8 @@ export class ToggleController {
 /* ------------------------------------------------------------------ */
 /* Gallery chrome                                                      */
 /* ------------------------------------------------------------------ */
-const ICON_SOUND_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
-const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5m0-5-5 5"/></svg>';
+const ICON_SOUND_ON = '<svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
+const ICON_SOUND_OFF = '<svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5m0-5-5 5"/></svg>';
 
 /** Applies the saved light angle to the page. Call early to avoid a re-light on load. */
 export function applySavedLight(fallback = 315) {
@@ -722,7 +750,7 @@ export function mountBar(o) {
     <div class="tg-tools">
       <span class="tg-hint">Light</span>
       <div class="tg-light" role="slider" tabindex="0" aria-label="Light direction" aria-valuemin="0" aria-valuemax="359"><i></i></div>
-      <button class="tg-tool" type="button" data-sound aria-label="Sound"></button>
+      <button class="tg-tool" type="button" data-sound aria-label="Sound">${ICON_SOUND_ON}${ICON_SOUND_OFF}</button>
     </div>`;
   bar.querySelector("b").textContent = o.title;
   bar.querySelector(".tg-title span").textContent = o.subtitle ?? "";
@@ -761,7 +789,7 @@ export function mountBar(o) {
   const setS = (on) => {
     feedback.configure({ sound: on, haptics: on });
     btn.setAttribute("aria-pressed", String(on));
-    btn.innerHTML = on ? ICON_SOUND_ON : ICON_SOUND_OFF;
+    btn.dataset.on = String(on); // both icons stay in the button; CSS cross-fades them
     btn.title = on ? "Sound and haptics on" : "Sound and haptics off";
     store.set("sound", on);
   };

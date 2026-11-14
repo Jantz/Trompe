@@ -211,7 +211,10 @@ export async function measureChange(page, trigger, opts = {}) {
       m.marking = true;
       m.b = m.snapshot();
       m.marking = false;
-      return { ...m.compare(m.a, m.b), shift: m.takeShift() };
+      // A view transition paints its own snapshots over the page: the DOM below may jump while
+      // the person sees a glide and cross-fade, so the pixel check alone speaks for the change.
+      const vt = !!document.activeViewTransition || document.getAnimations().some((x) => x.effect?.pseudoElement?.startsWith('::view-transition'));
+      return { ...m.compare(m.a, m.b), shift: m.takeShift(), vt };
     });
     const mid = await shot();
 
@@ -238,6 +241,7 @@ export async function measureChange(page, trigger, opts = {}) {
       moved: frozen.moved,
       appeared: frozen.appeared,
       vanished: frozen.vanished,
+      viewTransition: frozen.vt,
       final,
     };
   } finally {
@@ -265,6 +269,8 @@ export function motionProblems(m, limits = {}) {
   const out = [];
   if (m.changedPx >= l.minPx && m.instant > l.instant) out.push(`${Math.round(m.instant * 100)}% of the change (${m.instantPx}px) appeared without animation`);
   if (m.changedPx < l.minPx && m.instantPx >= l.minPx) out.push(`${m.instantPx}px flashed in the frozen frame`);
+  // Under a view transition the page is shown as animated snapshots; DOM jumps underneath are hidden.
+  if (m.viewTransition) return out;
   if (m.shift > l.shift) out.push(`layout shift ${m.shift}: ${m.shiftSources.map((s) => `${s.el} (dy ${s.dy}, dh ${s.dh})`).join('; ')}`);
   const moved = m.moved.filter((x) => Math.max(Math.abs(x.dx), Math.abs(x.dy), Math.abs(x.dw), Math.abs(x.dh)) > l.move);
   if (moved.length) out.push(`moved without animation: ${moved.slice(0, 6).map((x) => `${x.el} (${[x.dx && `dx ${x.dx}`, x.dy && `dy ${x.dy}`, x.dw && `dw ${x.dw}`, x.dh && `dh ${x.dh}`].filter(Boolean).join(', ')})`).join('; ')}${moved.length > 6 ? ` and ${moved.length - 6} more` : ''}`);

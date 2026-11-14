@@ -627,7 +627,7 @@ body {
 </main>
 
 <script type="module">
-import { mountBar, feedback, PressController, LinearController, ToggleController } from "./kit/objects.js";
+import { mountBar, feedback, morph, PressController, LinearController, ToggleController } from "./kit/objects.js";
 mountBar({ title: "Alloy Settings", subtitle: "Milled aluminium, smoked glass, chrome hardware", tone: "dark" });
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -825,7 +825,7 @@ const go = (sec) => {
   other.innerHTML = `<div class="card"><i class="screw" style="--r:14deg"></i><i class="screw" style="--r:48deg"></i><i class="screw" style="--r:3deg"></i><i class="screw" style="--r:66deg"></i><h3>${t}</h3><div class="list">${rows.map(([a, b]) => `<button class="key lrow"><b>${a}</b><span class="v">${b}</span>${CHEV}</button>`).join("")}</div></div>`;
   $$(".lrow", other).forEach((b) => new PressController(b, { sound: "click" }));
 };
-tabs.forEach((t) => new PressController(t, { sound: "clack", onActivate: () => { if (t.getAttribute("aria-current") !== "page") go(t.dataset.sec); } }));
+tabs.forEach((t) => new PressController(t, { sound: "clack", onActivate: () => { if (t.getAttribute("aria-current") !== "page") morph(() => go(t.dataset.sec)); } }));
 const navEl = $("#nav");
 const navEnd = () => navEl.toggleAttribute("data-end", navEl.scrollLeft + navEl.clientWidth >= navEl.scrollWidth - 2);
 navEl.addEventListener("scroll", navEnd, { passive: true }); new ResizeObserver(navEnd).observe(navEl);
