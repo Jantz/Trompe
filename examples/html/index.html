@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trompe + plain HTML</title>
+    <link rel="stylesheet" href="./example.css" />
+    <!--
+      One file, Lit included. From a CDN:
+        <script type="module" src="https://cdn.jsdelivr.net/npm/trompe/dist/trompe.bundle.js"></script>
+      Here build.mjs copies it from the installed package (import.meta.resolve('trompe/bundle')).
+    -->
+    <script type="module" src="./trompe.bundle.js"></script>
+  </head>
+  <body>
+    <tr-panel screws>
+      <h1 slot="header">Trompe + plain HTML</h1>
+      <div class="controls">
+        <tr-slider id="volume" label="Volume" unit="%" value="60"></tr-slider>
+        <div class="row">
+          <tr-switch id="bypass">Bypass</tr-switch>
+          <tr-button id="tap" tone="accent">Tap</tr-button>
+          <tr-input id="preset" label="Preset" placeholder="Patch name"></tr-input>
+        </div>
+        <tr-knob id="gain" label="Gain" value="40"></tr-knob>
+      </div>
+      <dl class="state">
+        <dt>volume</dt><dd data-testid="volume">60</dd>
+        <dt>gain</dt><dd data-testid="gain">40</dd>
+        <dt>bypass</dt><dd data-testid="bypass">off</dd>
+        <dt>taps</dt><dd data-testid="taps">0</dd>
+        <dt>preset</dt><dd data-testid="preset"></dd>
+      </dl>
+    </tr-panel>
+    <script type="module">
+      // Trompe controls fire native, bubbling input/change/click events.
+      const show = (id, text) => (document.querySelector(`[data-testid="${id}"]`).textContent = String(text));
+      const $ = (id) => document.getElementById(id);
+      $('volume').addEventListener('input', (e) => show('volume', e.target.value));
+      $('gain').addEventListener('input', (e) => show('gain', e.target.value));
+      $('bypass').addEventListener('change', (e) => show('bypass', e.target.checked ? 'on' : 'off'));
+      let taps = 0;
+      $('tap').addEventListener('click', () => show('taps', ++taps));
+      $('preset').addEventListener('input', (e) => show('preset', e.target.value));
+    </script>
+  </body>
+</html>

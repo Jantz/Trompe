@@ -1,0 +1,40 @@
+{
+  "name": "aurora",
+  "description": "Frosted glass panes floating over a vivid backdrop: translucent blurred surfaces, glossy edges, luminous accents. Put it over an image or gradient.",
+  "colorScheme": "dark",
+  "tokens": {
+    "color.canvas": "oklch(20% 0.05 290)",
+    "color.surface": "oklch(35% 0.04 290 / 0.55)",
+    "color.well": "oklch(15% 0.03 290 / 0.6)",
+    "color.ink": "oklch(98% 0.005 290)",
+    "color.ink-muted": "oklch(86% 0.02 290)",
+    "color.edge": "oklch(85% 0.03 290 / 0.6)",
+    "color.accent": "oklch(80% 0.14 195)",
+    "color.accent-ink": "oklch(18% 0.04 220)",
+    "color.shadow": "oklch(10% 0.05 290)",
+    "realism.default": 0.8,
+    "light.angle": "330deg",
+    "light.elevation": "60deg",
+    "radius.sm": "10px",
+    "radius.md": "14px",
+    "radius.lg": "24px"
+  },
+  "elements": {
+    "*": {
+      "material": "glass",
+      "finish": "satin",
+      "vars": {
+        "--tr-m-base": "oklch(30% 0.05 290 / 0.55)",
+        "--tr-m-ink": "oklch(98% 0.005 290)"
+      }
+    },
+    "tr-panel": {
+      "material": "glass",
+      "finish": "satin",
+      "vars": {
+        "--tr-m-base": "oklch(32% 0.04 290 / 0.4)",
+        "--tr-m-ink": "oklch(98% 0.005 290)"
+      }
+    }
+  }
+}

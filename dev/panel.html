@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><script type="module" src="/src/index.ts"></script>
+<style>body{margin:0;padding:24px;background:var(--tr-color-canvas);color:var(--tr-color-ink);font-family:system-ui;display:grid;gap:20px}
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;background:var(--tr-color-canvas)}
+.row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.bank{display:flex;gap:12px}
+form{display:grid;gap:14px}</style></head>
+<body>
+<div class="wrap">
+<tr-panel screws material="metal">
+  <span slot="header">CHANNEL STRIP</span>
+  <div class="row">
+    <tr-knob label="Gain" value="60" material="metal" size="sm"></tr-knob>
+    <tr-knob label="Hi" value="50" arc="center" variant="skirt" material="rubber" size="sm"></tr-knob>
+    <tr-knob label="Mode" variant="pointer" min="1" max="4" ticks="4" value="2" material="rubber" size="sm"></tr-knob>
+  </div>
+  <div class="row" style="margin-top:12px"><tr-switch checked>Phase</tr-switch><tr-switch material="metal">Pad</tr-switch></div>
+  <span slot="footer" style="font-weight:400;font-size:12px">SN 0042</span>
+</tr-panel>
+<tr-panel bezel screws padding="md" material="rubber">
+  <form id="f">
+    <tr-input label="Preset name" name="preset" value="Warm pad" required></tr-input>
+    <tr-input label="Email" type="email" placeholder="you@example.com"></tr-input>
+    <tr-input aria-label="Search" type="search" placeholder="Search…"><svg slot="start" viewBox="0 0 16 16" width="16" height="16"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 11l4 4" stroke="currentColor" stroke-width="2"/></svg></tr-input>
+    <tr-input label="Freq" value="440" type="number" size="sm"><span slot="end">Hz</span></tr-input>
+    <div class="row"><tr-switch size="sm" checked>Sm</tr-switch><tr-switch>Md</tr-switch><tr-switch size="lg" checked material="chrome">Lg</tr-switch></div>
+  </form>
+</tr-panel>
+</div>
+<div class="wrap" data-tr-theme="dark">
+<tr-panel screws material="metal" finish="brushed">
+  <span slot="header">CHANNEL STRIP</span>
+  <div class="row">
+    <tr-knob label="Gain" value="60" material="metal" size="sm"></tr-knob>
+    <tr-knob label="Hi" value="50" arc="center" variant="skirt" material="rubber" size="sm"></tr-knob>
+    <tr-knob label="Mode" variant="pointer" min="1" max="4" ticks="4" value="2" size="sm"></tr-knob>
+  </div>
+  <div class="row" style="margin-top:12px"><tr-switch checked>Phase</tr-switch><tr-switch>Pad</tr-switch></div>
+</tr-panel>
+<tr-panel bezel screws>
+  <form>
+    <tr-input label="Preset name" value="Warm pad" required></tr-input>
+    <tr-input label="Email" type="email" placeholder="you@example.com"></tr-input>
+    <div class="row"><tr-switch size="sm" checked>Sm</tr-switch><tr-switch>Md</tr-switch><tr-switch size="lg" checked>Lg</tr-switch></div>
+  </form>
+</tr-panel>
+</div>
+</body></html>

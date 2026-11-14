@@ -75,15 +75,6 @@ export class FormControl extends TrompeElement {
     }
   }
 
-  /**
-   * Sets (or removes, for null) an ARIA attribute on the host. Real attributes rather than
-   * ElementInternals reflection, so every assistive technology and test tool sees them.
-   */
-  protected aria(name: `aria-${string}`, value: string | null): void {
-    if (value === null) this.removeAttribute(name);
-    else if (this.getAttribute(name) !== value) this.setAttribute(name, value);
-  }
-
   /** Fires a bubbling, composed native event, so every framework can listen with its usual syntax. */
   protected emit(type: 'input' | 'change'): void {
     this.dispatchEvent(new Event(type, { bubbles: true, composed: true }));

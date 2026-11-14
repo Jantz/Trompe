@@ -18,7 +18,7 @@ export const hostStyles = css`
     --_sy: cos(var(--tr-light-angle, 330deg));
     /* Shadow length factor from light elevation: lower light, longer shadows. */
     --_len: clamp(0.3, calc(1 / tan(var(--tr-light-elevation, 55deg))), 3);
-    --_r: min(var(--tr-realism, 0.65), var(--tr-realism-max, 1));
+    --_r: min(var(--tr-realism, 0.65) * var(--tr-realism-scale, 1), var(--tr-realism-max, 1));
 
     /* Material, then finish (wins over material), then profile. Plastic fallbacks. */
     --_m-base: var(--tr-m-base, ${unsafeCSS(md.base)});
@@ -74,6 +74,7 @@ export const hostStyles = css`
  *   --_base     base color (defaults to the material base)
  *   --_ink      text color (defaults to the material ink)
  *   --_edge     border color (defaults to --tr-color-edge, which meets 3:1)
+ *   --tr-reflect-scale  0..1 damping of gloss and mirror reflections (public: large text-bearing surfaces use < 1)
  */
 export const surfaceStyles = css`
   .surface {
@@ -117,25 +118,25 @@ export const surfaceStyles = css`
       /* clear-coat window reflection toward the light: crisp-edged, like a softbox in lacquer */
       radial-gradient(
         ellipse 82% 50% at calc(50% - var(--_sx) * 14%) calc(50% - var(--_sy) * 30%),
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * 85%), transparent) 0%,
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * 32%), transparent) 92%,
+        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--tr-reflect-scale, 1) * 85%), transparent) 0%,
+        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--tr-reflect-scale, 1) * 32%), transparent) 92%,
         transparent 100%
       ),
       /* clear-coat caustic: light passing through and glowing on the far side */
       radial-gradient(
         ellipse 70% 38% at calc(50% + var(--_sx) * 30%) calc(50% + var(--_sy) * 42%),
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * 38%), transparent) 0%,
+        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--tr-reflect-scale, 1) * 38%), transparent) 0%,
         transparent 100%
       ),
       /* mirror: sky, dark horizon, ground bounce. The environment stays upright; the light only tilts it a little. */
       linear-gradient(
         calc(var(--tr-light-environment, 180deg) + (var(--tr-light-angle, 330deg) - 360deg) * 0.15),
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * 90%), transparent) 0%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * 40%), transparent) 38%,
-        color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * 60%), transparent) 50%,
-        color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * 28%), transparent) 58%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * 18%), transparent) 74%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * 75%), transparent) 100%
+        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 90%), transparent) 0%,
+        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 40%), transparent) 38%,
+        color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 60%), transparent) 50%,
+        color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 28%), transparent) 58%,
+        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 18%), transparent) 74%,
+        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 75%), transparent) 100%
       ),
       /* spun metal: concentric anisotropic reflections */
       conic-gradient(
@@ -226,11 +227,12 @@ export const surfaceStyles = css`
         color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_raise) * 4%), transparent);
   }
   /* Only translucent materials pay for a backdrop blur. */
-  :host([material='glass']) .surface {
+  :host([material='glass']) .surface:not(.surface .surface) {
     backdrop-filter: blur(calc(var(--_trans) * (6px + var(--_r) * 10px))) saturate(calc(1 + var(--_trans) * 0.4));
   }
+  /* Only the outermost surface of a component blurs; nested parts would show as boxes. */
   @container style(--tr-m-translucency: 1) {
-    .surface {
+    .surface:not(.surface .surface) {
       backdrop-filter: blur(calc(6px + var(--_r) * 10px)) saturate(1.4);
     }
   }

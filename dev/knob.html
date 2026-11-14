@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<script type="module" src="/src/index.ts"></script>
+<style>body{margin:0;padding:24px;background:var(--tr-color-canvas);color:var(--tr-color-ink);font-family:system-ui;display:grid;gap:12px}
+.row{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;padding:16px;background:var(--tr-color-canvas)}</style></head>
+<body>
+<div class="row">
+<tr-knob label="Volume" value="40" unit="%"></tr-knob>
+<tr-knob label="Gain" min="-12" max="12" step="0.5" unit=" dB" arc="center" value="4" material="metal"></tr-knob>
+<tr-knob label="Chrome" value="70" material="chrome"></tr-knob>
+<tr-knob label="Rubber" value="20" material="rubber"></tr-knob>
+<tr-knob label="Cutoff" variant="skirt" material="rubber" value="65" marks="0,2,4,6,8,10"></tr-knob>
+<tr-knob label="Mode" variant="pointer" min="1" max="5" ticks="5" marks="1,2,3,4,5" value="2" material="rubber"></tr-knob>
+<tr-knob label="Big" size="lg" value="55" material="metal" finish="spun" realism="real"></tr-knob>
+<tr-knob label="sm" size="sm" value="80"></tr-knob>
+</div>
+<div class="row" data-tr-theme="dark">
+<tr-knob label="Volume" value="40" unit="%"></tr-knob>
+<tr-knob label="Gain" min="-12" max="12" step="0.5" unit=" dB" arc="center" value="4" material="metal"></tr-knob>
+<tr-knob label="Chrome" value="70" material="chrome"></tr-knob>
+<tr-knob label="Rubber" value="20" material="rubber"></tr-knob>
+<tr-knob label="Cutoff" variant="skirt" material="rubber" value="65" marks="0,2,4,6,8,10"></tr-knob>
+<tr-knob label="Mode" variant="pointer" min="1" max="5" ticks="5" marks="1,2,3,4,5" value="2" material="plastic"></tr-knob>
+<tr-knob label="Big" size="lg" value="55" material="metal" finish="spun" realism="real"></tr-knob>
+<tr-knob label="sm" size="sm" value="80"></tr-knob>
+</div>
+</body></html>
