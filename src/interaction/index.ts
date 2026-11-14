@@ -43,5 +43,5 @@ export { RotaryController } from './rotary.js';
 export type { RotaryOptions, RotaryDrag } from './rotary.js';
 export { applyDetents, detentIndex, restingPoint } from './detents.js';
 export type { DetentSpec } from './detents.js';
-export { SizeTransition, enter, exit, removeAnimated, insertAnimated, crossfadeText, viewTransition, autoViewTransitions, LOOK_ATTRIBUTES } from './smooth.js';
+export { SizeTransition, enter, exit, removeAnimated, insertAnimated, crossfadeText, viewTransition, autoViewTransitions, afterExit, LOOK_ATTRIBUTES } from './smooth.js';
 export type { SizeTransitionOptions, PartMotion } from './smooth.js';

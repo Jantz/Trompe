@@ -52,6 +52,7 @@
             <tr-switch id="animate-light">Orbit the light</tr-switch>
             <tr-switch id="theme-light">Light page</tr-switch>
             <tr-switch id="motion" checked>Ambient motion</tr-switch>
+            <tr-switch id="slowmo">Slow motion</tr-switch>
           </div>
         </div>
       </tr-panel>
@@ -210,11 +211,11 @@
                   <tr-nav-item href="#h-chrome"><svg slot="icon" width="18" height="18"><use href="#i-trash"/></svg>Trash</tr-nav-item>
                 </tr-nav>
                 <div class="files-main">
-                  <tr-list>
+                  <tr-list id="files-list">
                     <tr-list-item><svg slot="start" width="22" height="22"><use href="#i-folder"/></svg>Quarterly reports<span slot="description">12 files</span><span slot="end">Today</span></tr-list-item>
                     <tr-list-item><svg slot="start" width="22" height="22"><use href="#i-file"/></svg>Brand guidelines.pdf<span slot="description">4.2 MB</span><span slot="end">Yesterday</span></tr-list-item>
                     <tr-list-item><svg slot="start" width="22" height="22"><use href="#i-image"/></svg>Launch poster.png<span slot="description">2.8 MB</span><span slot="end">Mon</span></tr-list-item>
-                    <tr-list-item>
+                    <tr-list-item id="contract-row">
                       <svg slot="start" width="22" height="22"><use href="#i-file"/></svg>Contract draft.docx<span slot="description">88 KB</span>
                       <tr-button slot="end" size="sm" shape="circle" id="file-more" aria-label="More actions for Contract draft"><svg width="16" height="16" aria-hidden="true"><use href="#i-more"/></svg></tr-button>
                     </tr-list-item>

@@ -1,4 +1,4 @@
-import '../src/index.ts';
+import { setTimeScale } from '../src/index.ts';
 import { materials, finishes, profiles, depthLevels } from '../src/generated/tokens.js';
 
 const $ = <T extends Element = HTMLElement>(sel: string) => document.querySelector(sel) as T | null;
@@ -85,8 +85,35 @@ for (const id of ['#delete-cancel', '#delete-confirm']) {
     if (!dialog) return;
     if (dialog.close) dialog.close();
     else dialog.open = false;
+    // Deleting closes the row's height while it fades, so the rows below slide up.
+    if (id === '#delete-confirm') ($('#contract-row') as (HTMLElement & { dismiss?: () => Promise<void> }) | null)?.dismiss?.();
   });
 }
+
+/* New folder: the row opens into place instead of pushing the list down in one frame. */
+let folders = 0;
+$('#files-new')?.addEventListener('click', () => {
+  const row = document.createElement('tr-list-item');
+  row.innerHTML = `<svg slot="start" width="22" height="22"><use href="#i-folder"/></svg>${++folders === 1 ? 'Untitled folder' : `Untitled folder ${folders}`}<span slot="description">Empty</span><span slot="end">Now</span>`;
+  $('#files-list')?.prepend(row);
+});
+
+/* Slow motion: every transition, animation, view transition and spring at a fifth of its speed. */
+const SLOW = 0.2;
+let slowFrame = 0;
+const slowed = new WeakSet<Animation>();
+function slowAll() {
+  const all = [...document.getAnimations()];
+  for (const el of document.querySelectorAll('*')) if (el.shadowRoot) all.push(...el.shadowRoot.getAnimations());
+  for (const a of all) if (!slowed.has(a)) { slowed.add(a); a.playbackRate *= SLOW; }
+  slowFrame = requestAnimationFrame(slowAll);
+}
+$('#slowmo')?.addEventListener('change', (e) => {
+  const on = (e.target as Checkable).checked;
+  setTimeScale(on ? SLOW : 1);
+  cancelAnimationFrame(slowFrame);
+  if (on) slowAll();
+});
 
 /* ---------- extras ---------- */
 const knob = $<Valued>('#extra-knob');
