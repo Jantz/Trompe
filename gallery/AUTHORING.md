@@ -1,6 +1,6 @@
-# Authoring an object study
+# Authoring a material study
 
-The object gallery shows what Trompe's light, material and interaction model can reach when pushed to real-life fidelity. Each study is one original object (never a copy of a real product), built in one HTML file with no images: every surface is CSS gradients, shadows, procedural SVG textures and a small amount of SVG.
+The gallery shows what Trompe's light, material and interaction model can reach when pushed to real-life fidelity. Trompe is a visual UI library, so every study is an **everyday app screen** (settings, sign-in and checkout, files, calendar, messaging, dashboard, notes, home controls) whose standard controls are made of real materials: a toggle that is a machined slide switch, an input that is a debossed well in lacquer, a tab that is a manila folder tab. Each study commits to one material world and is built in one HTML file with no images: every surface is CSS gradients, shadows, procedural SVG textures and a small amount of SVG.
 
 This guide is the contract every study follows, written for agents as much as for people.
 
@@ -11,9 +11,16 @@ This guide is the contract every study follows, written for agents as much as fo
 - No raster images, no base64 bitmaps. Procedural SVG textures (`--tr-tex-*` in the kit, or your own `feTurbulence` tiles) are fine.
 - Keep the file under about 70 KB.
 
+## What a study must show
+
+- A believable product screen with real content and a real layout (navigation, a main area, secondary panels), the way a professional product designer would lay it out. Not a pile of widgets.
+- The standard controls, each translated into the material world: buttons (primary, secondary, destructive), text input and textarea, checkbox, radio or segmented control, switch, select or menu (a custom listbox popover with full keyboard support), slider, tabs or nav, cards or list rows, a dialog (`<dialog>`), and states (hover, focus, pressed, disabled, error).
+- Prefer native elements (`button`, `input`, `dialog`, `label`) styled with `appearance: none`, and the kit controllers where a control needs physics. Keyboard and screen-reader behaviour must match the native control.
+- Material consistency: one world per study, every control from the same physical kit of parts, so the screen reads as one designed product.
+
 ## Originality
 
-Invent the object. No real brand names, logos, model numbers or recognisable trade dress (no red dot badges, no famous colourways, no copied panel layouts). Typical archetypes (a rangefinder top plate, a receiver with a dial window) are fine; the specific design must be yours.
+Invent the product. No real brand names, logos, model numbers or recognisable trade dress (no red dot badges, no famous colourways, no copied panel layouts). Common app archetypes (a settings sidebar, a month grid, a chat thread) are fine; the specific design must be yours, and must not mimic a real app or operating system.
 
 ## Light
 
@@ -84,7 +91,7 @@ Rules:
 </script>
 ```
 
-Put the object on a believable surface (bench, desk, wall) with a soft contact shadow, then a `.tg-caption` section: two or three short paragraphs on what it is and how it's built, and a list of the controls.
+Put the screen on or in its material (a lacquered panel, a cabinet, a glass slab) with a soft contact shadow where it makes sense, then a `.tg-caption` section: two or three short paragraphs on the material world and how it's built, and a list of the controls.
 
 ## Checking your work
 
