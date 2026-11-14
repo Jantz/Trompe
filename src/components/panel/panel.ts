@@ -32,7 +32,7 @@ const SCREW_ANGLES = [-28, 63, 14, -71];
  * @cssprop --tr-panel-container-type - container-type of the panel. Defaults to inline-size, which means the panel takes its width from its container, not its content: in shrink-to-fit layouts (auto grid tracks, inline-flex) give it a width or set this to normal.
  * @cssprop --tr-panel-radius - Corner radius. Defaults to --tr-radius-lg.
  * @cssprop --tr-panel-reflect - 0..1 strength of gloss, mirror and brushed reflections on the panel face. Defaults to 0.4.
- * @cssprop --tr-panel-padding - Inner padding. Defaults by the `padding` attribute.
+ * @cssprop --tr-panel-padding - Inner padding, one length (e.g. 1.5em; not a shorthand like "1em 2em": with `screws` it is compared with the screw clearance). Defaults by the `padding` attribute.
  * @cssprop --tr-panel-gap - Space between header, content and footer. Defaults to 0.75em.
  * @cssprop --tr-panel-bezel-width - Width of the chamfered lip around the well. Defaults to 0.3em.
  * @cssprop --tr-panel-well-color - Color of the inset well. Defaults to --tr-color-well.
@@ -110,6 +110,12 @@ export class TrPanel extends TrompeElement {
       .header:not(.has),
       .footer:not(.has) {
         display: none;
+      }
+      /* a wrapper (div, header, nav…) in the header or footer strip fills it, so its own
+         space-between and end-aligned actions work; headings and badges keep their size */
+      ::slotted(:is(div, header, footer, section, nav, form, menu)) {
+        flex: 1 1 auto;
+        min-width: 0;
       }
       .content {
         flex: 1;

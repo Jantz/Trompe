@@ -80,6 +80,7 @@
     "llms.txt",
     "llms-full.txt",
     "README.md",
+    "docs/*.md",
     "bin",
     "cli/check",
     "cli/skin"

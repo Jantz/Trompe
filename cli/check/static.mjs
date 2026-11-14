@@ -1,5 +1,5 @@
 // Static rules: parse the markup, compare it with custom-elements.json, tokens.json and skins.json.
-import { elements, attr, inherited, textOf, lineCol, EXPR } from './markup.mjs';
+import { elements, attr, inherited, textOf, lineCol, EXPR, MARK, TEXT } from './markup.mjs';
 import { finding } from './rules.mjs';
 import { suggest } from './data.mjs';
 import { readFileSync, existsSync } from 'node:fs';
@@ -10,12 +10,14 @@ const GLOBAL_ATTRS = new Set([
   'inert', 'autofocus', 'nonce', 'popover', 'popovertarget', 'popovertargetaction', 'draggable', 'contenteditable',
   'spellcheck', 'translate', 'accesskey', 'enterkeyhint', 'inputmode', 'is', 'form', 'itemprop', 'itemscope',
   'itemtype', 'itemid', 'itemref', 'key', 'ref', 'command', 'commandfor', 'interestfor', 'writingsuggestions', 'autocapitalize',
+  // React (parse5 lowercases attribute names)
+  'classname', 'htmlfor', 'dangerouslysetinnerhtml', 'suppresshydrationwarning', 'suppresscontenteditablewarning',
 ]);
 const INTERACTIVE_ROLES = new Set(['button', 'checkbox', 'switch', 'radio', 'slider', 'tab', 'combobox', 'menuitem', 'option', 'textbox', 'spinbutton']);
 const NAME_FROM_CONTENT = new Set(['button', 'checkbox', 'switch', 'radio', 'tab', 'menuitem', 'option']);
 const NATIVE_INTERACTIVE = new Set(['button', 'a', 'input', 'select', 'textarea', 'summary']);
 const isFrameworkBinding = (n) => /^(:|@|#|\.|\?|v-|bind:|on:|use:|class:|style:|let:|transition:|in:|out:|animate:|x-|hx-)/.test(n);
-const isDynamic = (v) => v != null && (v.includes(EXPR) || /\{\{|\$\{/.test(v));
+const isDynamic = (v) => v != null && (v.includes(EXPR) || v.includes(MARK) || v.includes(TEXT) || /\{\{|\$\{/.test(v));
 // Words agents reach for from other design systems, mapped to Trompe's values.
 const SYNONYMS = { primary: 'accent', secondary: 'neutral', default: 'neutral', destructive: 'danger', error: 'danger', warning: 'danger',
   small: 'sm', medium: 'md', large: 'lg', s: 'sm', m: 'md', l: 'lg', round: 'circle', rounded: 'pill', square: 'rect', metallic: 'metal', steel: 'metal', aluminium: 'metal', aluminum: 'metal', frosted: 'glass', shiny: 'gloss', glossy: 'gloss', polished: 'mirror', realistic: 'real', subtle: 'soft' };
@@ -89,6 +91,7 @@ export function checkMarkup(file, src, data, abs) {
     for (const [name, a] of el.attrs) {
       if (GLOBAL_ATTRS.has(name) || name.startsWith('aria-') || name.startsWith('data-') || name.startsWith('on') || name.startsWith('xmlns') || isFrameworkBinding(name)) continue;
       const decl = def.attrs.get(name);
+      if (!decl && def.props?.has(name)) continue; // a JS property written in JSX (valueText)
       if (!decl) {
         const s = suggest(name, def.attrs.keys());
         push('TR002', a.start, {
@@ -132,6 +135,18 @@ export function checkMarkup(file, src, data, abs) {
         message: `<${el.tag}> has no accessible name. ${def.attrs.has('label') ? 'Add label="…", ' : 'Add visible text, '}aria-label="…" or aria-labelledby.`,
       });
     }
+    // TR018 label in name: aria-label overrides the visible text, so it must contain it.
+    const ariaLabel = attr(el, 'aria-label');
+    if (interactive && ariaLabel && !isDynamic(ariaLabel) && NAME_FROM_CONTENT.has(role)) {
+      const visible = textOf(el.node);
+      const norm = (t) => t.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+      if (!visible.includes(TEXT) && !isDynamic(visible) && norm(visible) && !norm(ariaLabel).includes(norm(visible))) {
+        push('TR018', el.attrs.get('aria-label').start, {
+          element: el.tag, attribute: 'aria-label', value: ariaLabel,
+          message: `aria-label="${ariaLabel}" hides the visible text "${visible.trim().replace(/\s+/g, ' ')}". Start the label with the visible words (or drop aria-label and let the text name it).`,
+        });
+      }
+    }
     if (role === 'img' && !attr(el, 'label') && !attr(el, 'aria-label') && attr(el, 'aria-hidden') !== 'true') {
       push('TR005', el.nameStart, { element: el.tag, severity: 'warning', message: `<${el.tag}> conveys state but has no label. Add label="…" or aria-hidden="true" if it only decorates.` });
     }
@@ -166,7 +181,7 @@ export function checkMarkup(file, src, data, abs) {
   const loadsSkins = (text) => /skins(\/[\w-]+)?\.css|trompe\.bundle|\/skins\//.test(text);
   const linked = () => els.filter((e) => e.tag === 'link' && /stylesheet/.test(attr(e, 'rel') ?? '') && attr(e, 'href') && !/^[a-z]+:|^\/\//i.test(attr(e, 'href')))
     .some((e) => { const p = abs && resolve(dirname(abs), attr(e, 'href').split(/[?#]/)[0]); return p && existsSync(p) && loadsSkins(readFileSync(p, 'utf8')); });
-  if (skinUser && /\.html?$/i.test(file) && /<html[\s>]|<!doctype/i.test(src) && !loadsSkins(src) && !linked()) {
+  if (skinUser && /\.html?$/i.test(file) && /<html[\s>]|<!doctype/i.test(src) && !loadsSkins(src) && !linked() && !data.projectLoadsSkins) {
     push('TR015', skinUser.attrs.get('data-tr-skin').start, { element: skinUser.tag, message: 'data-tr-skin has no effect until the page loads trompe/skins.css or trompe/skins/<name>.css.' });
   }
 

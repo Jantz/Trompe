@@ -98,3 +98,23 @@ test('--render: upgrades the page and finds nothing on a clean page', { timeout:
   const rendered = r.findings.filter((f) => f.id.startsWith('TR1'));
   assert.deepEqual(rendered.map((f) => `${f.id} ${f.message}`), []);
 });
+
+test('JSX and Svelte: expressions, nested JSX, spreads and props are understood', async () => {
+  const r = await run({ inputs: [fx('App.tsx'), fx('App.svelte')] });
+  assert.deepEqual(new Set(ids(r, 'App.tsx')), new Set(['TR003@9', 'TR005@10', 'TR002@16', 'TR018@17']));
+  assert.deepEqual(ids(r, 'App.svelte'), ['TR003@8']);
+  // {expr} values are dynamic: no number or attribute errors for min={-100}, label={`…`}, oninput={(e) => …}
+  assert.ok(!r.findings.some((f) => f.file.endsWith('App.svelte') && f.attribute !== 'tone'));
+});
+
+test('project context: custom skins and skins imported from JS are known', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trompe-ctx-'));
+  const { writeFileSync, mkdirSync } = await import('node:fs');
+  writeFileSync(join(dir, 'package.json'), '{"name":"x"}');
+  mkdirSync(join(dir, 'src'));
+  writeFileSync(join(dir, 'src', 'main.js'), "import 'trompe/skins/soft.css';\nimport './velo.css';\n");
+  writeFileSync(join(dir, 'src', 'velo.css'), ":where([data-tr-skin='velo']) { --tr-color-accent: lime; }\n");
+  writeFileSync(join(dir, 'index.html'), '<!doctype html><html><body data-tr-skin="velo"><tr-button>Go</tr-button><script type="module" src="./src/main.js"></script></body></html>');
+  const r = await run({ inputs: ['index.html'], cwd: dir });
+  assert.deepEqual(r.findings.map((f) => f.id), []);
+});

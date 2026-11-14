@@ -19,6 +19,12 @@ const pkg = readJson('package.json');
 const manifest = readJson('custom-elements.json');
 const tokens = readJson('src/generated/tokens.json');
 const skins = existsSync(resolve(root, 'src/generated/skins.json')) ? readJson('src/generated/skins.json') : null;
+/** The hand-written app-building guide (docs/guide.md), included as the first section: setup, page, which element, taste. */
+const guide = readFileSync(resolve(root, 'docs/guide.md'), 'utf8')
+  .replace(/^# .*\n/, '## Building an app\n')
+  .replace(/^## /gm, '### ')
+  .replace(/^### Building an app\n/, '## Building an app\n')
+  .trim();
 
 /** Attributes every Trompe element inherits from TrompeElement. Documented once in the model section. */
 const SHARED = ['material', 'finish', 'profile', 'realism', 'depth'];
@@ -233,10 +239,11 @@ Install: \`npm i ${pkg.name}\`. Machine-readable sources (shipped in the package
 - \`custom-elements.json\` — Custom Elements Manifest. Type texts are expanded to literal unions (the alias is in \`type.alias\`); \`role\` marks interactive elements; \`examples\` holds markup.
 - \`dist/tokens.json\` (\`trompe/tokens.json\`) — every token and the material/finish/profile/realism/depth model.${skins ? '\n- `dist/skins.json` (`trompe/skins.json`) — skins and what they set.' : ''}
 - Framework typings: \`trompe/frameworks/react\`, \`trompe/frameworks/vue\`, \`trompe/frameworks/svelte\` (import once for typed tr-* props).
+- \`docs/guide.md\` (the "Building an app" section below), \`docs/skins.md\`, \`docs/check.md\`, \`docs/interaction.md\`.
 ${full ? '' : '- `llms-full.txt` — this index plus full descriptions, JS properties, methods, every token and skin detail.\n'}
 Rules for correct markup:
 - Use only the attributes and values listed here; enumerated values are exact strings.
-- Boolean attributes are present/absent (\`disabled\`, \`toggle\`, \`checked\`); numbers are written as strings in HTML.
+- Boolean attributes are present/absent (\`disabled\`, \`toggle\`, \`checked\`). Numbers are strings in HTML (\`max="100"\`); in React, Vue and Svelte bind them as numbers (\`max={100}\`, \`:max="100"\`), as the typings expect.
 - Interactive elements (they take focus and need an accessible name): ${interactive.join(', ') || 'none'}.${namedRoles.length ? `\n- Non-interactive elements with a role (give them an accessible name too, e.g. aria-label): ${namedRoles.join(', ')}.` : ''}
 - Read values in event handlers from \`event.target.value\` / \`.checked\` / \`.pressed\`.
 - Check your output: \`npx trompe check <files>\` (add \`--format json\` to read findings, \`--fix\` for typos, \`--render\` for contrast, axe, target size and forced colours). It validates markup (.html, .vue, .svelte, Lit html\`\`), CSS and skin files against this package, and exits 1 on errors.`;
@@ -245,6 +252,7 @@ Rules for correct markup:
 function build(full) {
   return [
     header(full),
+    guide,
     modelSection(full),
     theming,
     skinsSection(full),

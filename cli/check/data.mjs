@@ -48,6 +48,8 @@ export function loadData(opts = {}) {
         role: d.role ?? null,
         summary: d.summary ?? '',
         attrs,
+        /** Writable JS properties, lowercased: JSX writes them as camelCase props (valueText). */
+        props: new Set((d.members ?? []).filter((m) => m.kind === 'field' && !m.static && (!m.privacy || m.privacy === 'public')).map((m) => m.name.toLowerCase())),
         cssProperties: new Set((d.cssProperties ?? []).map((p) => p.name)),
         parts: new Set((d.cssParts ?? []).map((p) => p.name)),
         slots: (d.slots ?? []).map((s) => s.name),

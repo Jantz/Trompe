@@ -25,11 +25,13 @@ import { PressController } from '../../interaction/press.js';
  *
  * @cssprop --tr-button-padding-inline - Horizontal padding. Defaults by size.
  * @cssprop --tr-button-radius - Corner radius. Defaults to --tr-radius-md.
+ * @cssprop --tr-button-lamp-color - Colour of a lit `toggle` lamp. Defaults to --tr-color-accent.
  *
  * @fires click - Native click, also fired for Enter and Space.
  * @fires change - Fired when a `toggle` button flips `pressed`.
  *
  * @example <tr-button tone="accent">Save</tr-button>
+ * @example <tr-button tone="accent" type="submit" loading>Place order</tr-button>
  * @example <tr-button toggle pressed material="metal">Mute</tr-button>
  * @example <tr-button shape="circle" profile="dome" finish="gloss" aria-label="Play"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M4 2l10 6-10 6z"/></svg></tr-button>
  */
@@ -144,13 +146,56 @@ export class TrButton extends FormControl {
         transition: background-color var(--tr-motion-duration-release, 160ms), box-shadow var(--tr-motion-duration-release, 160ms);
       }
       :host([pressed]) .lamp {
-        background: var(--tr-button-lamp-color, oklch(78% 0.17 140));
+        background: var(--tr-button-lamp-color, var(--tr-color-accent));
         box-shadow:
-          0 0 calc(2px + var(--_r) * 6px) var(--tr-button-lamp-color, oklch(78% 0.17 140)),
+          0 0 calc(2px + var(--_r) * 6px) var(--tr-button-lamp-color, var(--tr-color-accent)),
           inset 0 -1px 1px color-mix(in oklch, var(--_sh) 30%, transparent);
       }
       .lamp[hidden] {
         display: none;
+      }
+      /* loading: the label fades out in place (the button keeps its size) and a spinner turns */
+      .surface {
+        position: relative;
+      }
+      ::slotted(*),
+      .label,
+      .lamp {
+        transition: opacity var(--tr-motion-duration-release, 160ms) ease-out;
+      }
+      :host([loading]) .label,
+      :host([loading]) .lamp,
+      :host([loading]) ::slotted(*) {
+        opacity: 0;
+      }
+      .spinner {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 1.15em;
+        height: 1.15em;
+        border-radius: 50%;
+        border: 0.16em solid color-mix(in oklch, currentColor 25%, transparent);
+        border-top-color: currentColor;
+        opacity: 0;
+        scale: 0.6;
+        pointer-events: none;
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
+          scale var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out);
+        animation: tr-button-spin 0.8s linear infinite;
+      }
+      :host([loading]) .spinner {
+        opacity: 1;
+        scale: 1;
+      }
+      :host([loading]) {
+        cursor: progress;
+      }
+      @keyframes tr-button-spin {
+        to {
+          rotate: 1turn;
+        }
       }
       @media (pointer: coarse) {
         .surface {
@@ -190,6 +235,12 @@ export class TrButton extends FormControl {
   /** Whether a `toggle` button is latched down. Exposed as aria-pressed. */
   @property({ type: Boolean, reflect: true }) pressed = false;
 
+  /**
+   * Shows a spinner in place of the label (the button keeps its size, so nothing moves) and
+   * ignores clicks until cleared. Exposed as aria-busy. Use it while a submit is in flight.
+   */
+  @property({ type: Boolean, reflect: true }) loading = false;
+
   constructor() {
     super();
     this.role_ = 'button';
@@ -205,6 +256,7 @@ export class TrButton extends FormControl {
       <slot name="start"></slot>
       <span part="label" class="label"><slot></slot></span>
       <slot name="end"></slot>
+      <span class="spinner" aria-hidden="true"></span>
     </span>`;
   }
 
@@ -213,10 +265,11 @@ export class TrButton extends FormControl {
     if (changed.has('pressed') || changed.has('toggle')) {
       this.aria('aria-pressed', this.toggle ? String(this.pressed) : null);
     }
+    if (changed.has('loading')) this.aria('aria-busy', this.loading ? 'true' : null);
   }
 
   private onClick = (event: MouseEvent): void => {
-    if (this.isDisabled) {
+    if (this.isDisabled || this.loading) {
       event.preventDefault();
       event.stopImmediatePropagation();
       return;
