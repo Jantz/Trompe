@@ -153,7 +153,10 @@ export class TrOption extends TrompeElement {
         border-radius: 50%;
         /* unlit: a hollow ring, so "off" differs in shape, not only in color */
         border: 1.5px solid color-mix(in oklch, currentColor 45%, transparent);
-        transition: background-color var(--tr-motion-duration-release, 160ms), box-shadow var(--tr-motion-duration-release, 160ms);
+        transition:
+          background-color var(--tr-motion-duration-release, 160ms),
+          border-color var(--tr-motion-duration-release, 160ms),
+          box-shadow var(--tr-motion-duration-release, 160ms);
       }
       :host([data-mode='segment'][selected]) .lamp {
         border-color: color-mix(in oklch, var(--_lamp), var(--_sh) 25%);

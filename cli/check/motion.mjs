@@ -272,3 +272,85 @@ export function motionProblems(m, limits = {}) {
   if (m.vanished.length) out.push(`vanished without a transition: ${m.vanished.slice(0, 6).map((x) => x.el).join('; ')}`);
   return out;
 }
+
+/** Controls a person can click or toggle, in the light DOM. */
+const CLICKABLE = [
+  'tr-button', 'tr-switch', 'tr-checkbox', 'tr-radio', 'tr-tab', 'tr-segmented tr-option', 'tr-list[selectable] tr-list-item',
+  'tr-nav-item', 'tr-select', 'tr-menu-item', 'button', '[role="button"]', '[role="tab"]', '[role="switch"]', 'summary',
+  'input[type="checkbox"]', 'input[type="radio"]', 'a[href^="#"]',
+].join(',');
+
+/**
+ * Clicks every visible control on a page in turn and measures each change with
+ * {@link measureChange}. After each click, Escape closes whatever opened. Returns one entry per
+ * control: its description, the measurement and the problems found.
+ * @param {import('playwright').Page} page
+ * @param {{ limit?: number, include?: string, exclude?: string, limits?: object }} [opts]
+ */
+export async function sweepInteractions(page, opts = {}) {
+  const { limit = 60, include = CLICKABLE, exclude = '[disabled], [aria-disabled="true"], [inert] *, [data-tr-probe-skip], [data-tr-probe-skip] *' } = opts;
+  const count = await page.evaluate(
+    ({ include, exclude, limit }) => {
+      let i = 0;
+      for (const el of document.querySelectorAll(include)) {
+        // Links that go somewhere (another page, or a jump to an anchor) are navigation, not a state change.
+        if (el.closest('a[href]:not([href="#"]), tr-nav-item[href]:not([href="#"])')) continue;
+        if (el.matches(exclude) || el.closest('tr-menu:not(:popover-open), [hidden], dialog:not([open]), tr-dialog:not([open])')) continue;
+        if (!el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < 4 || r.height < 4) continue;
+        el.setAttribute('data-tr-probe', String(i++));
+        if (i >= limit) break;
+      }
+      return i;
+    },
+    { include, exclude, limit },
+  );
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const sel = `[data-tr-probe="${i}"]`;
+    const loc = page.locator(sel);
+    const info = await loc
+      .evaluate((el) => {
+        if (!el.isConnected || !el.checkVisibility()) return null;
+        el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+        const text = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+        const r = el.getBoundingClientRect();
+        return { desc: `${el.localName}${el.id ? '#' + el.id : ''}${text ? ` "${text}"` : ''}`, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      })
+      .catch(() => null);
+    if (!info) continue;
+    await page.waitForTimeout(100);
+    // Clicking a link that leaves the page is not a change to measure.
+    page.once('dialog', (d) => d.dismiss().catch(() => {}));
+    let m;
+    try {
+      m = await measureChange(page, (p) => p.mouse.click(info.x, info.y), {
+        wait: 120,
+        settle: 1500,
+        clip: opts.clipAround ? { x: Math.max(0, info.x - 300), y: Math.max(0, info.y - 150), width: 600, height: 300 } : undefined,
+        saveFrames: opts.saveFrames ? (f) => opts.saveFrames(i, info.desc, f) : undefined,
+      });
+    } catch (e) {
+      out.push({ target: info.desc, error: String(e).slice(0, 200), problems: [] });
+      continue;
+    }
+    out.push({ target: info.desc, measurement: m, problems: motionProblems(m, opts.limits) });
+    await page.keyboard.press('Escape').catch(() => {});
+    // Escape is a key press, which turns on keyboard focus rings; drop focus so the next
+    // measurement does not count the ring leaving (rings leave at once by design, so only one
+    // control ever looks focused).
+    await page
+      .evaluate(() => {
+        let a = document.activeElement;
+        while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement;
+        a?.blur?.();
+        document.activeElement?.blur?.();
+      })
+      .catch(() => {});
+    await page.mouse.move(0, 0).catch(() => {});
+    await page.waitForTimeout(350);
+  }
+  await page.evaluate(() => document.querySelectorAll('[data-tr-probe]').forEach((el) => el.removeAttribute('data-tr-probe'))).catch(() => {});
+  return out;
+}
