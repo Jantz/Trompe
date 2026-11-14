@@ -198,6 +198,18 @@ export default async (pg, { out, name }) => {
     ok(await pg.getAttribute("#zoom", "aria-valuetext") === "Medium cards", "valueText describes size");
   });
 
+  // Trash drawer
+  await step("Trash", async () => {
+    await pg.click('.drawer[data-loc="trash"]'); await wait(700);
+    s = await st(); ok(s.cwd === "trash" && s.list.length >= 2, `Trash drawer lists discarded cards (${s.list.length})`);
+    ok(await pg.$eval("#newf", (b) => b.disabled), "New folder is disabled in the Trash");
+    await pg.click(`#o-${s.list[0]}`); await pg.keyboard.press("Delete"); await wait(600);
+    ok((await pg.textContent("#dlgT")).startsWith("Delete"), "dialog offers permanent delete in Trash");
+    await pg.click("#dOk"); await wait(700);
+    ok(!(await pg.evaluate((id) => __archive.I.has(id), s.list[0])), "Delete removes it for good");
+    await shot("trash", { clip: { x: 0, y: 0, width: 1440, height: 900 } });
+  });
+
   // Drawer navigation
   await step('Drawer navigation', async () => {
     await pg.click('.drawer[data-loc="projects"]'); await wait(700);

@@ -21,7 +21,7 @@
   // Powder-coat orange peel: lit bump field, centred on mid-grey for an overlay blend.
   set("--tx-peel", svg(150, 150, f("p", "<feTurbulence type='fractalNoise' baseFrequency='.13' numOctaves='2' seed='4' stitchTiles='stitch'/><feDiffuseLighting surfaceScale='1.6' lighting-color='#fff'><feDistantLight azimuth='225' elevation='58'/></feDiffuseLighting><feColorMatrix values='1 0 0 0 -.36 1 0 0 0 -.36 1 0 0 0 -.36 0 0 0 0 .4'/>") + "<rect width='100%' height='100%' filter='url(#p)'/>"));
   // Jaspé linoleum: long marbled streaks.
-  set("--tx-lino", svg(320, 320, f("l", "<feTurbulence type='fractalNoise' baseFrequency='.003 .11' numOctaves='4' seed='21' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .66 0 0 0 0 .76 0 0 0 0 .7 0 0 0 1.05 -.53'/>") + "<rect width='100%' height='100%' filter='url(#l)'/>"));
+  set("--tx-lino", svg(420, 420, f("l", "<feTurbulence type='fractalNoise' baseFrequency='.011' numOctaves='4' seed='21' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .7 0 0 0 0 .8 0 0 0 0 .74 0 0 0 .42 -.16'/>") + f("k", "<feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='1' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .85 0 0 0 0 .9 0 0 0 0 .8 0 0 0 9 -6'/>") + "<rect width='100%' height='100%' filter='url(#l)'/><rect width='100%' height='100%' filter='url(#k)' opacity='.35'/>"));
   // Paper fibre for card stock.
   set("--tx-fiber", svg(200, 200, f("q", "<feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .25 0 0 0 .55 -.2'/>") + "<rect width='100%' height='100%' filter='url(#q)'/>"));
   // Rubber-stamp ink coverage mask (mostly solid, with starved patches).
@@ -101,13 +101,13 @@ body{
 .screw{width:.62em;height:.62em;border-radius:50%;flex:none;background:linear-gradient(var(--sa,30deg),transparent 44%,oklch(.3 .05 60/.85) 44% 56%,transparent 56%),var(--rivet);box-shadow:calc(var(--lx)*.5) calc(var(--ly)*.5) 1px #0006}
 .burn{margin:0 0 -.35em .3em;font:700 .74em/1 var(--silk);letter-spacing:.22em;text-transform:uppercase;color:oklch(.3 .06 52/.82);text-shadow:var(--lx) var(--ly) 0 oklch(.92 .06 80/.45)}
 
-.bank{display:grid;gap:.5em;padding:.45em;margin:0;list-style:none;border-radius:.3em;background:linear-gradient(oklch(.25 .04 50/.28),oklch(.25 .04 50/.28)),var(--oak-bg);background-position:0 0,0 0,0 0,-200px -90px,-90px -200px,0 0;background-blend-mode:normal,normal,normal,normal,multiply,normal;
+.bank{display:grid;gap:.42em;padding:.42em;margin:0;list-style:none;border-radius:.3em;background:linear-gradient(oklch(.25 .04 50/.28),oklch(.25 .04 50/.28)),var(--oak-bg);background-position:0 0,0 0,0 0,-200px -90px,-90px -200px,0 0;background-blend-mode:normal,normal,normal,normal,multiply,normal;
  box-shadow:inset var(--lx) var(--ly) 0 oklch(1 .04 85/.35),inset calc(var(--lx)*-1) calc(var(--ly)*-1) 0 oklch(.25 .05 50/.5),0 0 0 1px oklch(.22 .04 50/.55),calc(var(--lx)*1.5) calc(var(--ly)*2) 2px #0005}
 .bank li{position:relative}
 .bank li:has([aria-current="true"]){z-index:2}
 .drawer{
  position:relative;z-index:0;display:grid;justify-items:center;align-content:center;gap:.3em;
- width:100%;height:4.3em;padding:.45em .6em;border:0;border-radius:.2em;cursor:pointer;color:var(--ink);
+ width:100%;height:4em;padding:.4em .6em;border:0;border-radius:.2em;cursor:pointer;color:var(--ink);
  translate:0 0;scale:1;transition:scale .28s var(--sp),translate .28s var(--sp);
  box-shadow:
  inset var(--lx) var(--ly) 0 oklch(1 .04 85/.45),
@@ -117,6 +117,7 @@ body{
 }
 .bank li:nth-child(2) .drawer{background-position:0 0,0 0,-140px -60px,-60px -140px,0 0}
 .bank li:nth-child(3) .drawer{background-position:0 0,0 0,-310px -120px,-120px -310px,0 0}
+.bank li:nth-child(5) .drawer{background-position:0 0,0 0,-420px -30px,-30px -420px,0 0}
 .bank li:nth-child(4) .drawer{background-position:0 0,0 0,-60px -150px,-150px -60px,0 0}
 .drawer .ds{position:absolute;inset:0;z-index:-2;border-radius:inherit;pointer-events:none;box-shadow:0 0 0 1px oklch(.2 .04 45/.6),calc(var(--lx)*1.5) calc(var(--ly)*2) 2px #0007}
 .drawer .ds::after{content:"";position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .28s;box-shadow:calc(var(--lx)*6*var(--ln)) calc(var(--ly)*9*var(--ln)) 12px #0009,calc(var(--lx)*2) calc(var(--ly)*3) 3px #0008}
@@ -241,6 +242,7 @@ body{
  background:radial-gradient(90% 70% at 50% 0%,#fff4,transparent 60%),linear-gradient(var(--lit),oklch(.33 .015 50),oklch(.17 .01 50) 55%,oklch(.12 .01 50));
  box-shadow:inset var(--lx) var(--ly) 0 #fff4,inset 0 -.12em .2em #0006,0 0 0 .5px oklch(.05 0 0)}
 .btn-bak .cap svg{filter:none}
+.btn-bak:disabled .cap{color:oklch(.93 .03 90/.32)}
 .btn-red .cap{color:oklch(.97 .02 80);text-shadow:calc(var(--lx)*-.6) calc(var(--ly)*-.6) 0 oklch(.3 .1 25/.6);
  background:var(--tx-peel) 0 0/150px,linear-gradient(var(--lit),oklch(.66 .17 30),oklch(.54 .18 27) 55%,oklch(.44 .15 25));background-blend-mode:overlay,normal;
  box-shadow:inset var(--lx) var(--ly) 0 oklch(1 .05 30/.45),inset calc(var(--lx)*-1) calc(var(--ly)*-1) 0 oklch(.3 .1 25/.5),0 0 0 .5px oklch(.25 .08 25)}
@@ -290,7 +292,7 @@ button.crumb:hover{translate:0 -1px}
 
 /* The desk: jaspé linoleum */
 .desk{position:relative;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--st-lo) transparent;
- background:radial-gradient(90% 70% at var(--hot),#fff1,transparent 70%),var(--tx-lino) 0 0/320px 320px,linear-gradient(var(--lino),var(--lino-lo));
+ background:radial-gradient(90% 70% at var(--hot),#fff1,transparent 70%),var(--tx-lino) 0 0/420px 420px,linear-gradient(var(--lino),var(--lino-lo));
  box-shadow:inset 0 calc(var(--ly)*6) 10px -4px #0008}
 .files{font-size:calc(1em*var(--z,1));position:relative;display:grid;grid-template-columns:repeat(auto-fill,minmax(10.8em,1fr));gap:2.1em 1.5em;align-items:end;padding:2.2em 1.8em 2.6em;min-height:100%;align-content:start;outline:none}
 .empty{display:none;position:absolute;inset:3em 1em auto;margin:auto;width:min(22em,100%);aspect-ratio:5/3;padding:1.1em 1.3em;text-align:left;pointer-events:none;
@@ -607,7 +609,8 @@ dialog::backdrop{background:oklch(.15 .015 55/.55)}
   <p>Every surface is one physical kit of parts. The cabinet and drawer bank are quarter-sawn oak under satin varnish: a procedural grain with ray flecks, graded with the kit wood texture and lit by the scene light. Folders are manila and kraft card with alternating half-cut tabs and papers peeking out; files are ruled index cards with typed labels, inked kind glyphs and rubber-stamped status. Toolbars are green-grey enamelled steel with an orange-peel powder coat; breadcrumbs sit in pressed-steel label holders with a brass rivet each side.</p>
   <p>Selection is physical: a card lifts toward the light with a longer cast shadow and gets a red grease-pencil tick. Drag cards onto a folder, a drawer or a breadcrumb; the folder lifts its tab and opens its front to receive them. Turn the light dial in the bar: every shadow, bevel, rivet and varnish sheen follows it.</p>
   <ul>
-    <li><b>Drawers</b> (locations), <b>tag stickers</b> (filters), <b>glass-tube storage meter</b>.</li>
+    <li><b>Drawers</b> (locations and Trash, also drop targets), <b>tag stickers</b> (filters), <b>glass-tube storage meter</b>.</li>
+    <li><b>Slide switch</b> Folders first, <b>brass-thumb slider</b> for card size, in the status bar.</li>
     <li><b>Steel push buttons</b> Back / Forward, <b>bakelite primary</b> New folder, <b>red enamel destructive</b> Discard.</li>
     <li><b>Rocker keys</b> Grid / List (interlocking), <b>sort slip</b> listbox (Enter, arrows, type-ahead, Escape).</li>
     <li><b>Cards</b>: click, <kbd>Shift</kbd>/<kbd>Ctrl</kbd>-click, arrows, <kbd>Enter</kbd> opens, <kbd>F2</kbd> renames, <kbd>Del</kbd> discards, <kbd>Shift</kbd>+<kbd>F10</kbd> or right-click / long-press for the menu, <kbd>Alt</kbd>+<kbd>←</kbd> back, <kbd>/</kbd> search.</li>
@@ -651,7 +654,7 @@ const MARK = '<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><path d="
 const SCRIB = '<svg class="scrib" viewBox="0 0 60 8" preserveAspectRatio="none" aria-hidden="true"><path d="M2 5.5C14 3 30 2.5 58 3.2M6 6.8c16-1.6 30-1.8 48-1.4" fill="none" stroke="var(--grease)" stroke-width="1.6" stroke-linecap="round"/></svg>';
 
 const I = new Map(); let seq = 0;
-const LOCS = [["desktop", "Desktop"], ["documents", "Documents"], ["projects", "Projects"], ["shared", "Shared"]];
+const LOCS = [["desktop", "Desktop"], ["documents", "Documents"], ["projects", "Projects"], ["shared", "Shared"], ["trash", "Trash"]];
 for (const [id, name] of LOCS) I.set(id, { id, name, dir: true, parent: null, date: "2026-11-14" });
 function add(parent, spec) {
   // spec: [name, size|children[], date, tags, stamp]
@@ -779,7 +782,7 @@ function chrome() {
     const on = path[0].id === b.dataset.loc; b.setAttribute("aria-current", on);
     b.querySelector(".cnt").textContent = kids(b.dataset.loc).length;
   }
-  $("#back").disabled = !S.back.length; $("#fwd").disabled = !S.fwd.length;
+  $("#back").disabled = !S.back.length; $("#fwd").disabled = !S.fwd.length; $("#newf").disabled = S.cwd === "trash";
   files.setAttribute("aria-label", `${path.at(-1).name} contents`);
   $$(".lhead [data-sort]").forEach((b) => { const s = b.dataset.sort; b.setAttribute("aria-sort", S.sort === s ? (s === "date" || s === "size" ? "descending" : "ascending") : S.sort === s + "-d" ? "descending" : S.sort === s + "-a" ? "ascending" : "none"); });
   status();
@@ -1010,6 +1013,7 @@ let undoFn = null, toastT = 0;
 function toast(msg, undo = null) {
   const t = $("#toast"); $("#toastT").textContent = msg; undoFn = undo; $("#undo").hidden = !undo;
   const was = t.hidden; t.hidden = false;
+  t.style.bottom = Math.max(14, innerHeight - $(".sb").getBoundingClientRect().top + 12) + "px";
   if (was && !RM()) t.animate([{ transform: "translateY(140%) rotate(1.5deg)" }, { transform: "none" }], { duration: 380, easing: EASE });
   clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 5200);
 }
@@ -1096,7 +1100,10 @@ const dlg = $("#dlg");
 function askTrash() {
   const ids = S.list.filter((x) => S.sel.has(x)); if (!ids.length) return;
   const n = ids.length;
-  $("#dlgT").textContent = n === 1 ? "Discard this card?" : `Discard ${n} items?`;
+  const ever = S.cwd === "trash";
+  $("#dlgT").textContent = (ever ? "Delete " : "Discard ") + (n === 1 ? "this card?" : `${n} items?`);
+  $("#dlgD").textContent = ever ? "These cards are shredded. This can’t be undone." : "These cards go to the Trash and stop counting toward storage.";
+  $("#dOk .cap").textContent = ever ? "Delete" : "Discard";
   $("#dlgL").innerHTML = ids.slice(0, 4).map((id) => `<li>${esc(I.get(id).name)}</li>`).join("") + (n > 4 ? `<li>and ${n - 4} more</li>` : "");
   dlg.dataset.ids = ids.join(",");
   closeMenus(); $("#toast").hidden = true; dlg.showModal();
@@ -1109,14 +1116,16 @@ function askTrash() {
 function discard() {
   const ids = (dlg.dataset.ids || "").split(",").filter(Boolean); dlg.close("discard");
   const prev = ids.map((id) => [id, I.get(id).parent]);
-  const gone = () => { ids.forEach((id) => (I.get(id).parent = "trash")); S.sel.clear(); render({ keepFocus: true }); };
+  const forever = S.cwd === "trash", drop = (id) => { kids(id).forEach((k) => drop(k.id)); I.delete(id); };
+  const gone = () => { ids.forEach((id) => (forever ? drop(id) : (I.get(id).parent = "trash"))); S.sel.clear(); render({ keepFocus: true }); };
   play("paper");
   const els = ids.map(elOf).filter(Boolean);
   if (els.length && !RM()) {
     els.forEach((el, i) => el.animate([{ transform: "none", opacity: 1 }, { transform: `translateY(1.4em) rotate(${i % 2 ? 9 : -9}deg) scale(.8)`, opacity: 0 }], { duration: 260, delay: i * 30, easing: "cubic-bezier(.5,0,.8,.4)", fill: "forwards" }));
     setTimeout(gone, 260 + els.length * 30);
   } else gone();
-  toast(ids.length === 1 ? `Discarded “${I.get(ids[0]).name}”.` : `Discarded ${ids.length} items.`, () => { prev.forEach(([id, p]) => (I.get(id).parent = p)); S.sel = new Set(ids); render(); play("paper"); });
+  if (forever) return toast(`Deleted ${ids.length === 1 ? "1 item" : ids.length + " items"} for good.`);
+  toast(ids.length === 1 ? `Moved “${I.get(ids[0]).name}” to the Trash.` : `Moved ${ids.length} items to the Trash.`, () => { prev.forEach(([id, p]) => (I.get(id).parent = p)); S.sel = new Set(ids); render(); play("paper"); });
 }
 new PressController($("#dCancel"), { sound: "clack", onActivate: () => dlg.close("cancel") });
 new PressController($("#dOk"), { sound: "clack", onActivate: discard });
@@ -1131,7 +1140,7 @@ function openMenu(x, y, ret) {
   closeSort();
   menuReturn = ret;
   menu.querySelector('[data-act="rename"]').setAttribute("aria-disabled", S.sel.size > 1);
-  menu.querySelector('[data-act="trash"]').firstChild.textContent = S.sel.size > 1 ? `Move ${S.sel.size} to Trash` : "Move to Trash";
+  menu.querySelector('[data-act="trash"]').firstChild.textContent = S.cwd === "trash" ? "Delete forever" : S.sel.size > 1 ? `Move ${S.sel.size} to Trash` : "Move to Trash";
   menu.hidden = false;
   const w = menu.offsetWidth, h = menu.offsetHeight;
   menu.style.left = clamp(x, 8, innerWidth - w - 8) + "px"; menu.style.top = clamp(y, 8, innerHeight - h - 8) + "px";
@@ -1277,7 +1286,8 @@ addEventListener("keydown", (e) => {
 // Focus rings only for keyboard users (programmatic focus after a click must stay quiet).
 addEventListener("keydown", (e) => { if (!["Shift", "Control", "Meta", "Alt"].includes(e.key)) document.documentElement.dataset.kb = ""; }, true);
 addEventListener("pointerdown", () => delete document.documentElement.dataset.kb, true);
-if (matchMedia("(max-width: 760px)").matches) q.placeholder = "Search…";
+const narrow = matchMedia("(max-width: 760px)"), ph = () => (q.placeholder = narrow.matches ? "Search…" : "Search this drawer…");
+ph(); narrow.addEventListener("change", ph);
 render();
 syncTags();
 window.__archive = { S, I };
