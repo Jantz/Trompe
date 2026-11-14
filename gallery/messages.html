@@ -173,7 +173,7 @@ button { cursor: pointer; }
 
 /* thread tray, moulded into the slab */
 .thread {
-  position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; min-width: 0; overflow: hidden; border-radius: 2em;
+  position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr); min-height: 0; min-width: 0; overflow: hidden; border-radius: 2em;
   background: var(--grain), linear-gradient(var(--lit), oklch(0.875 0.026 70), oklch(0.905 0.022 74) 30%, oklch(0.925 0.018 78));
   box-shadow: inset calc(var(--sx) * .2em) calc(var(--sy) * .28em) .4em oklch(var(--shc) / .3), inset calc(var(--sx) * .8em) calc(var(--sy) * 1.1em) 2em oklch(var(--shc) / .14),
     inset calc(var(--sx) * -.1em) calc(var(--sy) * -.13em) .14em oklch(1 0 0 / .7), calc(var(--sx) * .07em) calc(var(--sy) * .1em) .05em oklch(1 0 0 / .85), var(--n1) .08em oklch(var(--shc) / .14);
@@ -263,7 +263,7 @@ button { cursor: pointer; }
 .file small { color: var(--ink-3); font-size: .9em; }
 .me .file small { color: oklch(0.95 0.04 60 / .85); }
 .file .grow { flex: 1; min-width: 0; }
-.doc-ico { width: 2.4em; height: 2.9em; border-radius: .45em .9em .45em .45em; display: grid; place-items: center; font: 800 .6em/1 var(--ui); letter-spacing: .05em; color: oklch(0.98 0.01 90); text-shadow: none;
+.doc-ico { width: 3.6em; height: 4.4em; border-radius: .45em .9em .45em .45em; display: grid; place-items: center; font: 800 .6em/1 var(--ui); letter-spacing: .05em; color: oklch(0.98 0.01 90); text-shadow: none;
   background: linear-gradient(var(--lit), oklch(0.98 0.01 85), oklch(0.9 0.02 80)); color: var(--brick); box-shadow: inset var(--o1) .05em oklch(1 0 0 / .8), var(--o2) .3em oklch(0.3 0.1 28 / .4); }
 
 /* typing: three resin beads */
@@ -615,34 +615,35 @@ const SCENES = {
   noon: { sky: ["#6fa9d4", "#bcdbe8", "#e6efe8"], sun: [330, 60], hills: ["#a5c0b8", "#79a394", "#4c7a68", "#203d33"], water: ["#9ccbd0", "#2f5e66"], seed: 13 },
 };
 function photo(key, u) {
-  const p = SCENES[key], W = 400, H = 250, hz = 176;
+  const p = SCENES[key], W = 400, H = 250, hz = 176, f1 = (n) => n.toFixed(1);
   let sd = p.seed * 9301 + 49297; const rnd = () => ((sd = (sd * 9301 + 49297) % 233280) / 233280);
-  const ridge = (base, amp, f, ph, jag = 0, x0 = 0, x1 = W) => {
-    let d = `M${x0} ${H}`;
-    for (let x = x0, i = 0; x <= x1; x += jag ? 4 : 8, i++) {
-      const y = base - amp * (0.55 + 0.3 * Math.sin(x * f + ph) + 0.15 * Math.sin(x * f * 2.7 + ph * 3)) - (jag && i % 2 ? jag * (0.45 + 0.55 * rnd()) : 0);
-      d += `L${x} ${y.toFixed(1)}`;
-    }
-    return d + `L${x1} ${H}Z`;
-  };
-  const [sx, sy] = p.sun;
+  const ridge = (base, amp, f, ph) => { let d = `M0 ${H}`; for (let x = 0; x <= W; x += 8) d += `L${x} ${f1(base - amp * (0.55 + 0.3 * Math.sin(x * f + ph) + 0.15 * Math.sin(x * f * 2.7 + ph * 3)))}`; return d + `L${W} ${H}Z`; };
+  // conifers: three tiers of branches per tree, scattered heights
+  const trees = (n, x0, x1, base, lo, hi) => { let d = ""; for (let i = 0; i < n; i++) { const x = x0 + (x1 - x0) * (i + rnd() * .8) / n, h = lo + (hi - lo) * rnd(), w = h * .36, t = base - h;
+    d += `M${f1(x)} ${f1(t)}L${f1(x + w * .3)} ${f1(t + h * .3)}h${f1(-w * .12)}L${f1(x + w * .42)} ${f1(t + h * .62)}h${f1(-w * .14)}L${f1(x + w * .5)} ${f1(base)}h${f1(-w)}L${f1(x - w * .28)} ${f1(t + h * .62)}h${f1(-w * .14)}L${f1(x - w * .18)} ${f1(t + h * .3)}h${f1(-w * .12)}Z`; } return d; };
+  const [sx, sy] = p.sun, shore = trees(46, -8, 408, hz + 1, 7, 19);
   let rip = "";
-  for (let i = 0; i < 9; i++) { const y = hz + 6 + i * 8 + rnd() * 4, w = 14 + rnd() * 50; rip += `<rect x="${(sx - w / 2 + (rnd() - .5) * 40).toFixed(0)}" y="${y.toFixed(0)}" width="${w.toFixed(0)}" height="1.4" fill="#fff" opacity="${(0.15 + rnd() * .25).toFixed(2)}"/>`; }
+  for (let i = 0; i < 9; i++) { const y = hz + 6 + i * 8 + rnd() * 4, w = 14 + rnd() * 50; rip += `<rect x="${(sx - w / 2 + (rnd() - .5) * 40).toFixed(0)}" y="${y.toFixed(0)}" width="${w.toFixed(0)}" height="1.2" fill="#fff" opacity="${(0.12 + rnd() * .25).toFixed(2)}"/>`; }
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>
 <linearGradient id="${u}s" x2="0" y2="1"><stop offset="0" stop-color="${p.sky[0]}"/><stop offset=".6" stop-color="${p.sky[1]}"/><stop offset="1" stop-color="${p.sky[2]}"/></linearGradient>
 <radialGradient id="${u}g"><stop offset="0" stop-color="#fff7e6" stop-opacity=".95"/><stop offset=".2" stop-color="#ffe4c0" stop-opacity=".6"/><stop offset="1" stop-color="#ffd8b0" stop-opacity="0"/></radialGradient>
 <linearGradient id="${u}f" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".65" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
 <linearGradient id="${u}w" x2="0" y2="1"><stop offset="0" stop-color="${p.water[0]}"/><stop offset="1" stop-color="${p.water[1]}"/></linearGradient>
-<linearGradient id="${u}r" x2="0" y2="1"><stop offset="0" stop-color="#fff3dc" stop-opacity=".85"/><stop offset="1" stop-color="#fff3dc" stop-opacity="0"/></linearGradient></defs>
+<linearGradient id="${u}r" x2="0" y2="1"><stop offset="0" stop-color="#fff3dc" stop-opacity=".85"/><stop offset="1" stop-color="#fff3dc" stop-opacity="0"/></linearGradient>
+<radialGradient id="${u}v" r=".75"><stop offset=".55" stop-color="#1b232a" stop-opacity="0"/><stop offset="1" stop-color="#1b232a" stop-opacity=".45"/></radialGradient>
+<filter id="${u}b"><feGaussianBlur stdDeviation="1.3"/></filter><filter id="${u}n"><feTurbulence baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter></defs>
 <rect width="${W}" height="${H}" fill="url(#${u}s)"/><circle cx="${sx}" cy="${sy}" r="130" fill="url(#${u}g)"/><circle cx="${sx}" cy="${sy}" r="13" fill="#fff9ee"/>
-<path d="${ridge(128, 52, 0.011, p.seed)}" fill="${p.hills[0]}"/><rect y="104" width="${W}" height="70" fill="url(#${u}f)"/>
-<path d="${ridge(150, 40, 0.017, p.seed * 2)}" fill="${p.hills[1]}"/><rect y="132" width="${W}" height="50" fill="url(#${u}f)" opacity=".7"/>
-<path d="${ridge(172, 18, 0.03, p.seed * 3, 9)}" fill="${p.hills[2]}"/>
-<rect y="${hz}" width="${W}" height="${H - hz}" fill="url(#${u}w)"/><rect x="${sx - 12}" y="${hz}" width="24" height="${H - hz}" fill="url(#${u}r)"/>${rip}
-<path d="${ridge(236, 52, 0.02, p.seed, 26, -10, 150)}" fill="${p.hills[3]}"/></svg>`;
+<path d="${ridge(128, 52, 0.011, p.seed)}" fill="${p.hills[0]}" filter="url(#${u}b)"/><rect y="104" width="${W}" height="70" fill="url(#${u}f)"/>
+<path d="${ridge(152, 38, 0.017, p.seed * 2)}" fill="${p.hills[1]}"/><rect y="134" width="${W}" height="48" fill="url(#${u}f)" opacity=".75"/>
+<path d="${shore}" fill="${p.hills[2]}"/><rect y="${hz - 3}" width="${W}" height="4" fill="${p.hills[2]}"/>
+<rect y="${hz}" width="${W}" height="${H - hz}" fill="url(#${u}w)"/><path d="${shore}" fill="${p.hills[2]}" opacity=".4" transform="matrix(1 0 0 -.8 0 ${f1(hz * 1.8 + 1)})" filter="url(#${u}b)"/>
+<rect x="${sx - 12}" y="${hz}" width="24" height="${H - hz}" fill="url(#${u}r)"/>${rip}
+<path d="${trees(6, -24, 112, H + 14, 80, 140)}${trees(2, 372, 420, H + 14, 70, 110)}" fill="${p.hills[3]}"/>
+<rect width="${W}" height="${H}" fill="url(#${u}v)"/><rect width="${W}" height="${H}" filter="url(#${u}n)" opacity=".09"/></svg>`;
 }
 const PHOTO_CACHE = {};
-const photoHTML = (key) => (PHOTO_CACHE[key] ??= photo(key, "p" + key));
+let photoN = 0;
+const photoHTML = (key) => (PHOTO_CACHE[key] ??= photo(key, "§")).replaceAll("§", "p" + ++photoN);
 
 /* ---------- enamel glyphs ---------- */
 const GLYPHS = { heart: [26, "Love", "❤️"], thumb: [203, "Thumbs up", "👍"], laugh: [82, "Ha ha", "😂"], wow: [320, "Wow", "😮"], fire: [52, "Fire", "🔥"], spark: [262, "Sparkle", "✨"] };
@@ -978,9 +979,9 @@ function push(c, m) {
   m.id = uid();
   if (lastDay(c) !== "Today") c.msgs.push({ day: "Today", id: uid() });
   c.msgs.push(m); c.ord = Date.now();
-  const typing = c.typing; c.typing = false;
+  const keep = c.typing && m.f === "me"; c.typing = false;
   renderThread(); renderList();
-  if (typing) setTyping(c, true);
+  if (keep) setTyping(c, true);
   return log.querySelector(`.msg[data-id="${m.id}"]`);
 }
 function flyFrom(el, from) {

@@ -9,7 +9,7 @@ This guide is the contract every study follows, written for agents as much as fo
 - `gallery/<slug>.html`: the study. Standalone, no build step.
 - It links `kit/objects.css` and imports from `kit/objects.js`. Google Fonts are allowed; nothing else external.
 - No raster images, no base64 bitmaps. Procedural SVG textures (`--tr-tex-*` in the kit, or your own `feTurbulence` tiles) are fine.
-- Keep the file under about 70 KB.
+- Keep the file under about 100 KB (about 30 KB gzipped).
 
 ## What a study must show
 
