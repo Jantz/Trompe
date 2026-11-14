@@ -39,7 +39,7 @@ const COLOURS: Record<string, Colour> = {
   teal: { hue: 190, chroma: 0.11 }, turquoise: { hue: 185, chroma: 0.13 }, cyan: { hue: 205, chroma: 0.13 }, aqua: { hue: 200, chroma: 0.12 },
   sky: { hue: 230, chroma: 0.11 }, blue: { hue: 255, chroma: 0.17 }, cobalt: { hue: 262, chroma: 0.18 }, navy: { hue: 262, chroma: 0.09, l: 0.3 }, denim: { hue: 250, chroma: 0.08 }, indigo: { hue: 275, chroma: 0.17 }, ultramarine: { hue: 268, chroma: 0.2 },
   violet: { hue: 295, chroma: 0.17 }, purple: { hue: 305, chroma: 0.16 }, lavender: { hue: 295, chroma: 0.08 }, plum: { hue: 330, chroma: 0.1, l: 0.4 }, magenta: { hue: 335, chroma: 0.22 }, fuchsia: { hue: 340, chroma: 0.22 }, pink: { hue: 355, chroma: 0.13 }, rose: { hue: 5, chroma: 0.12 },
-  cream: { hue: 85, chroma: 0.03, l: 0.94 }, ivory: { hue: 90, chroma: 0.02, l: 0.96 }, beige: { hue: 75, chroma: 0.04, l: 0.88 }, sand: { hue: 75, chroma: 0.05, l: 0.85 }, bone: { hue: 85, chroma: 0.02, l: 0.92 },
+  cream: { hue: 85, chroma: 0.03, l: 0.94 }, brown: { hue: 55, chroma: 0.07, l: 0.42 }, tan: { hue: 65, chroma: 0.07, l: 0.68 }, chocolate: { hue: 45, chroma: 0.06, l: 0.32 }, ivory: { hue: 90, chroma: 0.02, l: 0.96 }, beige: { hue: 75, chroma: 0.04, l: 0.88 }, sand: { hue: 75, chroma: 0.05, l: 0.85 }, bone: { hue: 85, chroma: 0.02, l: 0.92 },
   grey: { hue: 260, chroma: 0.005 }, gray: { hue: 260, chroma: 0.005 }, slate: { hue: 250, chroma: 0.02, l: 0.4 }, charcoal: { hue: 260, chroma: 0.008, l: 0.27 }, graphite: { hue: 260, chroma: 0.008, l: 0.32 }, white: { hue: 90, chroma: 0.003, l: 0.97 }, black: { hue: 260, chroma: 0.005, l: 0.18 },
 };
 
@@ -161,6 +161,8 @@ const SHAPE_WORDS: Record<string, { r: [number, number, number]; label: string; 
   pill: { r: [10, 16, 26], label: 'pill-shaped controls', pill: true }, pills: { r: [10, 16, 26], label: 'pill-shaped controls', pill: true }, bubbly: { r: [14, 20, 30], label: 'bubbly round shapes', pill: true },
 };
 
+/** Words that make the colour after them vivid: "neon green", "electric blue". */
+const VIVID = new Set(['neon', 'electric', 'vivid', 'fluorescent', 'fluoro', 'acid', 'bright', 'hot']);
 const ACCENT_CUES = new Set(['lighting', 'lamps', 'lamp', 'emergency', 'neon', 'accent', 'accents', 'accented', 'highlight', 'highlights', 'pop', 'pops', 'details', 'detail', 'trim', 'buttons', 'button', 'lights', 'glow', 'leds', 'led', 'type']);
 const CONTROL_CUES = new Set(['buttons', 'button', 'controls', 'control', 'keys', 'key', 'knobs', 'knob', 'switches', 'switch', 'toggles', 'dials', 'dial', 'trim', 'hardware', 'handles', 'fittings']);
 const SURFACE_CUES = new Set(['panels', 'panel', 'cards', 'card', 'surfaces', 'surface', 'body', 'case', 'background', 'desk', 'top', 'base', 'walls', 'chassis']);
@@ -204,6 +206,7 @@ const words = (text: string) => {
     .replace(/black leather/g, 'black-leather')
     .replace(/(light|blonde|pale|bleached|whitewashed) wood/g, 'light-wood')
     .replace(/cast iron/g, 'cast-iron')
+    .replace(/anodi[sz]ed (aluminium|aluminum|alloy|metal)/g, 'anodised')
     .replace(/black marble/g, 'black-marble')
     .replace(/\b(top|upper|bottom|lower)[ -](left|right)\b/g, (_, v, h) => `${v === 'upper' ? 'top' : v === 'lower' ? 'bottom' : v}-${h}`)
     .match(/[a-zà-ÿ0-9-]+/g);
@@ -266,6 +269,7 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
   let mood: Mood | undefined;
   for (let i = 0; i < w.length; i++) {
     const m = MOOD_WORDS[w[i]!];
+    if (VIVID.has(w[i]!) && COLOURS[w[i + 1] ?? '']) continue; // "neon green": a colour, not the look
     if (m && !skip(i) && (!MATERIAL_INDEX.has(w[i]!) || NOT_MATERIAL.has(w[i]!))) {
       mood = MOODS[m];
       used.add(i);
@@ -366,7 +370,7 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
       break;
     }
     const lightAsScheme = w[i] !== 'light' || ['mode', 'theme', 'scheme', 'ui', 'interface', 'background', 'palette', 'look', 'and'].includes(w[i + 1] ?? '') || i === 0;
-    if (['light', 'bright', 'airy', 'daylight', 'white', 'pale'].includes(w[i]!) && lightAsScheme && w[i + 1] !== 'wood' && !MATERIAL_INDEX.has(w[i + 1] ?? '') && !LIGHT_WORDS[w[i - 1] ?? '']) {
+    if (['light', 'bright', 'airy', 'daylight', 'white', 'pale'].includes(w[i]!) && lightAsScheme && !(w[i] === 'bright' && COLOURS[w[i + 1] ?? '']) && w[i + 1] !== 'wood' && !MATERIAL_INDEX.has(w[i + 1] ?? '') && !LIGHT_WORDS[w[i - 1] ?? '']) {
       scheme = 'light';
       used.add(i);
       notes.push(`Scheme: light (from “${w[i]}”)`);
@@ -384,10 +388,15 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
   let tint: { hue: number; amount: number } | undefined = mood?.tint;
   const free: { c: Colour; word: string; i: number }[] = [];
   for (let i = 0; i < w.length; i++) {
-    const c = COLOURS[w[i]!];
+    let c = COLOURS[w[i]!];
+    if (c && VIVID.has(w[i - 1] ?? '')) {
+      c = { ...c, chroma: Math.max(c.chroma * 1.4, 0.24), l: Math.max(c.l ?? 0.8, 0.82) };
+      used.add(i - 1);
+    }
     if (!c || used.has(i) || (MATERIAL_INDEX.has(w[i]!) && !NOT_MATERIAL.has(w[i]!) && mats.some((m) => m.at === i))) continue;
-    const cueAt = ACCENT_CUES.has(w[i + 1] ?? '') ? i + 1 : !COLOURS[w[i + 1] ?? ''] && ACCENT_CUES.has(w[i + 2] ?? '') ? i + 2 : -1;
-    if (cueAt > 0 && !accent) {
+    const cue = (k: number) => ACCENT_CUES.has(w[k] ?? '') && !COLOURS[w[k + 1] ?? '']; // "black neon green": neon belongs to green
+    const cueAt = cue(i + 1) ? i + 1 : !COLOURS[w[i + 1] ?? ''] && cue(i + 2) ? i + 2 : -1;
+    if (cueAt > 0 && !accent && (c.chroma > 0.04 || ['accent', 'accents', 'accented'].includes(w[cueAt]!))) {
       accent = c;
       used.add(i);
       notes.push(`Accent: ${w[i]} (hue ${c.hue}°)`);
@@ -413,9 +422,20 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
   const temp = warmAt >= 0 && (coolAt < 0 || warmAt < coolAt) ? 'warm' : coolAt >= 0 ? 'cool' : undefined;
   if (temp) {
     w.forEach((x, i) => ['warm', 'cozy', 'cosy', 'inviting', 'homely', 'snug', 'earthy', 'sunny', 'cool', 'icy', 'cold', 'arctic', 'frosty', 'wintry'].includes(x) && used.add(i));
-    if (!tint || tint === mood?.tint) tint = temp === 'warm' ? { hue: 65, amount: 0.9 } : { hue: 235, amount: 0.8 };
+    const tAt = temp === 'warm' ? warmAt : coolAt;
+    const after = COLOURS[w[tAt + 1] ?? ''];
+    // "warm white", "cool grey": a hint of temperature on a near-neutral, not a coloured room.
+    const subtle = !!after && after.chroma <= 0.04;
+    if (!tint || tint === mood?.tint) tint = temp === 'warm' ? { hue: 65, amount: subtle ? 0.35 : 0.9 } : { hue: 235, amount: subtle ? 0.35 : 0.8 };
     notes.push(`Temperature: ${temp} neutrals (from “${w[temp === 'warm' ? warmAt : coolAt]}”)`);
     if (!accent && (!mood?.accent || (temp === 'warm' ? Math.abs(((mood.accent.hue - 60 + 540) % 360) - 180) > 70 : false))) accent = temp === 'warm' ? COLOURS.amber! : COLOURS.sky!;
+  }
+  // A named coloured metal ("brushed gold details", "copper knobs") sets the accent before a look does.
+  const METAL_ACCENT: Record<string, Colour> = { gold: COLOURS.gold!, brass: { hue: 80, chroma: 0.12 }, copper: COLOURS.copper!, 'rose-gold': COLOURS.rose! };
+  const namedMetal = [controls, surfaces].find((m) => m && METAL_ACCENT[m.id]);
+  if (!accent && namedMetal) {
+    accent = METAL_ACCENT[namedMetal.id]!;
+    notes.push(`Accent: ${preset(namedMetal.id).label.toLowerCase()} (from “${w[namedMetal.at]}”)`);
   }
   if (!accent) {
     accent = mood?.accent ?? (preset(controlId).family === 'metal' ? COLOURS.amber! : COLOURS.blue!);

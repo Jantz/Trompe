@@ -118,3 +118,15 @@ test('project context: custom skins and skins imported from JS are known', async
   const r = await run({ inputs: ['index.html'], cwd: dir });
   assert.deepEqual(r.findings.map((f) => f.id), []);
 });
+
+test('TR019: numbers written as plain attributes in framework files; TR005 knows avatar names', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trompe-num-'));
+  const { writeFileSync } = await import('node:fs');
+  writeFileSync(join(dir, 'package.json'), '{"name":"x"}');
+  writeFileSync(join(dir, 'A.vue'), '<template>\n  <tr-panel depth="2"><tr-slider label="Vol" :max="100" min="0"></tr-slider></tr-panel>\n</template>\n');
+  writeFileSync(join(dir, 'B.tsx'), 'export const B = () => <tr-slider label="Vol" max="100" min={0} />;\n');
+  writeFileSync(join(dir, 'c.html'), '<tr-slider label="Vol" max="100"></tr-slider><tr-avatar name="Ada"></tr-avatar><tr-avatar decorative></tr-avatar><tr-avatar></tr-avatar>\n');
+  const r = await run({ inputs: ['A.vue', 'B.tsx', 'c.html'], cwd: dir });
+  assert.deepEqual(r.findings.map((f) => `${f.file}:${f.id}:${f.attribute ?? f.element}`).sort(), ['A.vue:TR019:depth', 'A.vue:TR019:min', 'B.tsx:TR019:max', 'c.html:TR005:tr-avatar']);
+  assert.match(r.findings.find((f) => f.file === 'A.vue').message, /:depth="2"/);
+});

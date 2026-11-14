@@ -13,10 +13,17 @@ import { elements, lineCol } from './markup.mjs';
 const MIME = { '.html': 'text/html', '.htm': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 const INTERACTIVE = ['button', 'checkbox', 'switch', 'radio', 'slider', 'tab', 'combobox', 'menuitem', 'option'];
 
+/** Playwright is CommonJS: an ESM import may expose it only as `default`. */
+function withChromium(mod) {
+  const pw = mod?.chromium ? mod : mod?.default;
+  if (!pw?.chromium?.launch) throw new Error('no chromium export');
+  return pw;
+}
+
 async function loadPlaywright(cwd) {
   const names = ['playwright', '@playwright/test', 'playwright-core'];
   for (const name of names) {
-    try { return await import(name); } catch {}
+    try { return withChromium(await import(name)); } catch {}
   }
   // Also look where the project and the machine keep it: the project's own node_modules, NODE_PATH,
   // and the global npm root (CI images and agent sandboxes often install Playwright globally).
@@ -24,7 +31,8 @@ async function loadPlaywright(cwd) {
   try { bases.push(join(execSync('npm root -g', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 }).trim(), 'x')); } catch {}
   for (const base of bases) {
     for (const name of names) {
-      try { return await import(pathToFileURL(createRequire(base).resolve(name)).href); } catch {}
+      try { return withChromium(createRequire(base)(name)); } catch {}
+      try { return withChromium(await import(pathToFileURL(createRequire(base).resolve(name)).href)); } catch {}
     }
   }
   throw new Error('--render needs Playwright. Install it with "npm i -D playwright" and "npx playwright install chromium".');

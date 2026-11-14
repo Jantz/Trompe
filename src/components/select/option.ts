@@ -132,6 +132,13 @@ export class TrOption extends TrompeElement {
           translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
           background-color var(--tr-motion-duration-release, 160ms);
       }
+      /* Narrow keys (full-width trays on phones) trade padding for label room before they ellipsize. */
+      @container tr-segment (max-width: 7.5em) {
+        :host([data-mode='segment']) .row {
+          padding-inline: min(var(--_seg-pad, 0.95em), 0.45em);
+          gap: 0.3em;
+        }
+      }
       :host([data-mode='segment']:hover) .row {
         --_tr-z: 1.5;
       }

@@ -188,9 +188,11 @@ const cellText = (c: Element) => (c.textContent ?? '').trim();
  * `data-label` automatically (set it yourself to override, or `data-label=""` to hide one).
  *
  * Sorting: give a header `data-sort` (any key) and clicking it, or Enter on it, cycles
- * `aria-sort` and fires a cancelable `sort` event with `{ key, column, direction }`. Re-order your
- * data in the handler. With `autosort`, the table re-orders its own rows (plain HTML only; don't
- * use it when a framework renders the rows), and the rows glide to their new places.
+ * `aria-sort` and fires a `sort` event with `{ key, column, direction }`. Re-order your data in the
+ * handler; you don't need to call preventDefault() or manage `aria-sort` (set it yourself only to
+ * show an initial sort). With `autosort`, the table re-orders its own rows (plain HTML only; don't
+ * use it when a framework renders the rows), and the rows glide to their new places;
+ * preventDefault() on the event skips that re-order.
  *
  * Numbers: add `data-numeric` (or class "num") to cells to right-align them.
  *
@@ -206,7 +208,7 @@ const cellText = (c: Element) => (c.textContent ?? '').trim();
  * @cssprop --tr-table-max-height - Height after which the body scrolls under a sticky header. Defaults to none.
  * @cssprop --tr-table-radius - Corner radius of the tray. Defaults to --tr-radius-lg.
  *
- * @fires sort - A sortable header was activated. Cancelable. `detail: { key, column, direction }`.
+ * @fires sort - A sortable header was activated. `detail: { key, column, direction }`. preventDefault() stops `autosort` from re-ordering the rows; the header arrows still update.
  *
  * @example <tr-table><table><thead><tr><th data-sort="name">Name</th><th>Role</th><th data-numeric data-sort="seats">Seats</th></tr></thead><tbody><tr><td>Ada Lovelace</td><td>Owner</td><td data-numeric>12</td></tr></tbody></table></tr-table>
  * @example <tr-table density="compact" striped variant="plain"><table>…</table></tr-table>
@@ -366,9 +368,9 @@ export class TrTable extends TrompeElement {
     const ok = this.dispatchEvent(
       new CustomEvent('sort', { bubbles: true, composed: true, cancelable: true, detail: { key: th.dataset.sort || cellText(th), column, direction } }),
     );
-    if (!ok) return;
+    // The arrows always follow the click; cancelling only stops autosort from moving rows.
     for (const h of heads) if (h.hasAttribute('aria-sort')) h.setAttribute('aria-sort', h === th ? direction : 'none');
-    if (this.autosort) this.reorder(column, direction);
+    if (ok && this.autosort) this.reorder(column, direction);
   }
 
   private reorder(column: number, direction: 'ascending' | 'descending'): void {

@@ -121,6 +121,10 @@ Warning. A --tr-* custom property is set that no Trompe element or token reads.
 
 Error. An interactive element has visible text and an `aria-label` that does not contain it (WCAG 2.5.3). Speech users say what they see, so `<tr-button aria-label="Submit order">Pay now</tr-button>` cannot be activated by "click Pay now". Remove the `aria-label`, or start it with the visible words.
 
+#### TR019 string-number
+
+Error. In a `.vue`, `.svelte`, `.jsx` or `.tsx` file a number property is written as a plain attribute (`max="100"`). Frameworks set known properties as properties, so the element would get the string `"100"` (and vue-tsc rejects it). Bind it: `:max="100"` in Vue, `max={100}` in Svelte and JSX. `--fix` rewrites it.
+
 ### Rendered (--render)
 
 #### TR101 text-contrast

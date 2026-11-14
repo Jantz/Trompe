@@ -101,7 +101,7 @@ export class TrListItem extends TrompeElement {
       }
       :host([role='option'][selected]) .plate {
         --_tr-z: -1;
-        --_base: color-mix(in oklch, color-mix(in oklch, var(--_m-base), var(--tr-color-accent) 12%), var(--_sh) calc(6% + var(--tr-lift, 0) * 10%));
+        --_base: color-mix(in oklab, color-mix(in oklab, var(--_m-base), var(--tr-color-accent) 12%), var(--_sh) calc(6% + var(--tr-lift, 0) * 10%));
         opacity: 1;
       }
       :host(:focus-visible) .row {

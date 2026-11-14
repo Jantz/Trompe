@@ -42,6 +42,7 @@ const SCREW_ANGLES = [-28, 63, 14, -71];
  * @cssprop --tr-panel-screw-cross - 1 for cross-head (Phillips) screws, 0 for slotted. Defaults to 0.
  *
  * @example <tr-panel screws material="metal"><span slot="header">Channel 1</span>…</tr-panel>
+ * @example <tr-panel scrollable style="height: 24rem"><h2 slot="header">Inbox</h2><tr-list>…</tr-list></tr-panel>
  * @example <tr-panel bezel screws padding="lg" material="metal" finish="brushed">…</tr-panel>
  */
 export class TrPanel extends TrompeElement {
@@ -120,6 +121,21 @@ export class TrPanel extends TrompeElement {
       .content {
         flex: 1;
         min-width: 0;
+      }
+      /* scrollable: header and footer stay put, the body scrolls inside the panel's height */
+      :host([scrollable]) .chassis {
+        box-sizing: border-box;
+        height: 100%;
+        min-height: 0;
+      }
+      :host([scrollable]) .content {
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+        /* room for raised children's shadows and focus rings, which overflow would clip */
+        margin: -0.5em calc(var(--_pad) * -1 + 0.25em);
+        padding: 0.5em calc(var(--_pad) - 0.25em);
       }
 
       /* ---------- bezel: a machined lip around an inset well ---------- */
@@ -266,6 +282,12 @@ export class TrPanel extends TrompeElement {
 
   /** Frames the content in a machined bezel around an inset well. */
   @property({ type: Boolean, reflect: true }) bezel = false;
+
+  /**
+   * The body scrolls inside the panel while the header and footer stay put. Give the panel a
+   * height (or let a grid row size it): `<tr-panel scrollable style="height: 60vh">`.
+   */
+  @property({ type: Boolean, reflect: true }) scrollable = false;
 
   /** Inner padding. */
   @property({ reflect: true }) padding: 'none' | 'sm' | 'md' | 'lg' = 'md';

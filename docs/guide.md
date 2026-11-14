@@ -62,7 +62,8 @@ import 'trompe/skins.css';
 import type {} from 'trompe/frameworks/vue';
 ```
 
-- Bind numbers and booleans: `<tr-slider :max="100" :value="vol" :disabled="busy" />`.
+- Bind numbers and booleans: `<tr-slider :max="100" :value="vol" :disabled="busy" />`. A plain
+  `depth="2"` hands the element a string and fails vue-tsc; `trompe check` flags it (TR019).
 - Prefer `:value` + `@input` to `v-model` (which is made for native fields): `:value="name" @input="name = ($event.target as TrInput).value"`.
 - Events: `@change`, `@input`, `@click`, `@select`, `@close`, `@sort`.
 - Refs: `const dlg = ref<TrDialog>()`, then `dlg.value?.show()`.
@@ -101,8 +102,10 @@ import 'trompe/skins.css';
   the glass blurs it. `body { background: radial-gradient(…), linear-gradient(…) fixed; }` works
   (your CSS beats Trompe's defaults), as does a fixed element at `z-index: -1`.
 - **Layout is yours.** Trompe has no grid or stack element: use CSS grid and flex. Panels are cards.
+  For a scrolling list or reading pane, `<tr-panel scrollable>` with a height (or a grid row): the
+  header and footer stay put and the body scrolls.
 - **Fields have an intrinsic width** (input 16em, select 14em, number field 9em) and never grow past
-  their container. In forms, make them fill the column: `form :is(tr-input, tr-select, tr-textarea) { width: 100%; }`.
+  their container. In forms, make them fill the column: `form :is(tr-input, tr-select, tr-textarea, tr-number-field) { width: 100%; }`.
 - **No layout shifts.** Toasts float over the page (`toast()`); dialogs, menus and tooltips live in
   the top layer. For text that appears in the flow (a status line, a field's `error` message under
   its field), reserve the room (`min-height`) when nothing around it should move.

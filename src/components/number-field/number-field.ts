@@ -120,7 +120,11 @@ export class TrNumberField extends FormControl {
         font-weight: var(--tr-font-weight-strong, 600);
         text-align: center;
       }
+      /* with a unit, the digits size to their content so number and unit stay together, centred */
       :host([unit]) input {
+        flex: 0 1 auto;
+        width: calc(var(--_chars, 2) * 1ch + 0.15em);
+        max-width: 100%;
         text-align: end;
       }
       .unit {
@@ -228,6 +232,12 @@ export class TrNumberField extends FormControl {
   @property({ attribute: 'aria-label', reflect: false }) accessibleLabel: string | null = null;
 
   @query('input') private input!: HTMLInputElement;
+
+  /** Focuses the number itself (the − key comes first in the shadow tree but is not a tab stop). */
+  override focus(options?: FocusOptions): void {
+    if (this.input) this.input.focus(options);
+    else super.focus(options);
+  }
   @query('.readout') private readout!: HTMLElement;
 
   private defaultValue: number | null = null;
@@ -406,9 +416,11 @@ export class TrNumberField extends FormControl {
             part="input"
             id="input"
             role="spinbutton"
+            autofocus
             inputmode=${(this.step % 1 !== 0 || (this.min ?? 0) % 1 !== 0) ? 'decimal' : 'numeric'}
             autocomplete="off"
             .value=${live(shown)}
+            style=${this.unit ? `--_chars: ${Math.max(2, shown.length)}` : nothing}
             ?disabled=${this.isDisabled}
             ?readonly=${this.readonly}
             aria-label=${ifDefined(name)}

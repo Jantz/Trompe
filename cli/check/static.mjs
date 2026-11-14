@@ -24,6 +24,9 @@ const SYNONYMS = { primary: 'accent', secondary: 'neutral', default: 'neutral', 
 const pick = (value, values) => (values.includes(SYNONYMS[value?.toLowerCase()]) ? SYNONYMS[value.toLowerCase()] : suggest(value, values));
 const CONTAINER_ENUMS = { 'data-tr-material': 'material', 'data-tr-finish': 'finish', 'data-tr-profile': 'profile', 'data-tr-realism': 'realism', 'data-tr-theme': 'theme' };
 
+const FRAMEWORK_FILE = /\.(vue|svelte|jsx|tsx)$/i;
+const isNumeric = (t) => t.kind === 'number' || (t.kind === 'enum' && t.values.every((v) => /^-?\d+(\.\d+)?$/.test(v)));
+
 export function checkMarkup(file, src, data, abs) {
   const out = [];
   const els = elements(file, src);
@@ -116,6 +119,16 @@ export function checkMarkup(file, src, data, abs) {
         });
       } else if (t.kind === 'number' && a.value.trim() !== '' && !Number.isFinite(Number(a.value))) {
         push('TR003', a.start, { element: el.tag, attribute: name, value: a.value, message: `${name} must be a number.` });
+      } else if (FRAMEWORK_FILE.test(file) && decl.fieldName === name && isNumeric(t) && Number.isFinite(Number(a.value))) {
+        // Frameworks set a known property as a property: max="100" would hand the element the string "100".
+        const vue = /\.vue$/i.test(file);
+        const text = vue ? `:${name}="${a.value}"` : `${name}={${a.value}}`;
+        push('TR019', a.start, {
+          element: el.tag, attribute: name, value: a.value,
+          message: `${name}="${a.value}" passes a string; ${name} is a number property. Write ${text}.`,
+          fix: { kind: 'set-attribute', name, value: a.value },
+          _edits: [{ start: a.start, end: a.end, text }],
+        });
       } else if (t.kind === 'boolean' && /^false$/i.test(a.value)) {
         push('TR004', a.start, {
           element: el.tag, attribute: name, value: a.value,
@@ -147,8 +160,13 @@ export function checkMarkup(file, src, data, abs) {
         });
       }
     }
-    if (role === 'img' && !attr(el, 'label') && !attr(el, 'aria-label') && attr(el, 'aria-hidden') !== 'true') {
-      push('TR005', el.nameStart, { element: el.tag, severity: 'warning', message: `<${el.tag}> conveys state but has no label. Add label="…" or aria-hidden="true" if it only decorates.` });
+    // Images are named by label, name (tr-avatar) or ARIA, and hidden by aria-hidden or `decorative`.
+    const imgNamed = ['label', 'aria-label', 'aria-labelledby'].some((a) => attr(el, a)) || (def.attrs.has('name') && attr(el, 'name'));
+    const imgHidden = attr(el, 'aria-hidden') === 'true' || (def.attrs.has('decorative') && el.attrs.has('decorative') && attr(el, 'decorative') !== 'false');
+    if (role === 'img' && !imgNamed && !imgHidden) {
+      const fix = def.attrs.has('name') ? 'Add name="…"' : 'Add label="…"';
+      const hide = def.attrs.has('decorative') ? 'decorative' : 'aria-hidden="true"';
+      push('TR005', el.nameStart, { element: el.tag, severity: 'warning', message: `<${el.tag}> conveys something but has no name. ${fix}, or ${hide} if it only decorates.` });
     }
     if (interactive) checkNested(el);
 

@@ -121,3 +121,55 @@ test.describe('tr-button loading', () => {
     await expect(page.getByRole('button', { name: 'Pay now' })).toHaveAttribute('aria-busy', 'true');
   });
 });
+
+test.describe('tr-panel scrollable', () => {
+  test('the body scrolls inside the panel; header and footer stay put', async ({ page }) => {
+    const rows = Array.from({ length: 40 }, (_, i) => `<p style="margin:0 0 8px">Row ${i + 1}</p>`).join('');
+    await mount(page, `<tr-panel id="p" scrollable style="height:300px"><h2 slot="header" style="margin:0">Inbox</h2>${rows}<span slot="footer">40 messages</span></tr-panel>`);
+    const panel = (await page.locator('#p').boundingBox())!;
+    expect(panel.height).toBeCloseTo(300, 0);
+    const footer = (await page.getByText('40 messages').boundingBox())!;
+    expect(footer.y + footer.height).toBeLessThanOrEqual(panel.y + panel.height);
+    const header = (await page.getByRole('heading', { name: 'Inbox' }).boundingBox())!;
+    await page.getByText('Row 3', { exact: true }).hover();
+    await page.mouse.wheel(0, 400);
+    await expect.poll(() => page.locator('#p').evaluate((el) => el.shadowRoot!.querySelector('.content')!.scrollTop)).toBeGreaterThan(100);
+    expect((await page.getByRole('heading', { name: 'Inbox' }).boundingBox())!.y).toBeCloseTo(header.y, 0);
+  });
+});
+
+test.describe('page polish', () => {
+  test('search + clearable shows one clear key', async ({ page }) => {
+    await mount(page, `<tr-input id="q" type="search" label="Search" clearable value="ada"></tr-input>`);
+    // getComputedStyle cannot read ::-webkit-search-cancel-button, so look for the rule that hides it.
+    const hidden = await page.locator('#q').evaluate((el) =>
+      el.shadowRoot!.adoptedStyleSheets.some((sheet) =>
+        [...sheet.cssRules].some((r) => r.cssText.includes(':host([clearable]) input::-webkit-search-cancel-button') && r.cssText.includes('display: none')),
+      ),
+    );
+    expect(hidden).toBe(true);
+    await expect(page.getByRole('button', { name: /clear/i })).toHaveCount(1);
+  });
+
+  test('a skinned page stays cloaked until its elements are defined, then fades in', async ({ page }) => {
+    await page.route('**/tests/cloak.html', (route) =>
+      route.fulfill({
+        contentType: 'text/html',
+        body: `<!doctype html><html lang="en"><head><link rel="stylesheet" href="/src/generated/skins.css"></head>
+          <body data-tr-skin="soft"><tr-panel><tr-button>Save</tr-button></tr-panel>
+          <script type="module">setTimeout(() => import('/src/index.ts'), 400);</script></body></html>`,
+      }),
+    );
+    await page.goto('/tests/cloak.html');
+    expect(await page.evaluate(() => getComputedStyle(document.body).opacity)).toBe('0');
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).opacity), { timeout: 3000 }).toBe('1');
+    expect(await page.evaluate(() => !!customElements.get('tr-panel'))).toBe(true);
+  });
+});
+
+test('tr-number-field: focus() and a click on the frame land on the number, not the − key', async ({ page }) => {
+  await mount(page, `<tr-number-field id="n" label="Weight" value="60" step="2.5" unit="kg"></tr-number-field>`);
+  await page.locator('#n').evaluate((el: any) => el.focus());
+  await page.keyboard.press('ArrowUp');
+  expect(await page.locator('#n').evaluate((el: any) => el.value)).toBe(62.5);
+});
