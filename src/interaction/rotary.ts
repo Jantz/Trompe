@@ -19,6 +19,11 @@ export interface RotaryOptions extends ValueControllerOptions {
   endless?: boolean;
   /** Value change per full turn for endless encoders. Default max - min. */
   revolution?: number;
+  /**
+   * The part that turns. Presses outside it (label, readout) are not drags, and its centre is the
+   * pivot for angular drags. Default: the host.
+   */
+  knob?: () => Element | null;
 }
 
 /**
@@ -42,6 +47,7 @@ export class RotaryController extends ValueController {
   private last = { x: 0, y: 0, angle: 0, inside: false };
   private centre = { x: 0, y: 0, r: 1 };
   private fineOn = false;
+  private knobFn: (() => Element | null) | undefined;
 
   constructor(host: HTMLElement, options: RotaryOptions = {}) {
     super(host, options);
@@ -50,6 +56,7 @@ export class RotaryController extends ValueController {
     this.distance = options.dragDistance ?? 220;
     this.isEndless = options.endless ?? false;
     this.revolution = options.revolution ?? (this.range.max - this.range.min || 1);
+    this.knobFn = options.knob;
     this.write(true);
   }
 
@@ -71,7 +78,9 @@ export class RotaryController extends ValueController {
   }
 
   protected beginDrag(e: PointerEvent): boolean {
-    const rect = this.host.getBoundingClientRect();
+    const knob = this.knobFn?.();
+    if (knob && !e.composedPath().includes(knob)) return false;
+    const rect = (knob ?? this.host).getBoundingClientRect();
     this.gestureRect = rect;
     const size = Math.min(rect.width, rect.height);
     this.centre = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, r: size / 2 };

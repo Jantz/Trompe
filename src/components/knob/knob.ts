@@ -1,9 +1,10 @@
-import { css, html, nothing, svg } from 'lit';
+import { css, html, nothing, svg, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { RangeControl } from '../../internal/range-control.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
+import { RotaryController } from '../../interaction/rotary.js';
 
 /** Sweep of the knob: from -135deg (min) to +135deg (max), 0deg pointing up. */
 const SWEEP = 270;
@@ -284,11 +285,6 @@ export class TrKnob extends RangeControl {
           inset 0 calc(var(--_r) * 1px) calc(var(--_r) * 1px) color-mix(in oklch, var(--_sh) calc(var(--_r) * 55%), transparent),
           calc(var(--_sx) * 0.5px) calc(var(--_sy) * 0.5px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent);
       }
-      :host(:not([data-dragging])) .indicator,
-      :host(:not([data-dragging])) .knurl,
-      :host(:not([data-dragging])) .face {
-        transition: rotate var(--tr-motion-duration-press, 70ms) var(--tr-motion-easing-press, ease-out);
-      }
 
       /* ---------- variant: skirt (synth-style: knurled grip, flange, aluminium insert) ---------- */
       :host([variant='skirt']) .body {
@@ -476,6 +472,30 @@ export class TrKnob extends RangeControl {
 
   private initialValue: number | null = null;
 
+  /**
+   * Turning physics from trompe/interaction: up or right increases (200 px for the full range,
+   * ten times finer with Shift), the wheel works while focused, and keyboard, wheel or programmatic
+   * changes turn the knob on a spring instead of jumping. The component keeps its own ARIA, keys and
+   * double-click reset.
+   */
+  protected readonly turnCtl = new RotaryController(this, {
+    aria: false,
+    keyboard: false,
+    resetOnDoubleClick: false,
+    wheel: 'focus',
+    drag: 'xy',
+    dragDistance: 200,
+    knob: () => this.renderRoot?.querySelector('.knob') ?? null,
+    disabled: () => this.isDisabled,
+    onInput: (v) => this.setFromUser(v, false),
+    onCommit: () => this.commitDrag(),
+  });
+
+  protected override updated(changed: PropertyValues): void {
+    super.updated(changed);
+    this.turnCtl.sync({ min: this.min, max: this.max, step: this.step, value: this.value });
+  }
+
   constructor() {
     super();
     this.ticks = 11;
@@ -499,7 +519,7 @@ export class TrKnob extends RangeControl {
       .map((m) => m.trim())
       .filter(Boolean);
     return html`
-      <div part="dial" class="dial" style=${styleMap({ '--_rot': `${angle}deg` })}>
+      <div part="dial" class="dial" style=${styleMap({ '--_rot': `var(--tr-angle, ${angle}deg)` })}>
         ${this.renderScale(angle)}
         ${marks.map(
           (m, i) =>
@@ -507,7 +527,7 @@ export class TrKnob extends RangeControl {
               >${m}</span
             >`,
         )}
-        <div part="knob" class="knob focus-ring" @pointerdown=${this.onPointerDown}>
+        <div part="knob" class="knob focus-ring">
           <div part="body" class="body surface">${this.variant === 'cap' ? html`<div class="knurl"></div>` : nothing}</div>
           ${this.variant === 'skirt' ? html`<div class="grip surface"><div class="knurl"></div></div>` : nothing}
           ${this.variant === 'skirt' ? html`<div class="indicator" part="indicator"></div>` : nothing}
@@ -548,35 +568,6 @@ export class TrKnob extends RangeControl {
   private onDoubleClick = (): void => {
     if (this.isDisabled || this.initialValue === null) return;
     this.setFromUser(this.initialValue, true);
-  };
-
-  private onPointerDown = (event: PointerEvent): void => {
-    if (this.isDisabled || event.button !== 0) return;
-    event.preventDefault();
-    this.focus();
-    const target = event.currentTarget as HTMLElement;
-    target.setPointerCapture(event.pointerId);
-    this.setAttribute('data-dragging', '');
-    const span = this.max - this.min;
-    let last = { x: event.clientX, y: event.clientY };
-    let value = this.value;
-    const move = (e: PointerEvent) => {
-      // Up and right increase. A full sweep takes ~200px, ten times that with Shift.
-      const delta = e.clientX - last.x - (e.clientY - last.y);
-      last = { x: e.clientX, y: e.clientY };
-      value = Math.min(this.max, Math.max(this.min, value + (delta / (e.shiftKey ? 2000 : 200)) * span));
-      this.setFromUser(value, false);
-    };
-    const up = () => {
-      target.removeEventListener('pointermove', move);
-      target.removeEventListener('pointerup', up);
-      target.removeEventListener('pointercancel', up);
-      this.removeAttribute('data-dragging');
-      this.commitDrag();
-    };
-    target.addEventListener('pointermove', move);
-    target.addEventListener('pointerup', up);
-    target.addEventListener('pointercancel', up);
   };
 }
 

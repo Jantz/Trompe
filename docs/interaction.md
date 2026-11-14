@@ -26,11 +26,12 @@ Live demo: the Touch Lab (`npm run` not needed: `node scripts/build-interaction-
 | --- | --- |
 | `tr-button`, `tr-checkbox`, `tr-radio`, `tr-tab`, `tr-list-item`, `tr-nav-item`, `tr-menu-item`, `tr-option`, `tr-select` | `PressController` (CSS keys off `[data-tr-pressed]` instead of `:active`, so quick taps stay visible and dragging off cancels) |
 | `tr-switch` | `PressController` + `ToggleController` (the thumb follows `--tr-value-ratio` while held, rests on `--_rest` otherwise) |
+| `tr-knob` | `RotaryController` with `drag: 'xy'`, `dragDistance: 200`, `knob` (the turning part, so the caption never starts a drag), own ARIA, keys and double-click reset; the dial rotates by `var(--tr-angle)` so keyboard and wheel changes turn on a spring |
 | `tr-slider` | `LinearController` with `aria: false`, `keyboard: false` (the component keeps its own ARIA and keys), `inertia: 0`, `wheel: 'focus'`; `updated()` calls `sync()` and `setOrientation()` |
 
-Tabs and the segmented control keep their own roving keyboard and per-key press; they do not use a sliding indicator, so `ChoiceController` is left for skins that want one. `tr-knob` wiring to `RotaryController` is next.
+Tabs and the segmented control keep their own roving keyboard and per-key press; they do not use a sliding indicator, so `ChoiceController` is left for skins that want one.
 
-When a component passes `track`, presses elsewhere on the host (label, readout) never start a drag. The first `sync()` after render snaps to the value; later changes glide.
+When a component passes `track` (linear) or `knob` (rotary), presses elsewhere on the host (label, readout) never start a drag. The first `sync()` after render snaps to the value; later changes glide.
 
 ## What "physical" means here, concretely
 
