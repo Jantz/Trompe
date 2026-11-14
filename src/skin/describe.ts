@@ -187,7 +187,7 @@ for (const p of materialPresets) {
   for (const k of p.keywords) if (!MATERIAL_INDEX.has(k)) MATERIAL_INDEX.set(k, p.id);
 }
 // A few plain words that are clearer as materials than as moods or colours.
-for (const [w, id] of Object.entries({ wood: 'walnut', wooden: 'walnut', metal: 'aluminium', steel: 'aluminium', stainless: 'aluminium', stone: 'concrete', hinoki: 'oak', cedar: 'oak', maple: 'oak', pine: 'oak', beech: 'oak', bamboo: 'oak', teak: 'walnut', mahogany: 'walnut', rosewood: 'ebony', iron: 'gunmetal', 'cast-iron': 'gunmetal', washi: 'paper', cork: 'kraft', tweed: 'linen', wool: 'felt', porcelain: 'ceramic', enamel: 'lacquer', pewter: 'titanium', silver: 'aluminium', velvet: 'charcoal-felt', suede: 'charcoal-felt', glass: 'frosted-glass' })) MATERIAL_INDEX.set(w, id);
+for (const [w, id] of Object.entries({ wood: 'walnut', wooden: 'walnut', metal: 'aluminium', steel: 'aluminium', stainless: 'aluminium', stone: 'concrete', hinoki: 'oak', cedar: 'oak', maple: 'oak', pine: 'oak', beech: 'oak', bamboo: 'oak', teak: 'walnut', mahogany: 'walnut', rosewood: 'ebony', iron: 'gunmetal', 'cast-iron': 'gunmetal', washi: 'paper', tweed: 'linen', wool: 'felt', porcelain: 'ceramic', pewter: 'titanium', silver: 'aluminium', velvet: 'charcoal-felt', suede: 'charcoal-felt', glass: 'frosted-glass' })) MATERIAL_INDEX.set(w, id);
 const FINISH_WORDS: Record<string, 'brushed' | 'mirror' | 'gloss' | 'satin' | 'matte' | 'spun'> = { brushed: 'brushed', polished: 'mirror', mirrored: 'mirror', glossy: 'gloss', lacquered: 'gloss', satin: 'satin', matte: 'matte', matt: 'matte', spun: 'spun' };
 const NOT_MATERIAL = new Set(['pro', 'gear', 'card', 'print', 'product', 'neutral', 'home', 'study', 'library', 'industrial', 'brutal', 'brutalist', 'performance', 'racing', 'car', 'automotive', 'clinical', 'appliance', 'luxury', 'playful', 'toy', 'y2k', 'millennium', 'scandinavian', 'nordic', 'editorial', 'nautical', 'rugged', 'tool', 'grip', 'casino', 'acoustic', 'glossy', 'bubbly', 'mirror', 'polished', 'midcentury', 'mid-century', 'hifi', 'rack']);
 
@@ -206,6 +206,7 @@ const words = (text: string) => {
     .replace(/black leather/g, 'black-leather')
     .replace(/(light|blonde|pale|bleached|whitewashed) wood/g, 'light-wood')
     .replace(/cast iron/g, 'cast-iron')
+    .replace(/\benamel(l?ed)? (steel|metal|iron)\b/g, 'enamel')
     .replace(/anodi[sz]ed (aluminium|aluminum|alloy|metal)/g, 'anodised')
     .replace(/black marble/g, 'black-marble')
     .replace(/\b(top|upper|bottom|lower)[ -](left|right)\b/g, (_, v, h) => `${v === 'upper' ? 'top' : v === 'lower' ? 'bottom' : v}-${h}`)
@@ -279,7 +280,7 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
   }
 
   // 2. Materials in order of mention, with their role cues ("brass knobs", "walnut panels").
-  type Mat = { id: string; at: number; role?: 'surfaces' | 'controls'; tint?: Colour; finish?: (typeof FINISH_WORDS)[string] };
+  type Mat = { id: string; at: number; role?: 'surfaces' | 'controls'; tint?: Colour; tintWord?: string; finish?: (typeof FINISH_WORDS)[string] };
   const mats: Mat[] = [];
   for (let i = 0; i < w.length; i++) {
     // "cobalt accent", "copper highlights": a colour word right before an accent cue is a colour, not a material.
@@ -305,6 +306,7 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
     // Adjectives bind to the material they come before, up to two words back: "matte black iron",
     // "pale hinoki wood", "deep green leather".
     let tint: Colour | undefined;
+    let tintWord: string | undefined;
     let finish: (typeof FINISH_WORDS)[string] | undefined;
     let tone: 'pale' | 'dark' | undefined;
     for (let j = i - 1; j >= Math.max(0, i - 2); j--) {
@@ -312,6 +314,7 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
       if (MATERIAL_INDEX.has(x) && !COLOURS[x] && !FINISH_WORDS[x] && !['light-wood'].includes(x)) break;
       if (!tint && COLOURS[x] && !(MATERIAL_INDEX.has(x) && !COLOURS[x])) {
         tint = COLOURS[x];
+        tintWord = x;
         used.add(j);
       } else if (!finish && FINISH_WORDS[x]) {
         finish = FINISH_WORDS[x];
@@ -325,13 +328,13 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
       }
     }
     let pick = id;
-    if (tone === 'pale' && preset(id).family === 'wood' && allowed('oak')) pick = 'oak';
+    if (tone === 'pale' && preset(id).family === 'wood' && (baseLightness(preset(id)) ?? 0) < 0.78 && allowed('oak')) pick = 'oak';
     if (tone === 'dark' && preset(id).family === 'wood' && id === 'oak') pick = 'walnut';
     if (tone && !tint && pick === id) {
       const base = parseColor(preset(id).spec.vars?.['--tr-m-base'] ?? '');
       if (base) tint = { hue: base.h, chroma: base.c, l: tone === 'pale' ? Math.max(base.l, 0.82) : Math.min(base.l, 0.3) };
     }
-    mats.push({ id: pick, at: i, ...(role ? { role } : {}), ...(tint ? { tint } : {}), ...(finish ? { finish } : {}) });
+    mats.push({ id: pick, at: i, ...(role ? { role } : {}), ...(tint ? { tint } : {}), ...(tintWord ? { tintWord } : {}), ...(finish ? { finish } : {}) });
   }
 
   let surfaces = mats.find((m) => m.role === 'surfaces');
@@ -357,8 +360,9 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
   if (controls?.tint) controlSpec = tintPreset(controlSpec, controls.tint);
   if (surfaces?.finish) surfaceSpec = { ...surfaceSpec, finish: surfaces.finish };
   if (controls?.finish) controlSpec = { ...controlSpec, finish: controls.finish };
-  notes.push(`Surfaces: ${preset(surfaceId).label.toLowerCase()}${surfaces ? ` (from “${w[surfaces.at]}”)` : mood ? ' (from the look)' : ' (default)'}`);
-  notes.push(`Controls: ${preset(controlId).label.toLowerCase()}${controls ? ` (from “${w[controls.at]}”)` : mood ? ' (from the look)' : ' (default)'}`);
+  const named = (m: typeof surfaces, id: string) => `${m?.tintWord ? `${m.tintWord} ` : ''}${preset(id).label.toLowerCase()}`;
+  notes.push(`Surfaces: ${named(surfaces, surfaceId)}${surfaces ? ` (from “${w[surfaces.at]}”)` : mood ? ' (from the look)' : ' (default)'}`);
+  notes.push(`Controls: ${named(controls, controlId)}${controls ? ` (from “${w[controls.at]}”)` : mood ? ' (from the look)' : ' (default)'}`);
 
   // 3. Colour scheme.
   let scheme: 'light' | 'dark' | undefined;
@@ -369,8 +373,8 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
       notes.push(`Scheme: dark (from “${w[i]}”)`);
       break;
     }
-    const lightAsScheme = w[i] !== 'light' || ['mode', 'theme', 'scheme', 'ui', 'interface', 'background', 'palette', 'look', 'and'].includes(w[i + 1] ?? '') || i === 0;
-    if (['light', 'bright', 'airy', 'daylight', 'white', 'pale'].includes(w[i]!) && lightAsScheme && !(w[i] === 'bright' && COLOURS[w[i + 1] ?? '']) && w[i + 1] !== 'wood' && !MATERIAL_INDEX.has(w[i + 1] ?? '') && !LIGHT_WORDS[w[i - 1] ?? '']) {
+    const lightAsScheme = w[i] !== 'light' || ['mode', 'theme', 'scheme', 'ui', 'interface', 'background', 'palette', 'look', 'and', 'with', 'calm', 'airy', 'clean', 'minimal'].includes(w[i + 1] ?? '') || i === 0 || i === w.length - 1;
+    if (['light', 'bright', 'airy', 'daylight', 'white', 'pale'].includes(w[i]!) && lightAsScheme && !(w[i] === 'bright' && COLOURS[w[i + 1] ?? '']) && w[i + 1] !== 'wood' && !MATERIAL_INDEX.has(w[i + 1] ?? '') && !LIGHT_WORDS[w[i - 1] ?? ''] && !['low', 'high', 'soft', 'warm', 'cool', 'hard', 'side', 'natural', 'morning', 'window'].includes(w[i - 1] ?? '')) {
       scheme = 'light';
       used.add(i);
       notes.push(`Scheme: light (from “${w[i]}”)`);
@@ -583,6 +587,10 @@ export function skinFromDescription(text: string, options: DescribeOptions = {})
   }
   if (controlSpec.material === 'chrome' || controlSpec.profile === 'dome') elements['tr-button'] = { ...elements['tr-button']!, profile: controlSpec.profile ?? 'convex' };
 
+  // Further words that agree with the scheme ("night, dark", "light and airy") are understood too.
+  for (let i = 0; i < w.length; i++) {
+    if (!used.has(i) && (scheme === 'dark' ? ['dark', 'night', 'midnight', 'noir', 'moody', 'nocturnal'] : ['light', 'bright', 'airy', 'daylight']).includes(w[i]!)) used.add(i);
+  }
   const ignored = w.filter((x, i) => !used.has(i) && x.length > 3 && !APP_WORDS.has(x) && !['with', 'and', 'that', 'like', 'feel', 'look', 'style', 'theme', 'skin', 'interface', 'app', 'apps', 'into', 'from', 'some', 'very', 'more', 'less', 'over', 'under', 'made', 'using', 'inspired', 'colour', 'color', 'colors', 'colours', 'tone', 'tones'].includes(x) && !ACCENT_CUES.has(x) && !CONTROL_CUES.has(x) && !SURFACE_CUES.has(x));
   if (ignored.length) notes.push(`Not understood: ${[...new Set(ignored)].slice(0, 8).join(', ')}`);
 

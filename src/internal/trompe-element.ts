@@ -79,7 +79,7 @@ export function installGlobalStyles(doc: Document | undefined = globalThis.docum
       { name: '--_ei', syntax: '<color>', inherits: true, initialValue: 'transparent' },
       { name: '--_ee', syntax: '<color>', inherits: true, initialValue: 'transparent' },
       // Internal: an avatar's status lamp colour. Registered so status changes fade.
-      { name: '--_lamp', syntax: '<color>', inherits: false, initialValue: 'transparent' },
+      { name: '--_lamp', syntax: '<color>', inherits: true, initialValue: 'transparent' },
     ];
     // A surface texture belongs to the element it is set on: a wood panel must not turn every
     // control inside it into wood. Universal syntax, so it takes no initial value.

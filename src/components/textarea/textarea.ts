@@ -100,7 +100,7 @@ export class TrTextarea extends FormControl {
           color-mix(in oklch, var(--_sh) calc(var(--_r) * 10%), transparent),
           transparent 30%,
           transparent 80%,
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 12%), transparent)
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 12%), transparent)
         );
       }
       .field:has(textarea:focus-visible) {
@@ -415,6 +415,8 @@ export class TrTextarea extends FormControl {
 
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    // a hint that changes wording cross-fades instead of flicking over
+    if (changed.get('hint') && this.hint) crossfadeText(this.renderRoot.querySelector<HTMLElement>('.hint'), changed.get('hint') as string);
     this.internals.setFormValue(this.value);
     this.syncValidity();
     const text = this.renderRoot.querySelector<HTMLElement>('.error-text');

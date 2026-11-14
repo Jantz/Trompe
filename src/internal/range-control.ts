@@ -1,6 +1,7 @@
 import type { PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { FormControl } from './form-control.js';
+import { crossfadeText } from '../interaction/smooth.js';
 
 /**
  * Shared value model and keyboard behaviour for continuous controls (slider, knob), following the
@@ -50,9 +51,15 @@ export class RangeControl extends FormControl {
 
   /** Human-readable value, used for aria-valuetext and the readout. */
   get valueText(): string {
-    const decimals = this.step > 0 && this.step < 1 ? String(this.step).split('.')[1]?.length ?? 0 : 0;
-    return `${this.clamp(this.value).toFixed(decimals)}${this.unit}`;
+    return this.format(this.clamp(this.value));
   }
+
+  private format(v: number): string {
+    const decimals = this.step > 0 && this.step < 1 ? String(this.step).split('.')[1]?.length ?? 0 : 0;
+    return `${v.toFixed(decimals)}${this.unit}`;
+  }
+
+  private shownText = '';
 
   protected clamp(v: number): number {
     if (!Number.isFinite(v)) v = this.min;
@@ -107,6 +114,16 @@ export class RangeControl extends FormControl {
       else if (changed.get('label')) this.aria('aria-label', null);
     }
     this.internals.setFormValue(String(this.value));
+    // The readout keeps the width of the longest value, so changing it never moves the label, and
+    // a value that jumps (a key, a click on the track, code) cross-fades while the thumb glides.
+    // While dragged it follows the hand directly.
+    const readout = this.renderRoot.querySelector<HTMLElement>('[part~="value"]');
+    if (readout) {
+      readout.style.minWidth = `${Math.max(this.format(this.min).length, this.format(this.max).length)}ch`;
+      const text = readout.textContent ?? '';
+      if (this.shownText && text !== this.shownText && !this.hasAttribute('data-dragging')) crossfadeText(readout, this.shownText, { duration: 160 });
+      this.shownText = text;
+    }
   }
 
   formResetCallback(): void {

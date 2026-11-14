@@ -73,6 +73,15 @@ test.describe('tr-list', () => {
     await expect(page.locator('#root')).toHaveScreenshot('list-matrix.png');
   });
 
+  test('on a phone a wide end slot wraps under the title instead of squeezing it', async ({ page }) => {
+    await mount(page, `<tr-list label="Orders" style="width:300px"><tr-list-item id="i">Weekly vegetable box subscription<span slot="end">€24.90 <tr-button size="sm">Reorder</tr-button></span></tr-list-item></tr-list>`);
+    const w = await page.evaluate(() => {
+      const t = document.getElementById('i')!.shadowRoot!.querySelector('.text') as HTMLElement;
+      return t.getBoundingClientRect().width / parseFloat(getComputedStyle(t).fontSize);
+    });
+    expect(w).toBeGreaterThanOrEqual(8.9);
+  });
+
   test('importing list alone defines tr-list-item', async ({ page }) => {
     expect(await importAlone(page, '/src/components/list/list.ts', ['tr-list', 'tr-list-item'])).toEqual({ 'tr-list': true, 'tr-list-item': true });
   });

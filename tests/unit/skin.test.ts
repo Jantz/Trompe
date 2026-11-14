@@ -44,6 +44,19 @@ describe('compiler', () => {
       expect(built.split('\n').slice(1).join('\n')).toBe(compileSkin(skin));
     }
   });
+  it('puts finish and profile parameters after their own bundle, so they are not reset', () => {
+    const css = compileSkin({
+      name: 't',
+      description: 't',
+      elements: { 'tr-button': { material: 'plastic', finish: 'gloss', vars: { '--tr-m-base': 'red', '--tr-f-gloss': '0.4', '--tr-p-bevel': '2' } } },
+    } as Parameters<typeof compileSkin>[0]);
+    const rule = (g: string) => css.slice(css.indexOf(`:not([${g}])`)).split('}')[0];
+    expect(rule('material')).toContain('--tr-m-base: red;');
+    expect(rule('material')).not.toContain('--tr-f-gloss');
+    const finish = rule('finish');
+    expect(finish.lastIndexOf('--tr-f-gloss: 0.4;')).toBeGreaterThan(finish.indexOf('--tr-f-gloss:'));
+    expect(rule('profile')).toContain('--tr-p-bevel: 2;');
+  });
   it('honours a custom scope and emits texture variables', () => {
     const css = compileSkin(
       { name: 'x', colorScheme: 'light', tokens: {}, elements: { 'tr-panel': { material: 'plastic', texture: { name: 'wood', scale: 2 } } } },

@@ -17,6 +17,7 @@ import type { Size } from '../../internal/types.js';
  * @role progressbar
  *
  * @slot - Overrides the visible label text.
+ * @slot center - Ring only: your own content in the cap, such as a value over a caption ("6,240" over "steps") or an icon. Replaces the printed value.
  *
  * @csspart label - The label row (linear) or the label under the ring.
  * @csspart value - The printed value.
@@ -32,6 +33,7 @@ import type { Size } from '../../internal/types.js';
  * @example <tr-progress label="Uploading" value="40" show-value></tr-progress>
  * @example <tr-progress label="Syncing" indeterminate></tr-progress>
  * @example <tr-progress variant="ring" value="72" max="100" show-value label="Storage" tone="warning"></tr-progress>
+ * @example <tr-progress variant="ring" size="lg" value="6240" max="8000" value-text="6,240 of 8,000 steps" label="Steps"><span slot="center"><strong>6,240</strong><small>steps</small></span></tr-progress>
  */
 export class TrProgress extends TrompeElement {
   static override styles = [
@@ -122,10 +124,10 @@ export class TrProgress extends TrompeElement {
         --_layer:
           linear-gradient(
             to bottom,
-            color-mix(in oklch, white calc(25% + var(--_r) * 45%), transparent) 0%,
-            color-mix(in oklch, white calc(var(--_r) * 18%), transparent) 38%,
+            color-mix(in oklab, white calc(25% + var(--_r) * 45%), transparent) 0%,
+            color-mix(in oklab, white calc(var(--_r) * 18%), transparent) 38%,
             transparent 52%,
-            color-mix(in oklch, var(--_fill), white calc(var(--_r) * 20%)) 100%
+            color-mix(in oklab, var(--_fill), white calc(var(--_r) * 20%)) 100%
           );
       }
       /* the hot leading edge */
@@ -137,8 +139,8 @@ export class TrProgress extends TrompeElement {
         border-radius: inherit;
         background: radial-gradient(
           ellipse 60% 90% at 85% 50%,
-          color-mix(in oklch, white calc(20% + var(--_r) * 50%), transparent),
-          color-mix(in oklch, var(--_fill), white 30%) 45%,
+          color-mix(in oklab, white calc(20% + var(--_r) * 50%), transparent),
+          color-mix(in oklab, var(--_fill), white 30%) 45%,
           transparent 75%
         );
         mix-blend-mode: screen;
@@ -204,7 +206,7 @@ export class TrProgress extends TrompeElement {
         place-items: center;
         /* the lit arc lies on the groove floor, under the groove's own inner shadow */
         --_layer:
-          radial-gradient(circle, transparent 52%, color-mix(in oklch, white calc(var(--_r) * 35%), transparent) 75%, transparent 92%),
+          radial-gradient(circle, transparent 52%, color-mix(in oklab, white calc(var(--_r) * 35%), transparent) 75%, transparent 92%),
           conic-gradient(from 0deg, var(--_fill) 0 var(--_a), transparent var(--_a));
       }
       .spin {
@@ -238,6 +240,14 @@ export class TrProgress extends TrompeElement {
         place-items: center;
         z-index: 1;
       }
+      .cap ::slotted([slot='center']) {
+        display: grid;
+        place-items: center;
+        max-width: 82%;
+        text-align: center;
+        line-height: 1.1;
+        font-size: max(0.625rem, calc(var(--_d) * 0.12));
+      }
       .cap .value {
         font-size: max(0.6875rem, calc(var(--_d) * 0.21));
         opacity: 1;
@@ -260,7 +270,7 @@ export class TrProgress extends TrompeElement {
           translate: none;
           --_layer: repeating-linear-gradient(
             -45deg,
-            color-mix(in oklch, white 30%, transparent) 0 0.35em,
+            color-mix(in oklab, white 30%, transparent) 0 0.35em,
             transparent 0.35em 0.7em
           );
         }
@@ -346,7 +356,7 @@ export class TrProgress extends TrompeElement {
           <div part="track" class="groove surface">
             <div part="fill" class="spin"></div>
             <div part="cap" class="cap surface">
-              ${this.showValue && text ? html`<span part="value" class="value">${text}</span>` : nothing}
+              <slot name="center">${this.showValue && text ? html`<span part="value" class="value">${text}</span>` : nothing}</slot>
             </div>
           </div>
         </div>

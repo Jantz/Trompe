@@ -122,7 +122,7 @@ export class TrOption extends TrompeElement {
         flex: 1;
         min-width: 0;
         justify-content: center;
-        gap: 0.5em;
+        gap: var(--_seg-gap, 0.5em);
         min-height: var(--_seg-h, 2.25em);
         padding: 0 var(--_seg-pad, 0.95em);
         border-radius: var(--_seg-radius, calc(var(--tr-radius-md, 10px) - 3px));

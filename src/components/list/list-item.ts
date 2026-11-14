@@ -71,6 +71,7 @@ export class TrListItem extends TrompeElement {
         position: relative;
         isolation: isolate;
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: var(--tr-list-item-gap, 0.85em);
         min-height: 3em;
@@ -85,7 +86,7 @@ export class TrListItem extends TrompeElement {
         inset: 0 0.85em auto;
         height: 0;
         border-top: 1px solid color-mix(in oklch, var(--_sh) calc(12% + var(--_r) * 14%), transparent);
-        border-bottom: 1px solid color-mix(in oklch, var(--_hl) calc(var(--_r) * 50%), transparent);
+        border-bottom: 1px solid color-mix(in oklab, var(--_hl) calc(var(--_r) * 50%), transparent);
         translate: 0 -1px;
         transition: opacity var(--tr-motion-duration-release, 160ms);
       }
@@ -143,9 +144,11 @@ export class TrListItem extends TrompeElement {
       ::slotted([slot='start']) {
         flex: none;
       }
+      /* the title keeps room for a few words: on a phone a wide end slot (a price and a button)
+         wraps under it, aligned to the end, instead of squeezing it to one word per line */
       .text {
-        flex: 1;
-        min-width: 0;
+        flex: 1 1 0;
+        min-width: min(9em, 100%);
         display: flex;
         flex-direction: column;
         gap: 0.15em;
@@ -167,6 +170,7 @@ export class TrListItem extends TrompeElement {
       }
       .end {
         flex: none;
+        margin-inline-start: auto;
         display: flex;
         align-items: center;
         gap: 0.5em;
@@ -181,7 +185,7 @@ export class TrListItem extends TrompeElement {
         height: 1.1em;
         color: var(--tr-color-accent);
         display: none;
-        filter: drop-shadow(0 calc(var(--_sy) * 1px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 60%), transparent));
+        filter: drop-shadow(0 calc(var(--_sy) * 1px) 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 60%), transparent));
       }
       :host([role='option']) .check {
         display: block;

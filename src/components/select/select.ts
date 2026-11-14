@@ -154,7 +154,7 @@ export class TrSelect extends FormControl {
         stroke-linejoin: round;
         /* engraved: the groove's lower lip catches light */
         filter: drop-shadow(
-          calc(var(--_sx) * -0.8px) calc(var(--_sy) * -0.8px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent)
+          calc(var(--_sx) * -0.8px) calc(var(--_sy) * -0.8px) 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 55%), transparent)
         );
         transition: rotate var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out);
       }
@@ -440,6 +440,8 @@ export class TrSelect extends FormControl {
 
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    // a hint that changes wording cross-fades instead of flicking over
+    if (changed.get('hint') && this.hint) crossfadeText(this.renderRoot.querySelector<HTMLElement>('.hint'), changed.get('hint') as string);
     if (changed.has('label')) {
       if (this.label && (this.ownsLabel || !this.hasAttribute('aria-label'))) {
         this.aria('aria-label', this.label);

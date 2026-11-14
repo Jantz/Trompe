@@ -56,7 +56,9 @@ export class TrPanel extends TrompeElement {
         --_screw: var(--tr-panel-screw-size, 0.8em);
         --_screw-at: var(--tr-panel-screw-inset, 0.95em);
         --_radius: var(--tr-panel-radius, var(--tr-radius-lg, 16px));
-        display: block;
+        /* a column, so the chassis fills any height the panel is given: height, min-height, or a grid row */
+        display: flex;
+        flex-direction: column;
         container-name: tr-panel;
         /* inline-size containment drops the panel's intrinsic width: in shrink-to-fit layouts
            (auto grid tracks, floats, inline-flex) give it a width or set this to normal */
@@ -77,6 +79,7 @@ export class TrPanel extends TrompeElement {
         --_tr-z: var(--_depth);
         display: flex;
         flex-direction: column;
+        flex: 1 1 auto;
         gap: var(--_gap);
         min-height: 100%;
         padding: var(--_pad);
@@ -101,12 +104,12 @@ export class TrPanel extends TrompeElement {
         padding-bottom: var(--_gap);
         /* engraved line: a dark cut with the light catching its far edge */
         border-bottom: 1px solid color-mix(in oklch, var(--_sh) calc(20% + var(--_r) * 15%), transparent);
-        box-shadow: 0 1px 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent);
+        box-shadow: 0 1px 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 55%), transparent);
       }
       .footer {
         padding-top: var(--_gap);
         border-top: 1px solid color-mix(in oklch, var(--_sh) calc(20% + var(--_r) * 15%), transparent);
-        box-shadow: inset 0 1px 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent);
+        box-shadow: inset 0 1px 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 55%), transparent);
       }
       .header:not(.has),
       .footer:not(.has) {
@@ -153,14 +156,14 @@ export class TrPanel extends TrompeElement {
             from var(--tr-light-angle, 330deg),
             color-mix(in oklch, var(--_sh) calc(18% + var(--_r) * 40%), var(--_m-base)) 0deg,
             color-mix(in oklch, var(--_sh) calc(var(--_r) * 15%), var(--_m-base)) 80deg,
-            color-mix(in oklch, var(--_hl) calc(30% + var(--_r) * 50%), var(--_m-base)) 180deg,
+            color-mix(in oklab, var(--_hl) calc(30% + var(--_r) * 50%), var(--_m-base)) 180deg,
             color-mix(in oklch, var(--_sh) calc(var(--_r) * 15%), var(--_m-base)) 280deg,
             color-mix(in oklch, var(--_sh) calc(18% + var(--_r) * 40%), var(--_m-base)) 360deg
           );
         box-shadow:
           /* the crisp top edge of the cut */
           0 0 0 1px color-mix(in oklch, var(--_sh) calc(12% + var(--_r) * 18%), transparent),
-          calc(var(--_sx) * -1px) calc(var(--_sy) * -1px) 0 1px color-mix(in oklch, var(--_hl) calc(var(--_r) * 50%), transparent);
+          calc(var(--_sx) * -1px) calc(var(--_sy) * -1px) 0 1px color-mix(in oklab, var(--_hl) calc(var(--_r) * 50%), transparent);
       }
       .well {
         --_tr-z: -2;
@@ -201,16 +204,16 @@ export class TrPanel extends TrompeElement {
           /* domed head lit from the scene light */
           radial-gradient(
             circle farthest-corner at calc(50% - var(--_sx) * 30%) calc(50% - var(--_sy) * 30%),
-            color-mix(in oklch, var(--_hl) calc(30% + var(--_r) * 60%), var(--_metal-base)) 0%,
+            color-mix(in oklab, var(--_hl) calc(30% + var(--_r) * 60%), var(--_metal-base)) 0%,
             var(--_metal-base) 35%,
             color-mix(in oklch, var(--_sh) calc(20% + var(--_r) * 45%), var(--_metal-base)) 100%
           );
         box-shadow:
           /* countersink: a dark ring, then the hole's far lip catching the light */
           0 0 0 1px color-mix(in oklch, var(--_sh) calc(30% + var(--_r) * 35%), transparent),
-          calc(var(--_sx) * 0.8px) calc(var(--_sy) * 0.8px) 0 1.5px color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent),
+          calc(var(--_sx) * 0.8px) calc(var(--_sy) * 0.8px) 0 1.5px color-mix(in oklab, var(--_hl) calc(var(--_r) * 55%), transparent),
           calc(var(--_sx) * 1px) calc(var(--_sy) * 1px) calc(1px + var(--_r) * 1.5px) 0 color-mix(in oklch, var(--_sh) calc(var(--_r) * 45%), transparent),
-          inset calc(var(--_sx) * -0.6px) calc(var(--_sy) * -0.6px) 0 0.5px color-mix(in oklch, var(--_hl) calc(var(--_r) * 50%), transparent);
+          inset calc(var(--_sx) * -0.6px) calc(var(--_sy) * -0.6px) 0 0.5px color-mix(in oklab, var(--_hl) calc(var(--_r) * 50%), transparent);
       }
       .screw::before,
       .screw::after {
@@ -227,7 +230,7 @@ export class TrPanel extends TrompeElement {
         /* depth of the slot: the wall nearest the light shades its floor, the far wall is lit */
         box-shadow:
           inset calc(var(--_ssx) * 1px) calc(var(--_ssy) * 1px) 0.5px color-mix(in oklch, var(--_sh) 80%, transparent),
-          inset calc(var(--_ssx) * -0.7px) calc(var(--_ssy) * -0.7px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 45%), transparent);
+          inset calc(var(--_ssx) * -0.7px) calc(var(--_ssy) * -0.7px) 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 45%), transparent);
       }
       .screw::before {
         rotate: calc(var(--_rot) + 90deg);

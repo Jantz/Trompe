@@ -7,8 +7,9 @@
 // plus an empty .js next to each, so `import 'trompe/frameworks/react'` also works at runtime.
 //
 // Only what the manifest states is typed: attributes (by attribute name, and by property name when
-// it differs), public writable properties, and documented events. Anything whose type text is not
-// a plain literal union or primitive falls back to string.
+// it differs), public writable properties, and documented events. A type that is not a plain
+// literal union or primitive is taken from the element class itself (TrChart['data']), so arrays,
+// objects and callbacks keep their real types; an attribute without a property falls back to string.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
@@ -26,11 +27,12 @@ const elements = manifest.modules
 
 const PRIMITIVES = new Set(['string', 'number', 'boolean']);
 /** Turns a manifest type text into a safe TS type, without undefined/null. */
-function tsType(text) {
-  if (!text) return 'string';
+function tsType(text, cls, field) {
+  const fallback = cls && field ? `NonNullable<${cls}['${field}']>` : 'string';
+  if (!text) return fallback;
   const parts = text.split('|').map((p) => p.trim()).filter((p) => p && p !== 'undefined' && p !== 'null');
   const ok = parts.every((p) => PRIMITIVES.has(p) || /^'[^'\\]*'$/.test(p) || /^"[^"\\]*"$/.test(p) || /^-?\d+(\.\d+)?$/.test(p));
-  return ok && parts.length ? parts.join(' | ') : 'string';
+  return ok && parts.length ? parts.join(' | ') : fallback;
 }
 const key = (name) => (/^[A-Za-z_$][\w$]*$/.test(name) ? name : `'${name}'`);
 const doc = (text, indent = '  ') => {
@@ -50,7 +52,7 @@ function propsOf(el) {
     if (!props.has(name)) props.set(name, { type, description });
   };
   for (const a of el.attributes ?? []) {
-    const t = tsType(a.type?.text);
+    const t = tsType(a.type?.text, a.fieldName ? el.name : null, a.fieldName);
     // A name that is also a property (value, min, ...) is set as a property, so it takes the
     // property's own type. A name that exists only as an attribute (hide-value) is set with
     // setAttribute, so a numeric one may also be given as a string.
@@ -60,7 +62,7 @@ function propsOf(el) {
   }
   for (const m of el.members ?? []) {
     if (m.kind !== 'field' || !isPublic(m) || m.static || m.readonly || m.name.startsWith('_')) continue;
-    add(m.name, tsType(m.type?.text), m.description);
+    add(m.name, tsType(m.type?.text, el.name, m.name), m.description);
   }
   return props;
 }

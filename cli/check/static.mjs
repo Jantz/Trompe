@@ -20,7 +20,8 @@ const isFrameworkBinding = (n) => /^(:|@|#|\.|\?|v-|bind:|on:|use:|class:|style:
 const isDynamic = (v) => v != null && (v.includes(EXPR) || v.includes(MARK) || v.includes(TEXT) || /\{\{|\$\{/.test(v));
 // Words agents reach for from other design systems, mapped to Trompe's values.
 const SYNONYMS = { primary: 'accent', secondary: 'neutral', default: 'neutral', destructive: 'danger', error: 'danger', warning: 'danger',
-  small: 'sm', medium: 'md', large: 'lg', s: 'sm', m: 'md', l: 'lg', round: 'circle', rounded: 'pill', square: 'rect', metallic: 'metal', steel: 'metal', aluminium: 'metal', aluminum: 'metal', frosted: 'glass', shiny: 'gloss', glossy: 'gloss', polished: 'mirror', realistic: 'real', subtle: 'soft' };
+  small: 'sm', medium: 'md', large: 'lg', s: 'sm', m: 'md', l: 'lg', round: 'circle', rounded: 'pill', square: 'rect', metallic: 'metal', steel: 'metal', aluminium: 'metal', aluminum: 'metal', frosted: 'glass', shiny: 'gloss', glossy: 'gloss', polished: 'mirror', realistic: 'real', subtle: 'soft',
+  etched: 'engraved', debossed: 'engraved', carved: 'engraved', inset: 'engraved', raised: 'embossed', backlit: 'lit', glow: 'lit', glowing: 'lit', outline: 'printed', flat: 'printed' };
 const pick = (value, values) => (values.includes(SYNONYMS[value?.toLowerCase()]) ? SYNONYMS[value.toLowerCase()] : suggest(value, values));
 const CONTAINER_ENUMS = { 'data-tr-material': 'material', 'data-tr-finish': 'finish', 'data-tr-profile': 'profile', 'data-tr-realism': 'realism', 'data-tr-theme': 'theme' };
 
@@ -92,6 +93,7 @@ export function checkMarkup(file, src, data, abs) {
 
     // TR002 / TR003 / TR004
     for (const [name, a] of el.attrs) {
+      if (name.includes(EXPR) || name.includes(MARK)) continue; // ${on ? 'checked' : ''}: written by the expression
       if (GLOBAL_ATTRS.has(name) || name.startsWith('aria-') || name.startsWith('data-') || name.startsWith('on') || name.startsWith('xmlns') || isFrameworkBinding(name)) continue;
       const decl = def.attrs.get(name);
       if (!decl && def.props?.has(name)) continue; // a JS property written in JSX (valueText)
@@ -103,6 +105,14 @@ export function checkMarkup(file, src, data, abs) {
           expected: s ? [s] : [...def.attrs.keys()],
           fix: s ? { kind: 'rename-attribute', from: name, to: s } : undefined,
           _edits: s ? [{ start: a.start, end: a.start + name.length, text: s }] : undefined,
+        });
+        continue;
+      }
+      if (decl.parsed.kind === 'boolean' && a.value != null && (a.value.includes(EXPR) || /\$\{/.test(a.value)) && !a.value.includes(MARK)) {
+        // pressed="${done}" in a template string writes pressed="false", which is still on.
+        push('TR004', a.start, {
+          element: el.tag, attribute: name, value: a.value, severity: 'warning',
+          message: `${name}="\${…}" sets the attribute whatever the value is, and ${name}="false" is still on. Write \${done ? '${name}' : ''} in a template string, ?${name}=\${done} in Lit, or set the .${decl.fieldName ?? name} property.`,
         });
         continue;
       }

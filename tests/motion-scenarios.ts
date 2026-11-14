@@ -187,6 +187,31 @@ export const scenarios: MotionScenario[] = [
   { name: 'progress: value change', markup: '<tr-progress id="t" label="Upload" value="20" show-value></tr-progress>', trigger: set('#t', 'value', 70) },
   { name: 'progress: ring value change', markup: '<tr-progress id="t" variant="ring" label="Storage" value="20" show-value></tr-progress>', trigger: set('#t', 'value', 70) },
   { name: 'progress: becomes determinate', markup: '<tr-progress id="t" label="Sync" indeterminate></tr-progress>', trigger: async (p) => { await set('#t', 'value', 40)(p); await set('#t', 'indeterminate', false)(p); } },
+  {
+    name: 'progress: value text changes',
+    markup: '<tr-progress id="t" label="Basket" value="0" max="49" value-text="0 of 49" show-value style="width:420px"></tr-progress>',
+    trigger: (p) => p.evaluate(() => { const el = document.querySelector('#t')!; el.setAttribute('value', '1'); el.setAttribute('value-text', '1 of 49'); }),
+  },
+  {
+    name: 'choice: card becomes disabled',
+    markup: '<tr-choice-group label="Time" style="width:640px"><tr-choice-card value="a">9:00</tr-choice-card><tr-choice-card id="t" value="b">9:30</tr-choice-card></tr-choice-group>',
+    trigger: attr('#t', 'disabled', ''),
+  },
+  {
+    name: 'choice: hint changes',
+    markup: `<tr-choice-group id="t" label="Delivery" hint="Prices include tax." style="width:640px"><tr-choice-card value="a">Standard</tr-choice-card></tr-choice-group>${AFTER}`,
+    trigger: attr('#t', 'hint', 'Express ships tomorrow.'),
+  },
+  {
+    name: 'input: hint changes',
+    markup: `<tr-input id="t" label="Name" hint="As on your card."></tr-input>${AFTER}`,
+    trigger: attr('#t', 'hint', 'Use your full name.'),
+  },
+  { name: 'slider: value set by code', markup: '<tr-slider id="t" label="Volume" value="8" style="width:320px"></tr-slider>', trigger: set('#t', 'value', 64) },
+  { name: 'slider: arrow key step', markup: '<tr-slider id="t" label="Volume" value="9" style="width:320px"></tr-slider>', setup: (p) => p.focus('#t'), trigger: (p) => p.keyboard.press('ArrowRight') },
+  { name: 'slider: becomes disabled', markup: '<tr-slider id="t" label="Volume" value="40" style="width:320px"></tr-slider>', trigger: attr('#t', 'disabled', '') },
+  { name: 'knob: value set by code', markup: '<tr-knob id="t" label="Gain" value="8"></tr-knob>', trigger: set('#t', 'value', 64) },
+  { name: 'knob: becomes disabled', markup: '<tr-knob id="t" label="Gain" value="40"></tr-knob>', trigger: attr('#t', 'disabled', '') },
   { name: 'progress: tone change', markup: '<tr-progress id="t" label="Disk" value="80"></tr-progress>', trigger: attr('#t', 'tone', 'danger') },
   { name: 'meter: value change', markup: '<tr-meter id="t" label="Level" value="0.2"></tr-meter>', trigger: set('#t', 'value', 0.8) },
   { name: 'badge: tone change', markup: '<tr-badge id="t" tone="neutral">Pending</tr-badge>', trigger: attr('#t', 'tone', 'success') },
@@ -229,10 +254,109 @@ export const scenarios: MotionScenario[] = [
     trigger: (p) => p.click('th[data-sort="n"]'),
   },
   {
+    name: 'chart: data change line',
+    markup: `<tr-chart id="t" type="line" label="Visits" style="width:560px"></tr-chart>${AFTER}`,
+    setup: async (p) => {
+      await p.evaluate(() => ((document.querySelector('#t') as unknown as { data: object[] }).data = [{ x: 'Mon', a: 30, b: 12 }, { x: 'Tue', a: 42, b: 20 }, { x: 'Wed', a: 36, b: 28 }, { x: 'Thu', a: 48, b: 24 }]));
+      await p.evaluate(() => document.fonts.ready);
+      await p.waitForFunction(() => document.querySelector('#t')!.shadowRoot!.getAnimations().length === 0);
+    },
+    trigger: set('#t', 'data', [{ x: 'Mon', a: 22, b: 30 }, { x: 'Tue', a: 46, b: 16 }, { x: 'Wed', a: 40, b: 34 }, { x: 'Thu', a: 31, b: 26 }]),
+  },
+  {
+    name: 'chart: data change bar',
+    markup: `<tr-chart id="t" type="bar" label="Steps" style="width:560px"><table><thead><tr><th>Day</th><th>Steps</th></tr></thead><tbody><tr><td>Mon</td><td>8200</td></tr><tr><td>Tue</td><td id="v">10400</td></tr><tr><td>Wed</td><td>6900</td></tr></tbody></table></tr-chart>${AFTER}`,
+    setup: (p) => p.evaluate(() => document.fonts.ready).then(() => p.waitForFunction(() => document.querySelector('#t')!.shadowRoot!.getAnimations().length === 0)),
+    trigger: (p) => p.evaluate(() => (document.querySelector('#v')!.textContent = '4300')),
+  },
+  {
+    name: 'chart: hover readout',
+    markup: `<tr-chart id="t" type="line" label="Visits" values="3,5,4,7,6" style="width:560px"></tr-chart>${AFTER}`,
+    setup: (p) => p.evaluate(() => document.fonts.ready).then(() => p.waitForFunction(() => document.querySelector('#t')!.shadowRoot!.getAnimations().length === 0)),
+    trigger: (p) => p.hover('#t'),
+  },
+  {
+    name: 'table: sort from the stacked keys',
+    markup: '<tr-table id="t" autosort style="width:320px"><table><thead><tr><th data-sort="n">Name</th><th data-sort="q" data-numeric>Qty</th></tr></thead><tbody><tr><td>Beans</td><td>12</td></tr><tr><td>Apples</td><td>3</td></tr></tbody></table></tr-table>',
+    trigger: (p) => p.getByRole('button', { name: 'Sort by Name' }).click(),
+  },
+  {
+    name: 'progress: ring centre content changes',
+    markup: '<tr-progress id="t" variant="ring" size="lg" value="40" label="Steps"><span slot="center" id="c">4,000</span></tr-progress>',
+    trigger: (p) => p.evaluate(() => { (document.querySelector('#t') as HTMLElement & { value: number }).value = 60; }),
+  },
+  {
     name: 'toast: show',
     markup: '<tr-button>Save</tr-button>',
     trigger: (p) => p.evaluate(() => (window as unknown as { trompe: { toast(m: string, o?: object): void } }).trompe.toast('Saved', { tone: 'success', duration: 0 })),
   },
+  {
+    name: 'toast: a second toast stacks',
+    markup: '<tr-button>Save</tr-button>',
+    setup: async (p) => {
+      await p.evaluate(() => (window as unknown as { trompe: { toast(m: string, o?: object): void } }).trompe.toast('Saved', { duration: 0 }));
+      await p.waitForTimeout(500);
+    },
+    trigger: (p) => p.evaluate(() => (window as unknown as { trompe: { toast(m: string, o?: object): void } }).trompe.toast('Synced', { tone: 'success', duration: 0 })),
+  },
+  {
+    name: 'toast: one of two closes',
+    markup: '<tr-button>Save</tr-button>',
+    setup: async (p) => {
+      await p.evaluate(() => {
+        const t = (window as unknown as { trompe: { toast(m: string, o?: object): HTMLElement } }).trompe;
+        t.toast('Saved', { duration: 0 }).id = 'first';
+        t.toast('Synced', { duration: 0 });
+      });
+      await p.waitForTimeout(500);
+    },
+    trigger: (p) => p.evaluate(() => (document.getElementById('first') as unknown as { hide(r: string): void }).hide('api')),
+    wait: 300,
+  },
   { name: 'select: error appears', markup: `<tr-select id="t" label="Payee"><tr-option value="a">Ada</tr-option></tr-select>${AFTER}`, trigger: attr('#t', 'error', 'Choose who to pay.') },
   { name: 'select: hint appears', markup: `<tr-select id="t" label="Payee"><tr-option value="a">Ada</tr-option></tr-select>${AFTER}`, trigger: attr('#t', 'hint', 'Saved payees only.') },
+  // Choice cards and pagination
+  {
+    name: 'choice: select another card',
+    markup: '<tr-choice-group label="Plan" value="a" style="width:640px"><tr-choice-card value="a">Free<span slot="end">$0</span></tr-choice-card><tr-choice-card id="t" value="b">Pro<span slot="end">$12</span></tr-choice-card></tr-choice-group>',
+    trigger: (p) => p.click('#t'),
+  },
+  {
+    name: 'choice: toggle in a multiple group',
+    markup: '<tr-choice-group label="Days" multiple style="width:640px"><tr-choice-card id="t" value="mon">Monday</tr-choice-card><tr-choice-card value="tue">Tuesday</tr-choice-card></tr-choice-group>',
+    trigger: (p) => p.click('#t'),
+  },
+  {
+    name: 'choice: error appears',
+    markup: `<tr-choice-group id="t" label="Delivery" style="width:640px"><tr-choice-card value="a">Standard</tr-choice-card><tr-choice-card value="b">Express</tr-choice-card></tr-choice-group>${AFTER}`,
+    trigger: attr('#t', 'error', 'Choose how to ship.'),
+  },
+  { name: 'choice: hover', markup: '<tr-choice-group label="Plan" style="width:640px"><tr-choice-card id="t" value="a">Free</tr-choice-card></tr-choice-group>', trigger: (p) => p.hover('#t') },
+  { name: 'pagination: next page', markup: '<tr-pagination id="t" pages="12" page="2"></tr-pagination>', trigger: (p) => p.getByRole('button', { name: 'Next page' }).click() },
+  { name: 'pagination: window moves', markup: '<tr-pagination id="t" pages="12" page="6"></tr-pagination>', trigger: set('#t', 'page', 7) },
+  { name: 'pagination: hover', markup: '<tr-pagination id="t" pages="12" page="2"></tr-pagination>', trigger: (p) => p.getByRole('button', { name: 'Page 4' }).hover() },
+  { name: 'pagination: compact step', markup: '<tr-pagination id="t" pages="40" page="3" compact></tr-pagination>', trigger: (p) => p.getByRole('button', { name: 'Next page' }).click() },
+  { name: 'icon: name change', markup: `<tr-button><tr-icon id="t" slot="start" name="play" size="lg"></tr-icon>Start</tr-button>${AFTER}`, trigger: set('#t', 'name', 'pause') },
+  { name: 'icon: variant change', markup: '<tr-icon id="t" name="lock" size="xl" variant="printed"></tr-icon>', trigger: set('#t', 'variant', 'embossed') },
+  { name: 'icon: tone change', markup: '<tr-icon id="t" name="bolt" size="xl" variant="lit"></tr-icon>', trigger: set('#t', 'tone', 'danger') },
+
+  // Calendar and date picker
+  {
+    name: 'number field: error appears',
+    markup: `<tr-number-field id="t" label="Shares" value="0"></tr-number-field>${AFTER}`,
+    trigger: attr('#t', 'error', 'Enter at least 1 share.'),
+  },
+  {
+    name: 'calendar: mark a day',
+    markup: `<tr-calendar id="t" readonly month="2026-11" marks="2026-11-02" locale="en-GB"></tr-calendar>${AFTER}`,
+    trigger: attr('#t', 'marks', '2026-11-02,2026-11-03'),
+  },
+  { name: 'calendar: next month', markup: `<tr-calendar id="t" value="2026-11-14" locale="en-GB"></tr-calendar>${AFTER}`, trigger: (p) => p.click('#t [part=next]') },
+  { name: 'calendar: select day', markup: '<tr-calendar id="t" value="2026-11-14" locale="en-GB"></tr-calendar>', trigger: (p) => p.click('#t [data-date="2026-11-19"]') },
+  { name: 'calendar: range end', markup: '<tr-calendar id="t" range value="2026-11-03" locale="en-GB"></tr-calendar>', setup: (p) => p.click('#t [data-date="2026-11-03"]'), trigger: (p) => p.click('#t [data-date="2026-11-12"]') },
+  { name: 'calendar: month grid', markup: `<tr-calendar id="t" value="2026-11-14" locale="en-GB"></tr-calendar>${AFTER}`, trigger: (p) => p.click('#t [part=title]') },
+  { name: 'date picker: open', markup: `<tr-date-picker id="t" label="Check-in" value="2026-11-14" locale="en-GB"></tr-date-picker>${AFTER}`, trigger: set('#t', 'open', true) },
+  { name: 'date picker: close', markup: `<tr-date-picker id="t" label="Check-in" value="2026-11-14" locale="en-GB"></tr-date-picker>${AFTER}`, setup: set('#t', 'open', true), trigger: set('#t', 'open', false) },
+  { name: 'date picker: error appears', markup: `<tr-date-picker id="t" label="Check-in" locale="en-GB"></tr-date-picker>${AFTER}`, trigger: attr('#t', 'error', 'Choose a day after today.') },
+  { name: 'date picker: value change', markup: '<tr-date-picker id="t" label="Check-in" value="2026-11-14" locale="en-GB"></tr-date-picker>', trigger: set('#t', 'value', '2026-12-01') },
 ];

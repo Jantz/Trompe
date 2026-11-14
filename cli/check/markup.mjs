@@ -1,5 +1,6 @@
 // Turns source files into parse5 trees with positions in the original file.
-// Supports .html/.htm, .vue (template), .svelte, and Lit html`` literals in .js/.ts/.mjs/.jsx/.tsx.
+// Supports .html/.htm, .vue (template), .svelte, and Lit html`` literals (or template strings holding
+// <tr-…> markup) in .js/.ts/.mjs/.jsx/.tsx.
 import { parse, parseFragment } from 'parse5';
 import { extname } from 'node:path';
 import { svelteToHtml, jsxToHtml, MARK, TEXT } from './template.mjs';
@@ -21,13 +22,16 @@ export function regions(file, src) {
   if (ext === '.jsx' || ext === '.tsx') return [{ offset: 0, text: jsxToHtml(src), fragment: true }];
   if (['.js', '.mjs', '.ts', '.mts'].includes(ext)) {
     const out = [];
-    const re = /\bhtml`/g;
+    // Lit html`` literals, and plain template strings that build Trompe markup (innerHTML = `…`)
+    const re = /`/g;
     let m;
     while ((m = re.exec(src))) {
-      const start = m.index + m[0].length;
+      const start = m.index + 1;
       const end = findTemplateEnd(src, start);
       if (end < 0) break;
-      out.push({ offset: start, text: blankTemplateExprs(src.slice(start, end)), fragment: true });
+      const body = src.slice(start, end);
+      const tag = /([\w$.]+)\s*$/.exec(src.slice(Math.max(0, m.index - 40), m.index))?.[1];
+      if (tag === 'html' || (!tag?.endsWith('css') && /<tr-[a-z]/.test(body))) out.push({ offset: start, text: blankTemplateExprs(body), fragment: true });
       re.lastIndex = end + 1;
     }
     return out;
@@ -143,6 +147,11 @@ export function textOf(node) {
     if (c.nodeName === '#text') s += c.value;
     else if (c.tagName && c.tagName !== 'svg' && c.tagName !== 'template' && c.tagName !== 'script' && c.tagName !== 'style') {
       if (c.attrs?.some((a) => a.name === 'aria-hidden' && a.value === 'true')) continue;
+      // a labelled tr-icon is an image with a name, like <img alt>
+      if (c.tagName === 'tr-icon') {
+        s += c.attrs?.find((a) => ['label', 'aria-label'].includes(a.name.replace(/^(:|v-bind:)/, '')))?.value ?? '';
+        continue;
+      }
       if (c.attrs?.some((a) => a.name === 'slot' && ['start', 'end', 'icon', 'prefix', 'suffix'].includes(a.value)) && !textOf(c).trim()) continue;
       s += textOf(c);
     } else if (c.tagName === 'svg') {

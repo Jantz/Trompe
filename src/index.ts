@@ -42,6 +42,15 @@ export { TrAvatar, initialsOf } from './components/avatar/avatar.js';
 export { TrNumberField } from './components/number-field/number-field.js';
 export { TrToast, TrToaster, toast, type ToastOptions, type ToastTone } from './components/toast/toast.js';
 export { TrTable } from './components/table/table.js';
+export { TrChart, type ChartSeries, type ChartType, type ChartRow } from './components/chart/chart.js';
+export { TrCalendar, type CalendarMarkTone } from './components/calendar/calendar.js';
+export { TrDatePicker } from './components/date-picker/date-picker.js';
+export { parseDate } from './components/calendar/dates.js';
+export { TrIcon } from './components/icon/icon.js';
+export { registerIcons, iconNames } from './components/icon/icons.js';
+export { TrChoiceGroup } from './components/choice/choice-group.js';
+export { TrChoiceCard } from './components/choice/choice-card.js';
+export { TrPagination, pageSlots } from './components/pagination/pagination.js';
 
 // Motion: smooth size changes, enter/exit, text cross-fades and page-wide View Transitions.
 export { SizeTransition, enter, exit, removeAnimated, insertAnimated, crossfadeText, viewTransition, autoViewTransitions, afterExit } from './interaction/smooth.js';

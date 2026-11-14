@@ -1,6 +1,7 @@
 import { css, html, nothing, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
+import { afterExit } from '../../interaction/smooth.js';
 
 const ICONS = {
   neutral: html`<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M8 7.2v4M8 4.6v.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>`,
@@ -136,6 +137,7 @@ export class TrToast extends TrompeElement {
       }
       .close:focus-visible {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 1px;
       }
       .close svg {
@@ -292,6 +294,11 @@ export class TrToaster extends TrompeElement {
         pointer-events: none;
         width: max-content;
         max-width: calc(100vw - 2 * var(--tr-toaster-inset, 1em));
+        /* a full-height column with the toasts at its end: adding or removing one moves the
+           toasts (which glide), never the stack's own box */
+        top: 0;
+        height: auto; /* the popover UA style is fit-content */
+        justify-content: flex-end;
         bottom: max(var(--tr-toaster-inset, 1em), env(safe-area-inset-bottom));
         left: 50%;
         translate: -50% 0;
@@ -310,7 +317,7 @@ export class TrToaster extends TrompeElement {
       }
       :host([placement='top-center']),
       :host([placement='top-end']) {
-        bottom: auto;
+        bottom: 0;
         top: max(var(--tr-toaster-inset, 1em), env(safe-area-inset-top));
         flex-direction: column-reverse;
         --_from: -0.75em;
@@ -366,8 +373,11 @@ export class TrToaster extends TrompeElement {
     this.raise();
     const live = [...this.children].filter((c) => (c as TrToast).open) as TrToast[];
     for (const old of live.slice(0, Math.max(0, live.length - this.max + 1))) old.hide('api');
-    requestAnimationFrame(() => {
+    requestAnimationFrame(async () => {
       t.open = true;
+      // measure once the toast has rendered open (still before this frame paints), so the older
+      // toasts glide up from where they were instead of jumping
+      await t.updateComplete;
       this.glide(before);
     });
     return t;
@@ -393,28 +403,37 @@ export class TrToaster extends TrompeElement {
     for (const [el, r] of before) {
       if (!el.isConnected) continue;
       const now = el.getBoundingClientRect();
+      const dx = r.left - now.left;
       const dy = r.top - now.top;
-      if (Math.abs(dy) < 0.5) continue;
-      el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 240, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' });
+      if (Math.abs(dy) < 0.5 && Math.abs(dx) < 0.5) continue;
+      el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 240, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' });
     }
   }
 
-  private onClose = (e: Event): void => {
+  private onClose = async (e: Event): Promise<void> => {
     const t = e.target as TrToast;
     if (t.parentElement !== this) return;
-    // wait for the slide-out, then remove it and let the rest glide together
-    setTimeout(() => {
-      const before = this.positions();
-      t.remove();
-      this.glide(before);
-      if (!this.childElementCount) {
-        try {
-          this.hidePopover();
-        } catch {
-          /* fine */
-        }
+    // It keeps its place while it fades out (no collapse when its display flips to none); once
+    // its exit has finished it is removed and the rest glide together.
+    t.style.display = 'block';
+    await t.updateComplete;
+    await new Promise((r) => requestAnimationFrame(r));
+    await afterExit(t, 1000);
+    if (t.open || t.parentElement !== this) {
+      t.style.removeProperty('display');
+      return;
+    }
+    const before = this.positions();
+    t.remove();
+    t.style.removeProperty('display');
+    this.glide(before);
+    if (!this.childElementCount) {
+      try {
+        this.hidePopover();
+      } catch {
+        /* fine */
       }
-    }, 260);
+    }
   };
 
   protected override render() {

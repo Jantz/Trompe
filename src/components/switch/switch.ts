@@ -86,7 +86,7 @@ export class TrSwitch extends FormControl {
         /* the slot is lit from inside on: a soft glow pooling around the thumb's resting place */
         --_layer: radial-gradient(
           ellipse 70% 90% at 30% 50%,
-          color-mix(in oklch, var(--_hl) calc(var(--_on-glow, 0) * var(--_r) * 28%), transparent),
+          color-mix(in oklab, var(--_hl) calc(var(--_on-glow, 0) * var(--_r) * 28%), transparent),
           transparent 70%
         );
       }

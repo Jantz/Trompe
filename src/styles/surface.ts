@@ -114,8 +114,9 @@ export const surfaceStyles = css`
     /* non-linear physical offset: each level reads clearly higher than the last */
     --_off: calc(pow(var(--_raise), var(--tr-depth-curve, 1.6)) * var(--tr-depth-unit, 2px) * var(--_len));
     --_in: calc(pow(var(--_sink), var(--tr-depth-curve, 1.6)) * var(--tr-depth-unit, 2px) * var(--_len) * 1.2);
-    /* highlight strength: sharp highlights read brighter */
-    --_spec: calc(var(--_specular) * (1 - var(--_roughness) * 0.6) * var(--_r));
+    /* highlight strength: sharp highlights read brighter. The floor of a well (sunk 2 or more) sees
+       little of the sky, so its sheen is cut to a quarter: no glossy streak across dark fields. */
+    --_spec: calc(var(--_specular) * (1 - var(--_roughness) * 0.6) * var(--_r) * (1 - min(var(--_sink), 2) * 0.375));
     /* reflections fade in faster than shadows as realism rises */
     --_rg: calc(var(--_r) * (2 - var(--_r)));
     /* metals shade with more contrast */
@@ -126,7 +127,7 @@ export const surfaceStyles = css`
     --_lx: calc(50% - var(--_sx) * 34%);
     --_ly: calc(50% - var(--_sy) * 34%);
     /* in dark themes raised faces get lighter, since shadows barely show */
-    --_face: color-mix(in oklch, var(--_hl) calc(var(--_raise) * var(--tr-lift, 0) * 3.5%), var(--_base));
+    --_face: color-mix(in oklab, var(--_hl) calc(var(--_raise) * var(--tr-lift, 0) * 3.5%), var(--_base));
 
     position: relative;
     isolation: isolate;
@@ -142,59 +143,59 @@ export const surfaceStyles = css`
       /* clear-coat window reflection toward the light: crisp-edged, like a softbox in lacquer */
       radial-gradient(
         ellipse 82% 50% at calc(50% - var(--_sx) * 14%) calc(50% - var(--_sy) * 30%),
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 85%), transparent) 0%,
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 32%), transparent) 92%,
+        color-mix(in oklab, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 85%), transparent) 0%,
+        color-mix(in oklab, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 32%), transparent) 92%,
         transparent 100%
       ),
       /* clear-coat caustic: light passing through and glowing on the far side */
       radial-gradient(
         ellipse 70% 38% at calc(50% + var(--_sx) * 30%) calc(50% + var(--_sy) * 42%),
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 38%), transparent) 0%,
+        color-mix(in oklab, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 38%), transparent) 0%,
         transparent 100%
       ),
       /* mirror: sky, dark horizon, ground bounce. The environment stays upright; the light only tilts it a little. */
       linear-gradient(
         calc(var(--tr-light-environment, 180deg) + (var(--tr-light-angle, 330deg) - 360deg) * 0.15),
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 90%), transparent) 0%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 45%), transparent) 46%,
+        color-mix(in oklab, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 90%), transparent) 0%,
+        color-mix(in oklab, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 45%), transparent) 46%,
         color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 55%), transparent) 64%,
         color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 25%), transparent) 72%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 18%), transparent) 84%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 70%), transparent) 100%
+        color-mix(in oklab, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 18%), transparent) 84%,
+        color-mix(in oklab, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 70%), transparent) 100%
       ),
       /* spun metal: concentric anisotropic reflections */
       conic-gradient(
         from var(--tr-light-angle, 330deg),
-        color-mix(in oklch, var(--_hl) calc(var(--_spin) * var(--_r) * 55%), transparent),
+        color-mix(in oklab, var(--_hl) calc(var(--_spin) * var(--_r) * 55%), transparent),
         color-mix(in oklch, var(--_sh) calc(var(--_spin) * var(--_r) * 25%), transparent) 25%,
-        color-mix(in oklch, var(--_hl) calc(var(--_spin) * var(--_r) * 45%), transparent) 50%,
+        color-mix(in oklab, var(--_hl) calc(var(--_spin) * var(--_r) * 45%), transparent) 50%,
         color-mix(in oklch, var(--_sh) calc(var(--_spin) * var(--_r) * 25%), transparent) 75%,
-        color-mix(in oklch, var(--_hl) calc(var(--_spin) * var(--_r) * 55%), transparent)
+        color-mix(in oklab, var(--_hl) calc(var(--_spin) * var(--_r) * 55%), transparent)
       ),
       repeating-radial-gradient(
         circle at 50% 50%,
-        color-mix(in oklch, var(--_hl) calc(var(--_spin) * var(--_r) * 14%), transparent) 0 1px,
+        color-mix(in oklab, var(--_hl) calc(var(--_spin) * var(--_r) * 14%), transparent) 0 1px,
         transparent 1px 2px,
         color-mix(in oklch, var(--_sh) calc(var(--_spin) * var(--_r) * 6%), transparent) 2px 3px
       ),
       /* convex: lit where the bulge faces the light, shaded on the far side */
       radial-gradient(
         farthest-corner at var(--_lx) var(--_ly),
-        color-mix(in oklch, var(--_hl) calc(var(--_convex) * var(--_r) * 48%), transparent) 0%,
+        color-mix(in oklab, var(--_hl) calc(var(--_convex) * var(--_r) * 48%), transparent) 0%,
         transparent 50%,
         color-mix(in oklch, var(--_sh) calc(var(--_convex) * var(--_r) * var(--_contrast) * 26%), transparent) 100%
       ),
       /* concave: the wall nearest the light is in shade, the far wall is lit */
       radial-gradient(
         farthest-corner at calc(100% - var(--_lx)) calc(100% - var(--_ly)),
-        color-mix(in oklch, var(--_hl) calc(var(--_concave) * var(--_r) * 34%), transparent) 0%,
+        color-mix(in oklab, var(--_hl) calc(var(--_concave) * var(--_r) * 34%), transparent) 0%,
         transparent 50%,
         color-mix(in oklch, var(--_sh) calc(var(--_concave) * var(--_r) * 24%), transparent) 100%
       ),
       /* broad light falloff across the face */
       linear-gradient(
         calc(var(--tr-light-angle, 330deg) + 180deg),
-        color-mix(in oklch, var(--_hl) calc(var(--_spec) * 60%), transparent) 0%,
+        color-mix(in oklab, var(--_hl) calc(var(--_spec) * 60%), transparent) 0%,
         transparent calc(18% + var(--_roughness) * 40%),
         transparent calc(55% + var(--_roughness) * 15%),
         color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_contrast) * 14%), transparent) 100%
@@ -203,23 +204,31 @@ export const surfaceStyles = css`
       linear-gradient(
         calc(var(--tr-light-angle, 330deg) + 180deg),
         transparent 20%,
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * var(--_reflect, var(--tr-reflect-scale, 1)) * 45%), transparent) 33%,
+        color-mix(in oklab, var(--_hl) calc(var(--_r) * var(--_brush) * var(--_reflect, var(--tr-reflect-scale, 1)) * 45%), transparent) 33%,
         transparent 45%,
         transparent 62%,
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * var(--_reflect, var(--tr-reflect-scale, 1)) * 26%), transparent) 71%,
+        color-mix(in oklab, var(--_hl) calc(var(--_r) * var(--_brush) * var(--_reflect, var(--tr-reflect-scale, 1)) * 26%), transparent) 71%,
         transparent 80%
       ),
       /* brushed: two hairline periods so the grain never looks regular */
+      /* highlight hairlines at uneven spacing and strength (a 13px cycle against the 11px shadow
+         cycle), so big faces read as fine grain rather than scan lines */
       repeating-linear-gradient(
         0deg,
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * (0.06 + 0.1 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 0 1px,
-        transparent 1px 3px
+        color-mix(in oklab, var(--_hl) calc(var(--_r) * var(--_brush) * (0.02 + 0.13 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 0 1px,
+        transparent 1px 3px,
+        color-mix(in oklab, var(--_hl) calc(var(--_r) * var(--_brush) * (0.01 + 0.06 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 3px 4px,
+        transparent 4px 6px,
+        color-mix(in oklab, var(--_hl) calc(var(--_r) * var(--_brush) * (0.02 + 0.1 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 6px 7px,
+        transparent 7px 10px,
+        color-mix(in oklab, var(--_hl) calc(var(--_r) * var(--_brush) * (0.005 + 0.04 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 10px 11px,
+        transparent 11px 13px
       ),
       repeating-linear-gradient(
         0deg,
-        color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * 8%), transparent) 0 1px,
+        color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * (3% + 5% * var(--_reflect, var(--tr-reflect-scale, 1)))), transparent) 0 1px,
         transparent 1px 5px,
-        color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * 5%), transparent) 5px 6px,
+        color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * (2% + 3% * var(--_reflect, var(--tr-reflect-scale, 1)))), transparent) 5px 6px,
         transparent 6px 11px
       ),
       /* material texture, under every lighting layer so the light still reads over it */
@@ -230,13 +239,13 @@ export const surfaceStyles = css`
     box-shadow:
       /* specular rim on the lit edge */
       inset calc(var(--_sx) * var(--_bevel)) calc(var(--_sy) * var(--_bevel)) 0 0
-        color-mix(in oklch, var(--_hl) calc((var(--_spec) * 0.9 + var(--_r) * 0.25) * min(1, var(--_raise) + 0.4) * 100%), transparent),
+        color-mix(in oklab, var(--_hl) calc((var(--_spec) * 0.9 + var(--_r) * 0.25) * min(1, var(--_raise) + 0.4) * 100%), transparent),
       /* shadowed rim on the far edge */
       inset calc(var(--_sx) * -1 * var(--_bevel)) calc(var(--_sy) * -1 * var(--_bevel)) 0 0
         color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_contrast) * 18%), transparent),
       /* chamfer: a wide machined edge band, lit toward the light and dark away from it */
       inset calc(var(--_sx) * var(--_chamfer)) calc(var(--_sy) * var(--_chamfer)) calc(var(--_chamfer) * 0.6) 0
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * 75%), transparent),
+        color-mix(in oklab, var(--_hl) calc(var(--_r) * 75%), transparent),
       inset calc(var(--_sx) * -1 * var(--_chamfer)) calc(var(--_sy) * -1 * var(--_chamfer)) calc(var(--_chamfer) * 0.6) 0
         color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_contrast) * 38%), transparent),
       /* recess: inner shadow under the lit rim */
@@ -244,7 +253,7 @@ export const surfaceStyles = css`
         color-mix(in oklch, var(--_sh) calc(var(--_r) * 50%), transparent),
       /* recess: far lip catching the light */
       calc(var(--_sx) * min(1, var(--_sink)) * 1px) calc(var(--_sy) * min(1, var(--_sink)) * 1px) 0 0
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * 60%), transparent),
+        color-mix(in oklab, var(--_hl) calc(var(--_r) * 60%), transparent),
       /* contact shadow (tight) */
       calc(var(--_sx) * var(--_off) * 0.25) calc(var(--_sy) * var(--_off) * 0.25) calc(var(--_off) * 0.5) 0
         color-mix(in oklch, var(--_sh) calc(var(--_r) * min(1, var(--_raise)) * 34%), transparent),

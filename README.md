@@ -76,7 +76,7 @@ See [docs/skins.md](docs/skins.md) and [docs/studio.md](docs/studio.md).
 
 ## Components
 
-Core: `tr-button`, `tr-input`, `tr-textarea`, `tr-number-field`, `tr-checkbox`, `tr-radio-group` + `tr-radio`, `tr-switch`, `tr-select` + `tr-option`, `tr-segmented`, `tr-slider`, `tr-tabs` + `tr-tab` + `tr-tab-panel`, `tr-panel`, `tr-table`, `tr-dialog`, `tr-menu` + `tr-menu-item`, `tr-tooltip`, `tr-toast` + `tr-toaster` (and the `toast()` helper), `tr-avatar`, `tr-progress`, `tr-badge`, `tr-toolbar`, `tr-nav` + `tr-nav-item`, `tr-list` + `tr-list-item`.
+Core: `tr-button`, `tr-input`, `tr-textarea`, `tr-number-field`, `tr-checkbox`, `tr-radio-group` + `tr-radio`, `tr-switch`, `tr-select` + `tr-option`, `tr-segmented`, `tr-slider`, `tr-tabs` + `tr-tab` + `tr-tab-panel`, `tr-panel`, `tr-table`, `tr-dialog`, `tr-menu` + `tr-menu-item`, `tr-tooltip`, `tr-toast` + `tr-toaster` (and the `toast()` helper), `tr-avatar`, `tr-icon`, `tr-chart`, `tr-date-picker` + `tr-calendar`, `tr-choice-group` + `tr-choice-card`, `tr-pagination`, `tr-progress`, `tr-badge`, `tr-toolbar`, `tr-nav` + `tr-nav-item`, `tr-list` + `tr-list-item`.
 
 Extras for instrument-like interfaces: `tr-knob`, `tr-display` (LCD, VFD, LED and OLED, with segment and dot-matrix glyphs), `tr-led`, `tr-meter`.
 

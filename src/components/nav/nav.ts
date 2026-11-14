@@ -92,12 +92,12 @@ export class TrNav extends TrompeElement {
       .header {
         padding: 0.25em 0.25em 0.6em;
         border-bottom: 1px solid color-mix(in oklch, var(--_sh) calc(14% + var(--_r) * 14%), transparent);
-        box-shadow: 0 1px 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent);
+        box-shadow: 0 1px 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 55%), transparent);
       }
       .footer {
         padding-top: 0.6em;
         border-top: 1px solid color-mix(in oklch, var(--_sh) calc(14% + var(--_r) * 14%), transparent);
-        box-shadow: inset 0 1px 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent);
+        box-shadow: inset 0 1px 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 55%), transparent);
       }
       :host([orientation='horizontal']) .header,
       :host([orientation='horizontal']) .footer {

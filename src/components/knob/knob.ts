@@ -195,24 +195,24 @@ export class TrKnob extends RangeControl {
         --_layer:
           conic-gradient(
             from var(--_light),
-            color-mix(in oklch, var(--_hl) calc(var(--_r) * 34%), transparent) 0deg,
+            color-mix(in oklab, var(--_hl) calc(var(--_r) * 34%), transparent) 0deg,
             transparent 70deg,
             color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_contrast) * 30%), transparent) 150deg,
             color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_contrast) * 38%), transparent) 180deg,
             color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_contrast) * 30%), transparent) 210deg,
             transparent 290deg,
-            color-mix(in oklch, var(--_hl) calc(var(--_r) * 34%), transparent) 360deg
+            color-mix(in oklab, var(--_hl) calc(var(--_r) * 34%), transparent) 360deg
           ),
           conic-gradient(
             from var(--_light),
             transparent 22deg,
-            color-mix(in oklch, var(--_hl) calc(var(--_spec) * var(--_metal) * 70%), transparent) 34deg,
+            color-mix(in oklab, var(--_hl) calc(var(--_spec) * var(--_metal) * 70%), transparent) 34deg,
             transparent 46deg,
             transparent 236deg,
-            color-mix(in oklch, var(--_hl) calc(var(--_spec) * var(--_metal) * 40%), transparent) 250deg,
+            color-mix(in oklab, var(--_hl) calc(var(--_spec) * var(--_metal) * 40%), transparent) 250deg,
             transparent 262deg,
             transparent 300deg,
-            color-mix(in oklch, var(--_hl) calc(var(--_spec) * 55%), transparent) 326deg,
+            color-mix(in oklab, var(--_hl) calc(var(--_spec) * 55%), transparent) 326deg,
             transparent 340deg
           );
       }
@@ -224,9 +224,9 @@ export class TrKnob extends RangeControl {
         rotate: var(--_rot);
         background: repeating-conic-gradient(
           from 0deg,
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 22%), transparent) 0deg 1.4deg,
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 22%), transparent) 0deg 1.4deg,
           color-mix(in oklch, var(--_sh) calc(var(--_r) * 45%), transparent) 2.6deg 4.6deg,
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 22%), transparent) 6deg
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 22%), transparent) 6deg
         );
         opacity: var(--tr-knob-grip, 1);
         -webkit-mask: radial-gradient(circle, transparent 60%, #000 61%);
@@ -256,13 +256,13 @@ export class TrKnob extends RangeControl {
         background:
           conic-gradient(
             from var(--_light),
-            color-mix(in oklch, var(--_hl) calc(var(--_spin) * var(--_r) * 55%), transparent) 0deg,
+            color-mix(in oklab, var(--_hl) calc(var(--_spin) * var(--_r) * 55%), transparent) 0deg,
             transparent 22deg,
             transparent 158deg,
-            color-mix(in oklch, var(--_hl) calc(var(--_spin) * var(--_r) * 40%), transparent) 180deg,
+            color-mix(in oklab, var(--_hl) calc(var(--_spin) * var(--_r) * 40%), transparent) 180deg,
             transparent 202deg,
             transparent 338deg,
-            color-mix(in oklch, var(--_hl) calc(var(--_spin) * var(--_r) * 55%), transparent) 360deg
+            color-mix(in oklab, var(--_hl) calc(var(--_spin) * var(--_r) * 55%), transparent) 360deg
           ),
           repeating-radial-gradient(
             circle at 50% 50%,
@@ -289,7 +289,7 @@ export class TrKnob extends RangeControl {
         /* engraved and filled: a dark lip toward the light, a bright one away from it */
         box-shadow:
           inset 0 calc(var(--_r) * 1px) calc(var(--_r) * 1px) color-mix(in oklch, var(--_sh) calc(var(--_r) * 55%), transparent),
-          calc(var(--_sx) * 0.5px) calc(var(--_sy) * 0.5px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent);
+          calc(var(--_sx) * 0.5px) calc(var(--_sy) * 0.5px) 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 55%), transparent);
       }
 
       /* ---------- variant: skirt (synth-style: knurled grip, flange, aluminium insert) ---------- */
@@ -297,11 +297,11 @@ export class TrKnob extends RangeControl {
         /* the flange is matte and flat; the grip carries the shine */
         --_layer: conic-gradient(
           from var(--_light),
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 16%), transparent) 0deg,
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 16%), transparent) 0deg,
           transparent 90deg,
           color-mix(in oklch, var(--_sh) calc(var(--_r) * 16%), transparent) 180deg,
           transparent 270deg,
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 16%), transparent) 360deg
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 16%), transparent) 360deg
         );
       }
       .grip {
@@ -314,11 +314,11 @@ export class TrKnob extends RangeControl {
         translate: 0 calc(var(--_d) * var(--tr-knob-tilt, 0.035) * -0.6);
         --_layer: conic-gradient(
           from var(--_light),
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 40%), transparent) 0deg,
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 40%), transparent) 0deg,
           transparent 60deg,
           color-mix(in oklch, var(--_sh) calc(var(--_r) * 40%), transparent) 180deg,
           transparent 300deg,
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 40%), transparent) 360deg
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 40%), transparent) 360deg
         );
       }
       :host([variant='skirt']) .face {
@@ -407,6 +407,9 @@ export class TrKnob extends RangeControl {
       /* ---------- states ---------- */
       :host(:focus-visible) .knob.focus-ring {
         outline-offset: calc(var(--_d) * 0.06);
+      }
+      :host {
+        transition: opacity var(--tr-motion-duration-release, 160ms) ease-out;
       }
       :host([disabled]),
       :host(:state(disabled)) {

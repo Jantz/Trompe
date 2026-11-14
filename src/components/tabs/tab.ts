@@ -161,7 +161,7 @@ export class TrTab extends TrompeElement {
         border-radius: 1em;
         background: var(--_mark);
         box-shadow:
-          0 calc(var(--_sy) * 1px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 70%), transparent),
+          0 calc(var(--_sy) * 1px) 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 70%), transparent),
           inset 0 calc(var(--_sy) * -1px) 1px color-mix(in oklch, var(--_sh) calc(var(--_r) * 35%), transparent),
           0 0 calc(var(--_r) * 6px) color-mix(in oklch, var(--_mark) calc(var(--_r) * 60%), transparent);
         opacity: 0;

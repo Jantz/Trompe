@@ -101,11 +101,14 @@ export class TrSlider extends RangeControl {
         text-transform: uppercase;
       }
       .value {
+        display: inline-block;
+        text-align: end;
         font-family: var(--tr-font-family-mono, monospace);
         font-variant-numeric: tabular-nums;
         color: color-mix(in oklch, currentColor 72%, transparent);
       }
       :host([orientation='vertical']) .value {
+        text-align: center;
         font-size: 0.8em;
       }
       .body {
@@ -193,12 +196,12 @@ export class TrSlider extends RangeControl {
         --_layer:
           linear-gradient(
             var(--_axis),
-            color-mix(in oklch, var(--_hl) calc(var(--_kp) * var(--_r) * 80%), transparent) 0%,
-            color-mix(in oklch, var(--_hl) calc(var(--_kp) * var(--_r) * 30%), transparent) 21%,
+            color-mix(in oklab, var(--_hl) calc(var(--_kp) * var(--_r) * 80%), transparent) 0%,
+            color-mix(in oklab, var(--_hl) calc(var(--_kp) * var(--_r) * 30%), transparent) 21%,
             color-mix(in oklch, var(--_sh) calc(var(--_kp) * var(--_dish) * var(--_r) * 55%), transparent) 23%,
             color-mix(in oklch, var(--_sh) calc(var(--_kp) * var(--_dish) * var(--_r) * 12%), transparent) 45%,
-            color-mix(in oklch, var(--_hl) calc(var(--_kp) * var(--_dish) * var(--_r) * 10%), transparent) 60%,
-            color-mix(in oklch, var(--_hl) calc(var(--_kp) * var(--_dish) * var(--_r) * 50%), transparent) 76%,
+            color-mix(in oklab, var(--_hl) calc(var(--_kp) * var(--_dish) * var(--_r) * 10%), transparent) 60%,
+            color-mix(in oklab, var(--_hl) calc(var(--_kp) * var(--_dish) * var(--_r) * 50%), transparent) 76%,
             color-mix(in oklch, var(--_sh) calc(var(--_kp) * var(--_r) * 30%), transparent) 78%,
             color-mix(in oklch, var(--_sh) calc(var(--_kp) * var(--_r) * 60%), transparent) 100%
           ),
@@ -206,12 +209,12 @@ export class TrSlider extends RangeControl {
             var(--_axis),
             color-mix(in oklch, var(--_sh) calc(var(--_kn) * var(--_r) * 60%), transparent) 0%,
             color-mix(in oklch, var(--_sh) calc(var(--_kn) * var(--_r) * 30%), transparent) 22%,
-            color-mix(in oklch, var(--_hl) calc(var(--_kn) * var(--_dish) * var(--_r) * 50%), transparent) 24%,
-            color-mix(in oklch, var(--_hl) calc(var(--_kn) * var(--_dish) * var(--_r) * 10%), transparent) 40%,
+            color-mix(in oklab, var(--_hl) calc(var(--_kn) * var(--_dish) * var(--_r) * 50%), transparent) 24%,
+            color-mix(in oklab, var(--_hl) calc(var(--_kn) * var(--_dish) * var(--_r) * 10%), transparent) 40%,
             color-mix(in oklch, var(--_sh) calc(var(--_kn) * var(--_dish) * var(--_r) * 12%), transparent) 55%,
             color-mix(in oklch, var(--_sh) calc(var(--_kn) * var(--_dish) * var(--_r) * 55%), transparent) 77%,
-            color-mix(in oklch, var(--_hl) calc(var(--_kn) * var(--_r) * 30%), transparent) 79%,
-            color-mix(in oklch, var(--_hl) calc(var(--_kn) * var(--_r) * 80%), transparent) 100%
+            color-mix(in oklab, var(--_hl) calc(var(--_kn) * var(--_r) * 30%), transparent) 79%,
+            color-mix(in oklab, var(--_hl) calc(var(--_kn) * var(--_r) * 80%), transparent) 100%
           ),
           /* the sides fall away across the travel too */
           linear-gradient(
@@ -233,7 +236,7 @@ export class TrSlider extends RangeControl {
         translate: -50% 0;
         border-radius: 1px;
         background: var(--tr-slider-cap-line-color, var(--_ink));
-        box-shadow: calc(var(--_sx) * 0.5px) calc(var(--_sy) * 0.5px) 0 color-mix(in oklch, var(--tr-color-highlight) calc(var(--_r) * 35%), transparent);
+        box-shadow: calc(var(--_sx) * 0.5px) calc(var(--_sy) * 0.5px) 0 color-mix(in oklab, var(--tr-color-highlight) calc(var(--_r) * 35%), transparent);
       }
       :host([orientation='vertical']) .thumb {
         --_axis: 180deg;
@@ -329,6 +332,9 @@ export class TrSlider extends RangeControl {
       }
 
       /* ---------- states ---------- */
+      :host {
+        transition: opacity var(--tr-motion-duration-release, 160ms) ease-out;
+      }
       :host([disabled]),
       :host(:state(disabled)) {
         opacity: 0.55;
