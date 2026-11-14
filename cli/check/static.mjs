@@ -93,6 +93,7 @@ export function checkMarkup(file, src, data, abs) {
 
     // TR002 / TR003 / TR004
     for (const [name, a] of el.attrs) {
+      if (name.includes(EXPR) || name.includes(MARK)) continue; // ${on ? 'checked' : ''}: written by the expression
       if (GLOBAL_ATTRS.has(name) || name.startsWith('aria-') || name.startsWith('data-') || name.startsWith('on') || name.startsWith('xmlns') || isFrameworkBinding(name)) continue;
       const decl = def.attrs.get(name);
       if (!decl && def.props?.has(name)) continue; // a JS property written in JSX (valueText)
