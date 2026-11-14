@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trompe Deck</title>
+<!--
+  High-fidelity research prototype for docs/research/design-direction.md.
+  One markup tree, three recipes (chrome, studio, porcelain). Every look is a set of
+  recipe tokens over the same layer stack: drop shadow, socket, bevel ring, face,
+  texture, specular, gloss, glyph. All sizes are em-based and scale with the container,
+  so the deck stays crisp and proportional at any width and pixel density.
+  Not production code: the foundation package owns the real components.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DotGothic16&family=Nunito:wght@600;800&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+@property --tr-light-angle { syntax: "<angle>";  inherits: true; initial-value: 315deg; }
+@property --tr-realism     { syntax: "<number>"; inherits: true; initial-value: 1; }
+
+/* ------------------------------------------------------------------ */
+/* Recipes: the only place a look is defined. Same markup for all.     */
+/* ------------------------------------------------------------------ */
+:root, [data-tr-skin="chrome"] {
+  --page: oklch(0.9 0.012 250);
+  --page-ink: oklch(0.3 0.02 255);
+  --c-hi: oklch(0.985 0.004 250);  --c-mid: oklch(0.86 0.012 250);  --c-lo: oklch(0.66 0.02 252);
+  --c-edge: oklch(0.36 0.03 258);  --c-ink: oklch(0.32 0.04 258);   --c-engrave: oklch(1 0 0 / 0.85);
+  --c-texture: 0.55;               /* brushed streak strength */
+  --c-texture-img: var(--tex-brushed);
+  --socket-hi: oklch(0.98 0.004 250); --socket-lo: oklch(0.55 0.02 255);
+  --lcd-a: oklch(0.42 0.13 256);   --lcd-b: oklch(0.2 0.09 262);
+  --lcd-ink: oklch(0.94 0.07 225); --lcd-glow: oklch(0.82 0.15 225);  --lcd-ghost: oklch(0.7 0.1 240 / 0.14);
+  --lcd-font: "DotGothic16", ui-monospace, monospace;
+  --btn-a: oklch(1 0 0);           --btn-b: oklch(0.86 0.012 250);    --btn-c: oklch(0.7 0.02 252);
+  --btn-ink: oklch(0.34 0.05 258); --btn-gloss: 0.95;                 --btn-active: oklch(0.58 0.19 255);
+  --groove-a: oklch(0.45 0.03 255); --groove-b: oklch(0.75 0.02 250); --fill: oklch(0.62 0.16 250);
+  --led-on: oklch(0.72 0.19 245);  --led-off: oklch(0.55 0.02 250);
+  --accent: oklch(0.6 0.19 255);
+  --label-font: "Rajdhani", "Arial Narrow", system-ui, sans-serif;
+  --radius: 1.3em; --dome: 50%;
+  --cap-l: 1.15em; --cap-t: 2.4em; --cap-radius: 1em; --cap-line: oklch(1 0 0 / .85);
+  --scan: .6; --grip: 1; --brand-track: .32em; --spec-color: oklch(1 0 0);
+  /* polished chrome: a soft "sky" band and a ground band reflected in the face */
+  --c-env: linear-gradient(180deg, transparent 0 14%, oklch(1 0 0 / .55) 20%, oklch(1 0 0 / 0) 34%, transparent 62%, oklch(0.4 0.03 255 / .14) 74%, transparent 88%);
+}
+[data-tr-skin="studio"] {
+  --page: oklch(0.2 0.006 60);
+  --page-ink: oklch(0.85 0.01 70);
+  --c-hi: oklch(0.42 0.006 260);   --c-mid: oklch(0.3 0.006 260);     --c-lo: oklch(0.2 0.006 260);
+  --c-edge: oklch(0.1 0 0);        --c-ink: oklch(0.86 0.02 75);      --c-engrave: oklch(0 0 0 / 0.7);
+  --c-texture: 0.35; --c-texture-img: var(--tex-anodized);
+  --socket-hi: oklch(0.44 0.006 260); --socket-lo: oklch(0.08 0 0);
+  --lcd-a: oklch(0.22 0.04 60);    --lcd-b: oklch(0.1 0.02 50);
+  --lcd-ink: oklch(0.86 0.16 70);  --lcd-glow: oklch(0.75 0.18 60);   --lcd-ghost: oklch(0.6 0.1 60 / 0.12);
+  --btn-a: oklch(0.36 0.004 260);  --btn-b: oklch(0.26 0.004 260);    --btn-c: oklch(0.17 0.004 260);
+  --btn-ink: oklch(0.88 0.02 75);  --btn-gloss: 0.18;                 --btn-active: oklch(0.78 0.17 55);
+  --groove-a: oklch(0.06 0 0);     --groove-b: oklch(0.32 0.006 260); --fill: oklch(0.74 0.17 55);
+  --led-on: oklch(0.72 0.2 40);    --led-off: oklch(0.32 0.02 40);
+  --accent: oklch(0.74 0.17 55);
+  --label-font: "Rajdhani", "Arial Narrow", system-ui, sans-serif;
+  --radius: 0.45em; --dome: 0.35em;
+  --cap-l: 1.9em; --cap-t: 2.5em; --cap-radius: .18em; --cap-line: oklch(0.95 0.02 75);
+  --scan: .35; --grip: 1; --brand-track: .5em; --spec-color: oklch(0.55 0.01 260);
+  --label-font: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --c-env: linear-gradient(transparent, transparent);
+}
+[data-tr-skin="porcelain"] {
+  --page: oklch(0.95 0.008 160);
+  --page-ink: oklch(0.32 0.02 180);
+  --c-hi: oklch(1 0 0);            --c-mid: oklch(0.965 0.005 160);   --c-lo: oklch(0.88 0.01 170);
+  --c-edge: oklch(0.72 0.015 175); --c-ink: oklch(0.38 0.03 185);     --c-engrave: oklch(1 0 0 / 0.9);
+  --c-texture: 0.12; --c-texture-img: var(--tex-grain);
+  --socket-hi: oklch(1 0 0);       --socket-lo: oklch(0.8 0.012 175);
+  --lcd-a: oklch(0.9 0.05 150);    --lcd-b: oklch(0.8 0.06 160);
+  --lcd-ink: oklch(0.3 0.06 170);  --lcd-glow: oklch(0.6 0.08 170 / 0);  --lcd-ghost: oklch(0.4 0.05 170 / 0.08);
+  --btn-a: oklch(1 0 0);           --btn-b: oklch(0.96 0.006 160);    --btn-c: oklch(0.86 0.012 170);
+  --btn-ink: oklch(0.4 0.04 185);  --btn-gloss: 0.7;                  --btn-active: oklch(0.6 0.12 175);
+  --groove-a: oklch(0.78 0.015 175); --groove-b: oklch(0.95 0.006 160); --fill: oklch(0.65 0.12 175);
+  --led-on: oklch(0.7 0.15 165);   --led-off: oklch(0.85 0.01 170);
+  --accent: oklch(0.6 0.12 175);
+  --label-font: "Rajdhani", "Arial Narrow", system-ui, sans-serif;
+  --radius: 2.4em; --dome: 50%;
+  --cap-l: 1.5em; --cap-t: 1.5em; --cap-radius: 50%; --cap-line: transparent;
+  --scan: 0; --grip: 0; --brand-track: .12em; --spec-color: oklch(1 0 0);
+  --label-font: "Nunito", system-ui, sans-serif;
+  --lcd-font: "Nunito", system-ui, sans-serif;
+  --c-env: radial-gradient(120% 60% at 50% 0%, oklch(1 0 0 / .7), transparent 60%);
+}
+
+:root {
+  --tex-brushed: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.003 .85' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1.1 -.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tex-anodized: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tex-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .8 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared light: every layer below reads these.                        */
+/* ------------------------------------------------------------------ */
+.deck {
+  --_dx: calc(-1 * sin(var(--tr-light-angle)));
+  --_dy: cos(var(--tr-light-angle));
+  --_r: var(--tr-realism);
+  --_shadow: oklch(0.1 0.02 260);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--page); }
+body { margin: 0; min-height: 100vh; font: 15px/1.4 system-ui, sans-serif; color: var(--page-ink);
+  background: radial-gradient(120% 80% at 50% 0%, color-mix(in oklch, white 22%, var(--page)), var(--page) 70%); transition: background .3s; }
+.stage { max-width: 760px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 20px; }
+.stage-head h1 { font: 700 22px/1.2 var(--label-font); letter-spacing: .04em; margin: 0; }
+.stage-head p { margin: 4px 0 0; opacity: .8; max-width: 62ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; font-size: 13px; }
+.controls fieldset { border: 0; padding: 0; margin: 0; display: flex; gap: 4px; }
+.controls legend { font-size: 12px; opacity: .75; padding: 0 0 4px; }
+.controls label.r { display: grid; gap: 2px; }
+.seg { display: inline-flex; border: 1px solid color-mix(in oklch, var(--page-ink) 40%, transparent); border-radius: 8px; overflow: hidden; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { padding: 6px 12px; cursor: pointer; }
+.seg input:checked + label { background: var(--page-ink); color: var(--page); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ------------------------------------------------------------------ */
+/* The deck: em-based, scales with its container                       */
+/* ------------------------------------------------------------------ */
+.deck { container-type: inline-size; width: 100%; contain: layout paint; padding: 12px 20px 40px; margin-inline: -20px; width: calc(100% + 40px); }
+.deck-inner { font-size: clamp(8px, 2.05cqi, 15.5px); display: grid; gap: .35em; color: var(--c-ink); font-family: var(--label-font); }
+.engraved { text-shadow: 0 1px 0 var(--c-engrave); }
+
+/* Chassis: drop shadow + outer line + bevel lip + brushed face + sheen */
+.chassis {
+  position: relative; isolation: isolate;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(calc(var(--tr-light-angle) + 180deg),
+      oklch(1 0 0 / calc(.5 * var(--_r))) 0%, oklch(1 0 0 / 0) 30%,
+      oklch(1 0 0 / 0) 60%, oklch(0 0 0 / calc(.18 * var(--_r))) 100%),
+    var(--c-env),
+    linear-gradient(180deg, var(--c-hi), var(--c-mid) 42%, var(--c-mid) 70%, var(--c-lo));
+  box-shadow:
+    inset calc(var(--_dx) * 2px) calc(var(--_dy) * 2px) 0 -0.5px oklch(1 0 0 / calc(.9 * var(--_r))),
+    inset calc(var(--_dx) * -2px) calc(var(--_dy) * -2px) 1px -0.5px oklch(0 0 0 / calc(.25 * var(--_r))),
+    0 0 0 1px var(--c-edge),
+    calc(var(--_dx) * 2px) calc(var(--_dy) * 3px) 3px oklch(from var(--_shadow) l c h / .35),
+    calc(var(--_dx) * 10px) calc(var(--_dy) * 14px) 24px oklch(from var(--_shadow) l c h / .28);
+}
+.chassis::before { /* texture layer, kept separate so it never sits on text at full strength */
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: var(--c-texture-img); background-size: 400px 80px; mix-blend-mode: overlay;
+  opacity: calc(var(--c-texture) * var(--_r));
+}
+[data-tr-skin="studio"] .chassis::before, [data-tr-skin="porcelain"] .chassis::before { background-size: 160px 160px; }
+
+/* Socket: a hole milled into the chassis (light falls on its far wall) */
+.socket {
+  border-radius: calc(var(--radius) * .7);
+  padding: .32em;
+  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--socket-lo), var(--socket-hi));
+  box-shadow: inset calc(var(--_dx) * 1px) calc(var(--_dy) * 2px) 3px oklch(0 0 0 / .45), 0 0 0 1px oklch(0 0 0 / .18);
+}
+
+/* ---------------- title bar ---------------- */
+.player { padding: .55em 1em 1em; border-radius: var(--radius) var(--radius) .6em .6em; display: grid; gap: .65em; }
+.titlebar { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: .8em; align-items: center; height: 1.6em; }
+.grip { height: .7em; border-radius: 1px; opacity: var(--grip) !important;
+  background: repeating-linear-gradient(180deg, var(--c-hi) 0 1px, var(--c-lo) 1px 2px, transparent 2px 3.5px); opacity: .9; }
+.brand { font-weight: 700; letter-spacing: var(--brand-track); font-size: 1.05em; padding-left: var(--brand-track); }
+.winbtns { display: flex; gap: .3em; }
+.winbtns button { width: 1.35em; height: 1.2em; padding: 0; border-radius: .25em; font: 700 .7em/1 var(--label-font); color: var(--btn-ink); cursor: pointer;
+  border: 1px solid var(--c-edge); background: linear-gradient(var(--btn-a), var(--btn-c)); box-shadow: inset 0 1px 0 oklch(1 0 0 / .8); }
+.winbtns button { width: 1.9em; height: 1.7em; }
+
+/* ---------------- display ---------------- */
+.main { display: grid; grid-template-columns: 1fr auto; gap: .8em; align-items: center; }
+.lcd {
+  position: relative; overflow: hidden; border-radius: calc(var(--radius) * .45);
+  min-height: 7.2em; padding: .7em 1em .55em;
+  display: grid; grid-template-columns: auto auto 1fr auto; grid-template-rows: 1fr auto; gap: .2em 1em; align-items: center;
+  color: var(--lcd-ink); font-family: var(--lcd-font);
+  background:
+    radial-gradient(130% 160% at 25% -20%, color-mix(in oklch, white calc(14% * var(--_r)), var(--lcd-a)), var(--lcd-b) 72%);
+  box-shadow: inset 0 .25em .7em oklch(0 0 0 / .55), inset 0 0 0 1px oklch(0 0 0 / .6);
+  text-shadow: 0 0 .35em color-mix(in oklch, var(--lcd-glow) calc(70% * var(--_r)), transparent), 0 0 .08em var(--lcd-glow);
+}
+.lcd::before { /* pixel grid / scanlines */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: calc(var(--scan) * var(--_r));
+  background:
+    repeating-linear-gradient(0deg, oklch(0 0 0 / .22) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, oklch(0 0 0 / .1) 0 1px, transparent 1px 3px);
+}
+.lcd::after { /* cover-glass reflection */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(172deg, oklch(1 0 0 / calc(.2 * var(--_r))) 0%, oklch(1 0 0 / calc(.05 * var(--_r))) 42%, transparent 42.5%);
+}
+.ind { font-size: 1.1em; align-self: start; padding-top: .5em; }
+.ind svg { width: .9em; height: .9em; display: block; fill: currentColor; filter: drop-shadow(0 0 .2em var(--lcd-glow)); }
+
+/* Seven-segment digits, with unlit "ghost" segments like real LCD glass */
+.time { display: flex; align-items: center; gap: .28em; transform: skewX(-7deg); }
+.digit { position: relative; width: 1.45em; height: 2.6em; }
+.seg7 { position: absolute; background: currentColor; opacity: 1; box-shadow: 0 0 .35em color-mix(in oklch, var(--lcd-glow) calc(60% * var(--_r)), transparent); }
+.seg7.off { background: var(--lcd-ghost); box-shadow: none; }
+.seg7.h { left: .2em; right: .2em; height: .24em; clip-path: polygon(.12em 0, calc(100% - .12em) 0, 100% 50%, calc(100% - .12em) 100%, .12em 100%, 0 50%); }
+.seg7.v { width: .24em; top: .13em; height: calc(50% - .13em); clip-path: polygon(50% 0, 100% .12em, 100% calc(100% - .12em), 50% 100%, 0 calc(100% - .12em), 0 .12em); }
+.seg7.a { top: 0; } .seg7.g { top: calc(50% - .12em); } .seg7.d { bottom: 0; }
+.seg7.f { left: 0; } .seg7.b { right: 0; }
+.seg7.e { left: 0; top: 50%; } .seg7.c { right: 0; top: 50%; }
+.colon { display: grid; gap: .55em; } .colon i { width: .26em; height: .26em; background: currentColor; display: block; }
+
+.info { display: grid; gap: .35em; font-size: .78em; align-self: start; padding-top: .4em; }
+.chip { display: inline-flex; gap: .4em; align-items: center; white-space: nowrap; }
+.chip b { font-weight: 400; padding: 0 .35em; border-radius: .2em; background: var(--lcd-ink); color: var(--lcd-b); text-shadow: none; box-shadow: 0 0 .4em color-mix(in oklch, var(--lcd-glow) calc(60% * var(--_r)), transparent); }
+.spectrum { display: flex; gap: .16em; align-items: end; height: 3.6em; width: 11em; }
+.spectrum i { flex: 1; height: calc(var(--h, .2) * 100%); display: block; min-height: .2em;
+  background: repeating-linear-gradient(to top, currentColor 0 .2em, transparent .2em .3em);
+  filter: drop-shadow(0 0 .2em color-mix(in oklch, var(--lcd-glow) calc(70% * var(--_r)), transparent)); transition: height .08s linear; }
+.marquee { grid-column: 1 / -1; overflow: hidden; white-space: nowrap; font-size: 1.45em; letter-spacing: .08em; }
+.marquee span { display: inline-block; padding-left: 100%; animation: scroll 16s linear infinite; }
+@keyframes scroll { to { transform: translateX(-100%); } }
+
+/* ---------------- buttons: socket ring + bevel + face + gloss ---------------- */
+.btn {
+  --size: 2.7em;
+  position: relative; inline-size: var(--size); block-size: var(--size); padding: 0; cursor: pointer;
+  border-radius: var(--dome); color: var(--btn-ink);
+  border: .2em solid transparent;
+  background:
+    radial-gradient(circle at calc(50% + var(--_dx) * -18%) calc(50% + var(--_dy) * -22%), var(--btn-a), var(--btn-b) 55%, var(--btn-c) 100%) padding-box,
+    linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--socket-lo), var(--socket-hi)) border-box;
+  box-shadow:
+    0 0 0 1px var(--c-edge),
+    calc(var(--_dx) * 1px) calc(var(--_dy) * 2px) 3px oklch(0 0 0 / .35);
+  display: grid; place-items: center;
+  transition: transform .06s;
+}
+.btn::before { /* specular gloss cap, tracks the light */
+  content: ""; position: absolute; pointer-events: none; border-radius: 50% / 60% 60% 40% 40%;
+  inset: 4% 16% 50% 16%;
+  translate: calc(var(--_dx) * -8%) calc(var(--_dy) * -6%);
+  background: linear-gradient(180deg, oklch(1 0 0 / calc(.95 * var(--btn-gloss) * var(--_r))), oklch(1 0 0 / 0));
+}
+.btn::after { /* bounce light from the chassis below */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(60% 35% at 50% 100%, oklch(1 0 0 / calc(.55 * var(--btn-gloss) * var(--_r))), transparent);
+}
+.btn svg { width: 42%; height: 42%; fill: currentColor; position: relative; z-index: 1; filter: drop-shadow(0 1px 0 var(--c-engrave)); }
+.btn:active, .btn[aria-pressed="true"] {
+  background:
+    radial-gradient(circle at calc(50% + var(--_dx) * 18%) calc(50% + var(--_dy) * 22%), var(--btn-a), var(--btn-b) 60%, var(--btn-c) 100%) padding-box,
+    linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--socket-lo), var(--socket-hi)) border-box;
+  color: var(--btn-active);
+}
+.btn:active { transform: translate(calc(var(--_dx) * .06em), calc(var(--_dy) * .06em)) scale(.98); }
+.btn:active::before { opacity: .6; }
+.btn:focus-visible, .pill:focus-visible { outline: .18em solid var(--accent); outline-offset: .2em; }
+.btn.sm { --size: 2em; }
+.btn.lg { --size: 3.1em; }
+
+.pill { --size: auto; inline-size: auto; block-size: 1.9em; padding: 0 .9em; border-radius: 1em; font: 700 .82em/1 var(--label-font); letter-spacing: .1em; }
+.pill.wide { min-inline-size: 7.5em; }
+.pill span { position: relative; z-index: 1; text-shadow: 0 1px 0 var(--c-engrave); }
+
+/* LED: emissive layer, the second state cue next to aria-pressed */
+.led { inline-size: .55em; block-size: .55em; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at 35% 30%, oklch(1 0 0 / .8), var(--led-off) 55%);
+  box-shadow: inset 0 0 0 1px oklch(0 0 0 / .35), 0 1px 0 var(--c-engrave); }
+.led.on { background: radial-gradient(circle at 35% 30%, oklch(1 0 0), var(--led-on) 50%);
+  box-shadow: inset 0 0 0 1px oklch(0 0 0 / .25), 0 0 .5em var(--led-on), 0 0 1.2em color-mix(in oklch, var(--led-on) 50%, transparent); }
+
+.side { display: grid; gap: .55em; }
+.side-row { display: flex; align-items: center; gap: .45em; }
+
+/* ---------------- sliders: real <input type=range> ---------------- */
+.range { -webkit-appearance: none; appearance: none; background: transparent; margin: 0; cursor: pointer; font: inherit;
+  --track: .5em; --thumb-l: 2.8em; --thumb-t: 1.15em; --v: 50%; }
+.range::-webkit-slider-runnable-track {
+  block-size: var(--track); border-radius: 1em;
+  background: linear-gradient(to right, var(--fill) var(--v), transparent var(--v)), linear-gradient(var(--groove-a), var(--groove-b));
+  box-shadow: inset 0 1px 2px oklch(0 0 0 / .6), 0 1px 0 var(--c-engrave);
+}
+.range::-moz-range-track {
+  block-size: var(--track); border-radius: 1em; background: linear-gradient(var(--groove-a), var(--groove-b));
+  box-shadow: inset 0 1px 2px oklch(0 0 0 / .6), 0 1px 0 var(--c-engrave);
+}
+.range::-moz-range-progress { block-size: var(--track); border-radius: 1em; background: var(--fill); }
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  inline-size: var(--thumb-l); block-size: var(--thumb-t); margin-block-start: calc((var(--track) - var(--thumb-t)) / 2);
+  border-radius: var(--cap-radius); border: 1px solid var(--c-edge);
+  background:
+    linear-gradient(to right, transparent 46%, oklch(0 0 0 / .25) 46% 50%, oklch(1 0 0 / .8) 50% 54%, transparent 54%),
+    linear-gradient(180deg, oklch(1 0 0 / calc(.9 * var(--btn-gloss))) 0 45%, oklch(1 0 0 / 0) 50%),
+    linear-gradient(180deg, var(--btn-a), var(--btn-c));
+  box-shadow: calc(var(--_dx) * 1px) calc(var(--_dy) * 2px) 3px oklch(0 0 0 / .4);
+}
+.range::-moz-range-thumb {
+  inline-size: var(--thumb-l); block-size: var(--thumb-t); border-radius: var(--cap-radius); border: 1px solid var(--c-edge);
+  background:
+    linear-gradient(to right, transparent 46%, oklch(0 0 0 / .25) 46% 50%, oklch(1 0 0 / .8) 50% 54%, transparent 54%),
+    linear-gradient(180deg, oklch(1 0 0 / calc(.9 * var(--btn-gloss))) 0 45%, oklch(1 0 0 / 0) 50%),
+    linear-gradient(180deg, var(--btn-a), var(--btn-c));
+  box-shadow: calc(var(--_dx) * 1px) calc(var(--_dy) * 2px) 3px oklch(0 0 0 / .4);
+}
+.range:focus-visible { outline: .15em solid var(--accent); outline-offset: .25em; border-radius: 1em; }
+.range:not(.vrange) { --cap-radius: 1em; }
+[data-tr-skin="studio"] .range:not(.vrange) { --cap-radius: .2em; }
+.seek { inline-size: 100%; block-size: 1.4em; }
+
+.transport { display: flex; align-items: center; gap: .55em; flex-wrap: wrap; }
+.transport .vol { flex: 1 1 10em; display: flex; align-items: center; gap: .5em; padding: .35em .8em; border-radius: 2em; min-width: 9em; }
+.transport .vol svg { width: 1.3em; height: 1.3em; fill: currentColor; flex: none; }
+.transport .vol .range { flex: 1; min-width: 0; block-size: 1.4em; --thumb-l: 2.2em; }
+.badge { margin-left: auto; display: block; }
+.badge svg { display: block; width: 7.5em; height: 2.6em; }
+
+/* ---------------- equalizer ---------------- */
+.eq { padding: .9em 1em 0; border-radius: .6em .6em var(--radius) var(--radius); display: grid; grid-template-columns: auto 1fr; gap: .4em 1.1em; }
+.eq-left { display: grid; gap: .6em; align-content: start; padding-top: .3em; }
+.eq-left .bal { display: grid; gap: .1em; font-size: .7em; letter-spacing: .1em; }
+.eq-left .bal .range { inline-size: 9.5em; --thumb-l: 1.8em; }
+.eq-left .bal .lr { display: flex; justify-content: space-between; }
+.eq-left .row { display: flex; align-items: center; gap: .5em; }
+.bands { border-radius: .7em; padding: .7em .8em .5em; display: grid; grid-template-columns: auto auto repeat(10, 1fr); gap: 0 .2em; align-items: stretch;
+  background: linear-gradient(180deg, oklch(0 0 0 / .06), oklch(1 0 0 / .06)); box-shadow: inset 0 1px 3px oklch(0 0 0 / .25), 0 1px 0 var(--c-engrave); }
+.band { display: grid; grid-template-rows: 9em auto; justify-items: center; gap: .35em; }
+.band .vwrap { position: relative; display: grid; place-items: center; inline-size: 2.4em;
+  background: repeating-linear-gradient(to bottom, color-mix(in oklch, var(--c-ink) 45%, transparent) 0 1px, transparent 1px calc(9em / 12)) center / .9em 100% no-repeat; }
+.band .vwrap::after { content: ""; position: absolute; inset-inline: .1em; inset-block-start: calc(50% - 1px); block-size: 1px; background: color-mix(in oklch, var(--c-ink) 60%, transparent); }
+.vrange { writing-mode: vertical-lr; direction: rtl; inline-size: 9em; block-size: 2.6em; position: relative; z-index: 1;
+  --thumb-l: var(--cap-l); --thumb-t: var(--cap-t); --track: .42em; }
+.vrange::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--groove-a), var(--groove-b)); }
+.vrange::-moz-range-track { background: linear-gradient(90deg, var(--groove-a), var(--groove-b)); }
+.vrange::-moz-range-progress { background: transparent; }
+.vrange::-webkit-slider-thumb { border-radius: var(--cap-radius);
+  background:
+    linear-gradient(to bottom, transparent 42%, oklch(0 0 0 / .35) 42% 50%, var(--cap-line) 50% 58%, transparent 58%),
+    linear-gradient(90deg, oklch(1 0 0 / calc(.9 * var(--btn-gloss) * var(--_r))) 0 38%, oklch(1 0 0 / 0) 52%),
+    linear-gradient(90deg, var(--btn-a), var(--btn-c)); }
+.vrange::-moz-range-thumb { border-radius: var(--cap-radius);
+  background:
+    linear-gradient(to bottom, transparent 42%, oklch(0 0 0 / .35) 42% 50%, var(--cap-line) 50% 58%, transparent 58%),
+    linear-gradient(90deg, oklch(1 0 0 / calc(.9 * var(--btn-gloss) * var(--_r))) 0 38%, oklch(1 0 0 / 0) 52%),
+    linear-gradient(90deg, var(--btn-a), var(--btn-c)); }
+.band label { font-size: .68em; letter-spacing: .05em; font-weight: 700; white-space: nowrap; }
+.scale { display: grid; grid-template-rows: 9em auto; font-size: .62em; font-weight: 700; padding-inline: .6em .4em; }
+.scale > div { display: flex; flex-direction: column; justify-content: space-between; align-items: end; font-size: 1em; }
+.scale > div { block-size: calc(9em / .62); }
+
+.tabs { grid-column: 1 / -1; display: flex; gap: .2em; padding-inline: .4em; margin-top: .2em; }
+.tab { font: 700 .78em/1 var(--label-font); letter-spacing: .14em; color: var(--c-ink); cursor: pointer; border: 0;
+  padding: .75em 1.6em .9em; clip-path: polygon(0 0, 100% 0, calc(100% - .9em) 100%, .9em 100%);
+  background: linear-gradient(180deg, var(--c-lo), var(--c-mid)); opacity: .85; text-shadow: 0 1px 0 var(--c-engrave); }
+.tab[aria-selected="true"] { background: linear-gradient(180deg, var(--c-mid), var(--c-hi)); opacity: 1; }
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+.tabs .spacer { flex: 1; }
+
+/* ---------------- responsive: re-flow, not just shrink ---------------- */
+@container (width < 560px) {
+  .deck-inner { font-size: clamp(8px, 3.1cqi, 14px); }
+  .spectrum { display: none; }
+  .badge { display: none; }
+  .eq { grid-template-columns: 1fr; }
+  .eq-left { grid-template-columns: repeat(3, auto); align-items: center; justify-content: start; gap: .8em; }
+  .bands { grid-template-columns: auto auto repeat(5, 1fr); }
+  .band.alt { display: none; }
+  .tab { padding-inline: 1em; }
+}
+
+/* ---------------- preferences ---------------- */
+html.still .marquee span { animation: none; padding-left: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .marquee span { animation: none; padding-left: 0; }
+  .spectrum i { transition: none; }
+  .btn { transition: none; }
+}
+@media (prefers-contrast: more) {
+  .deck { --tr-realism: .25; }
+  .lcd { text-shadow: none; }
+}
+@media (forced-colors: active) {
+  .chassis, .socket, .lcd, .btn, .bands { border: 1px solid CanvasText; }
+  .btn[aria-pressed="true"] { border: 3px solid Highlight; }
+  .seg7.off { background: transparent; }
+  .seg7 { background: CanvasText; }
+  .led.on { background: Highlight; }
+}
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="stage-head">
+    <h1>Trompe Deck</h1>
+    <p>One markup tree, three recipes. Every bevel, gloss, LCD glow and shadow follows the shared light, and the whole deck is vector, so it scales and re-flows with its container.</p>
+  </div>
+
+  <div class="controls">
+    <fieldset>
+      <legend>Recipe</legend>
+      <div class="seg" role="radiogroup">
+        <input type="radio" name="recipe" id="r-chrome" value="chrome" checked><label for="r-chrome">Chrome</label>
+        <input type="radio" name="recipe" id="r-studio" value="studio"><label for="r-studio">Studio</label>
+        <input type="radio" name="recipe" id="r-porcelain" value="porcelain"><label for="r-porcelain">Porcelain</label>
+      </div>
+    </fieldset>
+    <label class="r">Light angle <input id="angle" type="range" min="0" max="359" value="315"></label>
+    <label class="r">Realism <input id="realism" type="range" min="0" max="100" value="100"></label>
+  </div>
+
+  <div class="deck" id="deck" data-tr-skin="chrome">
+    <div class="deck-inner">
+      <section class="player chassis" aria-label="Player">
+        <header class="titlebar">
+          <span class="grip"></span>
+          <span class="brand engraved">TROMPE DECK</span>
+          <span class="grip"></span>
+          <span class="winbtns"><button aria-label="Minimize">_</button><button aria-label="Compact">▫</button><button aria-label="Close">×</button></span>
+        </header>
+
+        <div class="main">
+          <div class="socket">
+            <div class="lcd" role="group" aria-label="Now playing">
+              <div class="ind" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M1 0 L9 5 L1 10 Z"/></svg></div>
+              <div class="time" id="time" role="timer" aria-label="Elapsed time"></div>
+              <div class="info">
+                <span class="chip"><b>320</b>KBPS</span>
+                <span class="chip"><b>48</b>KHZ</span>
+                <span class="chip"><b>STEREO</b></span>
+              </div>
+              <div class="spectrum" id="spectrum" aria-hidden="true"></div>
+              <div class="marquee"><span>04 · NIGHT SIGNALS · THE GLASS ORCHESTRA · 5:12 ·&nbsp;</span></div>
+            </div>
+          </div>
+          <div class="side">
+            <div class="side-row"><button class="btn sm" aria-label="Eject"><svg viewBox="0 0 24 24"><path d="M12 5 4 15h16zM4 17h16v3H4z"/></svg></button></div>
+            <div class="side-row"><button class="btn sm toggle" aria-pressed="true" aria-label="Repeat"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z"/></svg></button><span class="led on"></span></div>
+            <div class="side-row"><button class="btn sm toggle" aria-pressed="false" aria-label="Shuffle"><svg viewBox="0 0 24 24"><path d="M10.6 9.2 5.4 4 4 5.4l5.2 5.2zM14.5 4l2 2L4 18.6 5.4 20 18 7.5l2 2V4zm.3 9.4-1.4 1.4 3.1 3.1-2 2.1H20v-5.5l-2 2z"/></svg></button><span class="led"></span></div>
+          </div>
+        </div>
+
+        <input class="range seek" type="range" min="0" max="312" value="102" aria-label="Seek" id="seek">
+
+        <div class="transport">
+          <button class="btn" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+          <button class="btn lg toggle" id="play" aria-pressed="true" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <button class="btn" aria-label="Pause" id="pause"><svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
+          <button class="btn" aria-label="Stop" id="stop"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></button>
+          <button class="btn" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zM16 6h2v12h-2z"/></svg></button>
+          <div class="vol socket">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+            <input class="range" type="range" min="0" max="100" value="72" aria-label="Volume">
+          </div>
+          <div class="badge" aria-hidden="true">
+            <svg viewBox="0 0 150 52">
+              <defs>
+                <filter id="emboss" x="-10%" y="-20%" width="120%" height="140%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="1.4" result="blur"/>
+                  <feSpecularLighting in="blur" surfaceScale="3.5" specularConstant="1.1" specularExponent="22" style="lighting-color: var(--spec-color)" result="spec">
+                    <feDistantLight id="sun" azimuth="225" elevation="42"/>
+                  </feSpecularLighting>
+                  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+                  <feOffset in="SourceAlpha" dx="1" dy="1.5" result="off"/>
+                  <feGaussianBlur in="off" stdDeviation="1" result="sh"/>
+                  <feComponentTransfer in="sh" result="shadow"><feFuncA type="linear" slope=".45"/></feComponentTransfer>
+                  <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/><feMergeNode in="specIn"/></feMerge>
+                </filter>
+              </defs>
+              <rect x="3" y="4" width="144" height="44" rx="10" style="fill: var(--c-mid)" filter="url(#emboss)"/>
+              <text x="75" y="35" text-anchor="middle" font-family="Rajdhani, Arial Narrow, sans-serif" font-weight="700" font-size="25" letter-spacing="3" style="fill: var(--c-lo)" filter="url(#emboss)">trompe</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="eq chassis" aria-label="Equalizer">
+        <div class="eq-left">
+          <div class="bal engraved"><div class="lr"><span>L</span><span>BALANCE</span><span>R</span></div><input class="range" type="range" min="-50" max="50" value="0" aria-label="Balance"></div>
+          <div class="row"><button class="btn pill toggle" aria-pressed="true"><span>ON</span></button><span class="led on"></span></div>
+          <div class="row"><button class="btn pill toggle" aria-pressed="false"><span>AUTO</span></button><span class="led"></span></div>
+          <div class="row"><button class="btn pill wide"><span>PRESETS</span></button></div>
+        </div>
+        <div class="bands" id="bands"></div>
+        <div class="tabs" role="tablist" aria-label="Panels">
+          <button class="tab" role="tab" aria-selected="true">EQUALIZER</button>
+          <button class="tab" role="tab" aria-selected="false">MIXER</button>
+          <button class="tab" role="tab" aria-selected="false">LIGHTING</button>
+          <span class="spacer"></span>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+const deck = document.getElementById('deck');
+const q = new URLSearchParams(location.search);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* recipe + light controls */
+const setRecipe = r => { deck.dataset.trSkin = r; document.documentElement.dataset.trSkin = r; };
+document.querySelectorAll('input[name=recipe]').forEach(i => i.addEventListener('change', () => setRecipe(i.value)));
+const angle = document.getElementById('angle'), realism = document.getElementById('realism'), sun = document.getElementById('sun');
+const applyLight = () => {
+  document.documentElement.style.setProperty('--tr-light-angle', angle.value + 'deg');
+  sun.setAttribute('azimuth', (+angle.value - 90 + 360) % 360);  /* SVG azimuth: 0 = +x axis */
+};
+angle.addEventListener('input', applyLight);
+realism.addEventListener('input', () => document.documentElement.style.setProperty('--tr-realism', realism.value / 100));
+if (q.has('recipe')) { setRecipe(q.get('recipe')); const el = document.getElementById('r-' + q.get('recipe')); if (el) el.checked = true; }
+if (q.has('angle')) angle.value = q.get('angle');
+if (q.has('realism')) { realism.value = q.get('realism'); realism.dispatchEvent(new Event('input')); }
+applyLight();
+
+/* seven-segment time */
+const SEG = { 0:'abcdef', 1:'bc', 2:'abged', 3:'abgcd', 4:'fgbc', 5:'afgcd', 6:'afgedc', 7:'abc', 8:'abcdefg', 9:'abcdfg' };
+const timeEl = document.getElementById('time');
+const mkDigit = () => { const d = document.createElement('div'); d.className = 'digit';
+  for (const s of 'abcdefg') { const e = document.createElement('i'); e.className = 'seg7 ' + s + ('adg'.includes(s) ? ' h' : ' v'); e.dataset.s = s; d.append(e); } return d; };
+const digits = [mkDigit(), mkDigit()]; const colon = document.createElement('div'); colon.className = 'colon'; colon.innerHTML = '<i></i><i></i>';
+digits.push(mkDigit(), mkDigit()); timeEl.append(digits[0], digits[1], colon, digits[2], digits[3]);
+const seek = document.getElementById('seek');
+let t = +seek.value, playing = true;
+const render = () => {
+  const s = String(Math.floor(t / 60)).padStart(2, '0') + String(t % 60).padStart(2, '0');
+  [...s].forEach((ch, i) => digits[i].querySelectorAll('.seg7').forEach(e => e.classList.toggle('off', !SEG[ch].includes(e.dataset.s))));
+  timeEl.setAttribute('aria-label', `Elapsed ${Math.floor(t/60)} minutes ${t%60} seconds`);
+  seek.value = t; seek.style.setProperty('--v', (t / seek.max * 100) + '%');
+};
+seek.addEventListener('input', () => { t = +seek.value; render(); });
+document.querySelectorAll('.range:not(.seek)').forEach(r => { const f = () => r.style.setProperty('--v', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); r.addEventListener('input', f); f(); });
+setInterval(() => { if (playing) { t = (t + 1) % (+seek.max + 1); render(); } }, 1000);
+render();
+
+/* transport + toggles */
+const play = document.getElementById('play');
+play.addEventListener('click', () => { playing = true; play.setAttribute('aria-pressed', 'true'); });
+document.getElementById('pause').addEventListener('click', () => { playing = false; play.setAttribute('aria-pressed', 'false'); });
+document.getElementById('stop').addEventListener('click', () => { playing = false; t = 0; render(); play.setAttribute('aria-pressed', 'false'); });
+document.querySelectorAll('.toggle:not(#play)').forEach(b => b.addEventListener('click', () => {
+  const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on);
+  const led = b.parentElement.querySelector('.led'); if (led) led.classList.toggle('on', on); }));
+document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () =>
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === tab))));
+
+/* equalizer bands */
+const bands = document.getElementById('bands');
+const BANDS = [['PREAMP', 0], ['scale'], ['60', 3], ['170', 5], ['310', 2], ['600', -1], ['1K', -2], ['3K', 1], ['6K', 4], ['12K', 6], ['14K', 5], ['16K', 3]];
+BANDS.forEach(([name, v], i) => {
+  if (name === 'scale') { const s = document.createElement('div'); s.className = 'scale engraved'; s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = '<div><span>+12 dB</span><span>0</span><span>−12 dB</span></div>'; bands.append(s); return; }
+  const b = document.createElement('div'); b.className = 'band' + (i > 2 && i % 2 === 1 ? ' alt' : '');
+  const id = 'eq-' + i;
+  b.innerHTML = `<div class="vwrap"><input class="range vrange" type="range" min="-12" max="12" step="0.5" value="${v}" id="${id}"></div><label class="engraved" for="${id}">${name}</label>`;
+  bands.append(b);
+});
+
+/* spectrum analyser (decorative, static under reduced motion) */
+const spec = document.getElementById('spectrum');
+const bars = Array.from({ length: 22 }, () => { const i = document.createElement('i'); spec.append(i); return i; });
+let phase = 0;
+const tick = () => { phase += .23; bars.forEach((b, i) => {
+  const base = .75 * Math.exp(-((i - 5) ** 2) / 40) + .25 * Math.exp(-((i - 15) ** 2) / 20);
+  const v = playing ? Math.max(.06, Math.min(1, base * (.7 + .35 * Math.sin(phase + i * .9) + .25 * Math.random()))) : .06;
+  b.style.setProperty('--h', v.toFixed(2)); }); };
+tick(); if (!reduce && !q.has('still')) setInterval(tick, 90);
+if (q.has('still')) document.documentElement.classList.add('still');
+</script>
+</body>
+</html>

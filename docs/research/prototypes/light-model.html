@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trompe light model prototype</title>
+<!--
+  Research prototype for docs/research/design-direction.md.
+  Proves that one registered light angle + elevation, a depth integer, a realism
+  scalar and a handful of material parameters are enough to derive every shadow,
+  highlight, gradient and grain in plain CSS (trig functions, @property, color-mix, oklch).
+  Not production code: the foundation package owns the real implementation.
+-->
+<style>
+@property --tr-light-angle     { syntax: "<angle>";  inherits: true; initial-value: 315deg; }
+@property --tr-light-elevation { syntax: "<angle>";  inherits: true; initial-value: 50deg; }
+@property --tr-realism         { syntax: "<number>"; inherits: true; initial-value: 0.66; }
+@property --tr-depth           { syntax: "<integer>"; inherits: false; initial-value: 1; }
+
+:root {
+  color-scheme: light dark;
+  --tr-color-canvas: light-dark(oklch(0.93 0.01 80), oklch(0.24 0.01 260));
+  --tr-color-ink:    light-dark(oklch(0.25 0.01 80), oklch(0.93 0.01 260));
+  --tr-color-edge:   light-dark(oklch(0.55 0.01 80), oklch(0.62 0.01 260)); /* >= 3:1 vs canvas */
+  --tr-color-accent: oklch(0.62 0.17 45);
+  --tr-shadow-color: light-dark(oklch(0.2 0.02 80), oklch(0 0 0));
+  --tr-depth-unit: 2px;
+  /* dark scenes: shadows vanish, so raised surfaces also get lighter (lift).
+     light-dark() only accepts colors, so non-color theme values use the media/attribute pattern below. */
+  --tr-lift: 0%;
+  --tr-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tr-grain-brushed: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004 .9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+[data-tr-theme="light"] { color-scheme: light; }
+[data-tr-theme="dark"]  { color-scheme: dark; --tr-lift: 4%; }
+@media (prefers-color-scheme: dark) { :root:not([data-tr-theme="light"]) { --tr-lift: 4%; } }
+
+/* ---- Materials: parameter bundles only. No geometry here. ---- */
+[material="paper"]   { --m-base: light-dark(oklch(0.97 0.012 85), oklch(0.36 0.01 85)); --m-rough: 0.95; --m-metal: 0; --m-spec: 0.15; --m-grain: 0.35; --m-grain-img: var(--tr-grain); --m-bevel: 0px; --m-ink: light-dark(oklch(0.25 0.01 80), oklch(0.95 0.01 85)); }
+[material="plastic"] { --m-base: light-dark(oklch(0.9 0.01 80), oklch(0.38 0.01 260)); --m-rough: 0.45; --m-metal: 0; --m-spec: 0.55; --m-grain: 0.05; --m-grain-img: var(--tr-grain); --m-bevel: 1px; --m-ink: light-dark(oklch(0.25 0.01 80), oklch(0.95 0.01 260)); }
+[material="rubber"]  { --m-base: light-dark(oklch(0.42 0.01 260), oklch(0.3 0.01 260)); --m-rough: 0.9; --m-metal: 0; --m-spec: 0.12; --m-grain: 0.12; --m-grain-img: var(--tr-grain); --m-bevel: 2px; --m-ink: oklch(0.97 0 0); }
+[material="metal"]   { --m-base: light-dark(oklch(0.8 0.005 250), oklch(0.62 0.005 250)); --m-rough: 0.3; --m-metal: 1; --m-spec: 0.9; --m-grain: 0.4; --m-grain-img: var(--tr-grain-brushed); --m-bevel: 1px; --m-ink: oklch(0.2 0.005 250); }
+[material="glass"]   { --m-base: light-dark(oklch(1 0 0 / 0.45), oklch(0.3 0.01 260 / 0.5)); --m-rough: 0.1; --m-metal: 0; --m-spec: 0.8; --m-grain: 0; --m-grain-img: none; --m-bevel: 1px; --m-ink: light-dark(oklch(0.2 0 0), oklch(0.97 0 0)); }
+
+/* ---- Depth: one integer drives everything ---- */
+[depth="-2"] { --tr-depth: -2 } [depth="-1"] { --tr-depth: -1 } [depth="0"] { --tr-depth: 0 }
+[depth="1"]  { --tr-depth: 1 }  [depth="2"]  { --tr-depth: 2 }  [depth="3"]  { --tr-depth: 3 } [depth="4"] { --tr-depth: 4 }
+
+/* ---- The one shared surface recipe (what every component would reuse) ---- */
+.surface {
+  /* unit vector pointing AWAY from the light, in screen space (y down) */
+  --_dx: calc(-1 * sin(var(--tr-light-angle)));
+  --_dy: cos(var(--tr-light-angle));
+  /* low light = long shadows: cot(elevation), clamped */
+  --_len: clamp(0.3, calc(cos(var(--tr-light-elevation)) / sin(var(--tr-light-elevation))), 3);
+  --_d: max(var(--tr-depth), 0);
+  /* non-linear: each level reads clearly as higher than the last */
+  --_off: calc(pow(var(--_d), 1.6) * var(--_len) * var(--tr-depth-unit));
+  --_face: color-mix(in oklch, white calc(var(--_d) * var(--tr-lift)), var(--m-base));
+  --_hl: calc(var(--m-spec) * (1 - var(--m-rough) * 0.6) * var(--tr-realism));
+
+  position: relative;
+  color: var(--m-ink, var(--tr-color-ink));
+  border: 1px solid color-mix(in oklch, var(--tr-color-edge) calc(40% + 40% * (1 - var(--tr-realism))), transparent);
+  background:
+    /* grain, scaled by realism */
+    linear-gradient(transparent, transparent),
+    /* soft light falloff across the face */
+    linear-gradient(calc(var(--tr-light-angle) + 180deg),
+      color-mix(in oklch, white calc(var(--_hl) * 35%), var(--_face)),
+      color-mix(in oklch, black calc(var(--tr-realism) * 12%), var(--_face))),
+    var(--_face);
+  box-shadow:
+    /* specular rim on the lit edge, shadowed rim on the far edge */
+    inset calc(var(--_dx) * var(--m-bevel)) calc(var(--_dy) * var(--m-bevel)) 0 color-mix(in oklch, white calc(var(--_hl) * 90%), transparent),
+    inset calc(var(--_dx) * -1 * var(--m-bevel)) calc(var(--_dy) * -1 * var(--m-bevel)) 0 color-mix(in oklch, black calc(var(--tr-realism) * 18%), transparent),
+    /* contact shadow (tight) + key shadow (directional) + ambient (soft, undirected) */
+    calc(var(--_dx) * var(--_off) * 0.25) calc(var(--_dy) * var(--_off) * 0.25) calc(var(--_off) * 0.5) color-mix(in oklch, var(--tr-shadow-color) calc(min(var(--_d), 1) * 28%), transparent),
+    calc(var(--_dx) * var(--_off)) calc(var(--_dy) * var(--_off)) calc(var(--_off) * 2) color-mix(in oklch, var(--tr-shadow-color) calc(min(var(--_d), 1) * 18% + var(--_d) * 2%), transparent),
+    0 calc(var(--_off) * 0.5) calc(var(--_off) * 4) color-mix(in oklch, var(--tr-shadow-color) calc(var(--_d) * 4%), transparent);
+  transition: box-shadow .15s, translate .15s;
+}
+.surface::after { /* grain layer: separate so it never sits under text at full strength */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: var(--m-grain-img); mix-blend-mode: overlay;
+  opacity: calc(var(--m-grain) * var(--tr-realism) * var(--tr-realism));
+}
+/* Negative depth = carved into the surface: inset shadows on the lit side */
+.surface:is([depth="-1"], [depth="-2"]) {
+  --_in: calc(var(--tr-depth) * -1 * var(--_len) * var(--tr-depth-unit) * 1.5);
+  box-shadow:
+    inset calc(var(--_dx) * var(--_in)) calc(var(--_dy) * var(--_in)) calc(var(--_in) * 1.6) color-mix(in oklch, var(--tr-shadow-color) 35%, transparent),
+    inset calc(var(--_dx) * -1px) calc(var(--_dy) * -1px) 0 color-mix(in oklch, white calc(var(--tr-realism) * 40%), transparent);
+}
+[material="glass"].surface { backdrop-filter: blur(calc(6px + 10px * var(--tr-realism))) saturate(1.4); }
+
+/* Pressable: depth 1 -> -1 while pressed, and the face moves away from the light */
+button.surface:active { --tr-depth: -1; }
+button.surface:active { translate: calc(var(--_dx) * 1px) calc(var(--_dy) * 1px); }
+button.surface:focus-visible { outline: 2px solid var(--tr-color-accent); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) { .surface { transition: none; } }
+@media (prefers-reduced-transparency: reduce) { [material="glass"].surface { backdrop-filter: none; --m-base: var(--tr-color-canvas); } }
+@media (prefers-contrast: more) { :root { --tr-realism: 0.2 !important; } .surface { border-color: var(--tr-color-edge); } }
+@media (forced-colors: active) {
+  .surface { border: 1px solid CanvasText; }
+  button.surface { border-color: ButtonText; }
+  button.surface:active { border-width: 3px; }
+}
+
+/* ---- Demo page chrome ---- */
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.4 system-ui, sans-serif; background: var(--tr-color-canvas); color: var(--tr-color-ink); }
+main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 20px; margin: 0 0 4px; } h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; opacity: .7; margin: 28px 0 12px; }
+.controls { display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: center; padding: 14px 16px; border-radius: 14px; margin-top: 16px; }
+.controls label { display: grid; gap: 4px; font-size: 13px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+.tile { width: 112px; height: 84px; border-radius: 14px; display: grid; place-items: center; font-size: 12px; text-align: center; }
+button.surface { font: inherit; padding: 12px 22px; border-radius: 12px; cursor: pointer; min-height: 44px; }
+.backdrop { background: conic-gradient(from 20deg, oklch(0.75 0.15 30), oklch(0.75 0.12 200), oklch(0.8 0.15 110), oklch(0.75 0.15 30)); border-radius: 18px; padding: 28px; }
+.knob { width: 84px; height: 84px; border-radius: 50%; background:
+  conic-gradient(from var(--tr-light-angle), oklch(0.95 0 0), oklch(0.62 0 0) 25%, oklch(0.9 0 0) 50%, oklch(0.6 0 0) 75%, oklch(0.95 0 0)) !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Trompe light model prototype</h1>
+  <p>Every shadow, rim, gradient and grain below is derived from four inputs: light angle, light elevation, depth, realism, plus the material's parameters.</p>
+
+  <div class="controls surface" material="plastic" depth="1">
+    <label>Light angle <input id="angle" type="range" min="0" max="359" value="315"><output id="angleOut">315deg</output></label>
+    <label>Light elevation <input id="elev" type="range" min="20" max="80" value="50"><output id="elevOut">50deg</output></label>
+    <label>Realism <input id="realism" type="range" min="0" max="100" value="66"><output id="realismOut">0.66</output></label>
+    <label>Theme <select id="theme"><option value="">system</option><option>light</option><option>dark</option></select></label>
+  </div>
+
+  <h2>Depth scale (plastic)</h2>
+  <div class="row">
+    <div class="surface tile" material="plastic" depth="-2">-2 well</div>
+    <div class="surface tile" material="plastic" depth="-1">-1 pressed</div>
+    <div class="surface tile" material="plastic" depth="0">0 flush</div>
+    <div class="surface tile" material="plastic" depth="1">1 raised</div>
+    <div class="surface tile" material="plastic" depth="2">2 lifted</div>
+    <div class="surface tile" material="plastic" depth="3">3 floating</div>
+    <div class="surface tile" material="plastic" depth="4">4 overlay</div>
+  </div>
+
+  <h2>Materials at depth 1</h2>
+  <div class="row">
+    <div class="surface tile" material="paper" depth="1">paper</div>
+    <div class="surface tile" material="plastic" depth="1">plastic</div>
+    <div class="surface tile" material="rubber" depth="1">rubber</div>
+    <div class="surface tile" material="metal" depth="1">metal</div>
+    <div class="surface tile knob" material="metal" depth="2" aria-label="metal knob (conic spun finish)"></div>
+  </div>
+
+  <h2>Pressable (press and hold)</h2>
+  <div class="row">
+    <button class="surface" material="plastic" depth="1">Plastic button</button>
+    <button class="surface" material="metal" depth="1">Metal button</button>
+    <button class="surface" material="rubber" depth="2">Rubber key</button>
+  </div>
+
+  <h2>Glass over a busy backdrop</h2>
+  <div class="backdrop"><div class="row" style="justify-content:center">
+    <div class="surface tile" material="glass" depth="2">glass</div>
+    <div class="surface tile" material="glass" depth="3">glass, depth 3</div>
+  </div></div>
+</main>
+<script>
+const r = document.documentElement.style;
+const bind = (id, prop, fmt) => { const el = document.getElementById(id), out = document.getElementById(id + 'Out');
+  const f = () => { const v = fmt(el.value); r.setProperty(prop, v); out.textContent = v; }; el.addEventListener('input', f); f(); };
+bind('angle', '--tr-light-angle', v => v + 'deg');
+bind('elev', '--tr-light-elevation', v => v + 'deg');
+bind('realism', '--tr-realism', v => (v / 100).toFixed(2));
+const p = new URLSearchParams(location.search);
+for (const [k, id] of [['angle','angle'],['elev','elev'],['realism','realism']]) if (p.has(k)) { const el = document.getElementById(id); el.value = p.get(k); el.dispatchEvent(new Event('input')); }
+document.getElementById('theme').addEventListener('change', e => e.target.value ? document.documentElement.dataset.trTheme = e.target.value : delete document.documentElement.dataset.trTheme);
+if (p.has('theme')) document.documentElement.dataset.trTheme = p.get('theme');
+</script>
+</body>
+</html>
