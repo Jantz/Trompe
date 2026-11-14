@@ -95,10 +95,14 @@ test.describe('tr-tooltip', () => {
       mod.positioning.css = false;
     });
     await page.locator('#t2').evaluate((t: any) => t.show());
-    const a = (await page.locator('#share').boundingBox())!;
-    const t = (await page.locator('#t2').boundingBox())!;
-    expect(t.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
-    expect(Math.abs(t.x + t.width / 2 - (a.x + a.width / 2))).toBeLessThan(3);
+    // The tooltip re-places itself when its size changes (e.g. a web font finishing loading).
+    await expect
+      .poll(async () => {
+        const a = (await page.locator('#share').boundingBox())!;
+        const t = (await page.locator('#t2').boundingBox())!;
+        return t.y >= a.y + a.height - 1 && Math.abs(t.x + t.width / 2 - (a.x + a.width / 2)) < 3;
+      })
+      .toBe(true);
   });
 
   test('has no axe violations when shown', async ({ page }) => {

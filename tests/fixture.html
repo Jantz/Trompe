@@ -5,7 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Trompe test fixture</title>
     <style>
-      body { margin: 0; padding: 24px; background: var(--tr-color-canvas); color: var(--tr-color-ink); font: 16px/1.4 system-ui, sans-serif; }
+      /* Pinned fonts so visual snapshots match on every machine (system-ui differs per OS). */
+      @font-face { font-family: TrompeTest; src: url('/tests/fonts/Inter-Regular.woff2') format('woff2'); font-weight: 400; }
+      @font-face { font-family: TrompeTest; src: url('/tests/fonts/Inter-Medium.woff2') format('woff2'); font-weight: 500; }
+      @font-face { font-family: TrompeTest; src: url('/tests/fonts/Inter-SemiBold.woff2') format('woff2'); font-weight: 600; }
+      @font-face { font-family: TrompeTest; src: url('/tests/fonts/Inter-Bold.woff2') format('woff2'); font-weight: 700; }
+      @font-face { font-family: TrompeTestMono; src: url('/tests/fonts/DejaVuSansMono.woff2') format('woff2'); font-weight: 400; }
+      @font-face { font-family: TrompeTestMono; src: url('/tests/fonts/DejaVuSansMono-Bold.woff2') format('woff2'); font-weight: 700; }
+      :root { --tr-font-family: TrompeTest; --tr-font-family-mono: TrompeTestMono; }
+      body { margin: 0; padding: 24px; background: var(--tr-color-canvas); color: var(--tr-color-ink); font: 16px/1.4 TrompeTest; }
     </style>
     <script type="module">
       import * as trompe from '/src/index.ts';
