@@ -71,7 +71,11 @@ export class TrSegmented extends FormControl {
         --_gloss: 0;
         --_mirror: 0;
         --_curve: 0;
-        display: flex;
+        /* Equal columns as wide as the widest key; they shrink (labels ellipsize) only when the
+           tray itself is squeezed. */
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
         flex: 1;
         gap: var(--tr-segmented-gap, 0.25em);
         padding: 0.25em;

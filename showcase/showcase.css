@@ -543,3 +543,12 @@ h3 {
 .files-bar {
   max-width: 100%;
 }
+/* Phones: segmented keys drop their lamps and tighten up so labels keep their room. */
+@media (max-width: 420px) {
+  tr-segmented tr-option::part(indicator) {
+    display: none;
+  }
+  tr-segmented tr-option::part(row) {
+    padding-inline: 0.45em;
+  }
+}
