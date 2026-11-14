@@ -30,7 +30,7 @@ export const materialPresets: MaterialPreset[] = [
   // Plastics
   { id: 'satin-plastic', label: 'Satin plastic', family: 'plastic', description: 'Moulded plastic with a soft sheen in the skin surface colour.', keywords: ['plastic', 'satin', 'product', 'neutral'], use: { surfaces: true, controls: true }, spec: { material: 'plastic', finish: 'satin' } },
   { id: 'lacquer', label: 'Oxblood lacquer', family: 'plastic', description: 'Deep red clear-coated lacquer with a crisp window reflection.', keywords: ['lacquer', 'lacquered', 'oxblood', 'piano', 'enamel'], use: { surfaces: true, controls: true }, spec: { material: 'plastic', finish: 'gloss', vars: v('oklch(40% 0.13 22)', 'oklch(97% 0.01 30)') } },
-  { id: 'candy', label: 'Candy plastic', family: 'plastic', description: 'Saturated glossy toy plastic.', keywords: ['candy', 'toy', 'playful', 'glossy', 'bubbly'], use: { surfaces: false, controls: true }, spec: { material: 'plastic', finish: 'gloss', profile: 'dome', vars: v('oklch(62% 0.2 15)', 'oklch(99% 0.01 15)') } },
+  { id: 'candy', label: 'Candy plastic', family: 'plastic', description: 'Saturated glossy toy plastic.', keywords: ['candy', 'toy', 'playful', 'glossy', 'bubbly'], use: { surfaces: false, controls: true }, spec: { material: 'plastic', finish: 'gloss', profile: 'dome', vars: v('oklch(56% 0.2 15)', 'oklch(99% 0.01 15)') } },
   { id: 'soft-touch', label: 'Soft-touch rubber', family: 'plastic', description: 'Dark matte rubberised coating.', keywords: ['rubber', 'soft-touch', 'rubberized', 'rubberised', 'grippy', 'silicone'], use: { surfaces: true, controls: true }, spec: { material: 'rubber', finish: 'satin' } },
   { id: 'ceramic', label: 'Glazed ceramic', family: 'mineral', description: 'White glazed ceramic: smooth, cool and glossy.', keywords: ['ceramic', 'porcelain', 'glazed', 'clinical', 'appliance'], use: { surfaces: true, controls: true }, spec: { material: 'plastic', finish: 'gloss', vars: v('oklch(96% 0.006 90)', 'oklch(24% 0.012 260)', { '--tr-m-grain': '0' }) } },
 
@@ -48,7 +48,7 @@ export const materialPresets: MaterialPreset[] = [
 
   // Glass
   { id: 'frosted-glass', label: 'Frosted glass', family: 'glass', description: 'Translucent blurred glass. Put it over an image or a gradient.', keywords: ['glass', 'frosted', 'translucent', 'acrylic', 'blur'], use: { surfaces: true, controls: true }, spec: { material: 'glass', finish: 'satin' } },
-  { id: 'smoked-glass', label: 'Smoked glass', family: 'glass', description: 'Dark tinted glass with a glossy edge.', keywords: ['smoked', 'tinted', 'smoky'], use: { surfaces: true, controls: true }, spec: { material: 'glass', finish: 'gloss', vars: v('oklch(24% 0.01 260 / 0.6)', 'oklch(97% 0.005 260)') } },
+  { id: 'smoked-glass', label: 'Smoked glass', family: 'glass', description: 'Dark tinted glass with a glossy edge.', keywords: ['smoked', 'tinted', 'smoky'], use: { surfaces: true, controls: true }, spec: { material: 'glass', finish: 'gloss', vars: v('oklch(22% 0.01 260 / 0.72)', 'oklch(97% 0.005 260)') } },
 
   // Wood
   { id: 'walnut', label: 'Walnut', family: 'wood', description: 'Oiled American walnut: dark chocolate grain with a low sheen.', keywords: ['walnut', 'wood', 'wooden', 'timber', 'mid-century', 'midcentury', 'hifi'], use: { surfaces: true, controls: true }, spec: { material: 'plastic', finish: 'satin', texture: 'wood', vars: v('oklch(40% 0.055 50)', 'oklch(95% 0.012 80)', { '--tr-m-specular': '0.35', '--tr-m-grain': '0' }) } },
