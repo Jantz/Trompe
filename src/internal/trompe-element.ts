@@ -21,6 +21,13 @@ export function installGlobalStyles(doc: Document | undefined = globalThis.docum
       // Internal: the current depth level of a surface. Registered so press/hover animate smoothly.
       { name: '--_tr-z', syntax: '<number>', inherits: false, initialValue: '0' },
     ];
+    // A surface texture belongs to the element it is set on: a wood panel must not turn every
+    // control inside it into wood. Universal syntax, so it takes no initial value.
+    try {
+      CSS.registerProperty({ name: '--tr-m-texture', syntax: '*', inherits: false });
+    } catch {
+      /* already registered */
+    }
     for (const p of props) {
       try {
         CSS.registerProperty(p);

@@ -36,6 +36,11 @@ export const hostStyles = css`
     /* components set --_curve-default / --_chamfer-default for their natural shape */
     --_curve: var(--tr-p-curve, var(--_curve-default, 0));
     --_chamfer: var(--tr-p-chamfer, var(--_chamfer-default, 0px));
+    /* surface texture (wood, leather, linen…): a neutral grey relief blended over the base colour.
+       --tr-m-texture does not inherit (registered), so it only reaches this element's own parts. */
+    --_tex: var(--tr-m-texture, none);
+    --_tex-size: var(--tr-m-texture-size, 256px 256px);
+    --_tex-blend: var(--tr-m-texture-blend, hard-light);
 
     /* private reflection damping set by large surfaces (panels, dialogs); never leaks into children */
     --_reflect: initial;
@@ -200,7 +205,11 @@ export const surfaceStyles = css`
         transparent 1px 5px,
         color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * 5%), transparent) 5px 6px,
         transparent 6px 11px
-      );
+      ,
+      /* material texture, under every lighting layer so the light still reads over it */
+      var(--_tex);
+    background-size: auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, var(--_tex-size);
+    background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, var(--_tex-blend);
     box-shadow:
       /* specular rim on the lit edge */
       inset calc(var(--_sx) * var(--_bevel)) calc(var(--_sy) * var(--_bevel)) 0 0
