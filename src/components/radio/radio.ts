@@ -2,6 +2,7 @@ import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
+import { PressController } from '../../interaction/press.js';
 // Importing a radio defines its group too (and the group imports the radio).
 import './radio-group.js';
 
@@ -26,6 +27,9 @@ import './radio-group.js';
  * @example <tr-radio-group label="Plan"><tr-radio value="free">Free</tr-radio><tr-radio value="pro" checked>Pro</tr-radio></tr-radio-group>
  */
 export class TrRadio extends TrompeElement {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.disabled });
+
   static override styles = [
     ...TrompeElement.styles,
     css`
@@ -96,13 +100,13 @@ export class TrRadio extends TrompeElement {
         scale: 0.2;
         transition:
           opacity var(--tr-motion-duration-press, 70ms),
-          scale var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out);
+          scale var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out);
       }
       :host([checked]) .bead {
         opacity: 1;
         scale: 1;
       }
-      :host(:active) .bead {
+      :host([data-tr-pressed]) .bead {
         scale: 0.85;
       }
       .label:not(.has-label) {

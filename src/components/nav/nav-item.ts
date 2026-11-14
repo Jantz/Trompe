@@ -2,6 +2,7 @@ import { css, html, nothing, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
+import { PressController } from '../../interaction/press.js';
 
 /**
  * One destination in a tr-nav. With `href` it renders a real link; without, a button (for
@@ -69,7 +70,7 @@ export class TrNavItem extends TrompeElement {
         cursor: pointer;
         outline: none;
         -webkit-tap-highlight-color: transparent;
-        transition: translate var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out);
+        transition: translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out);
       }
       .item:focus-visible {
         outline: 2px solid var(--tr-color-focus);
@@ -92,7 +93,7 @@ export class TrNavItem extends TrompeElement {
       .item:hover .plate {
         opacity: 1;
       }
-      .item:active .plate {
+      :host([data-tr-pressed]) .plate {
         --_tr-z: -0.5;
       }
       :host([current]) .plate {
@@ -198,6 +199,10 @@ export class TrNavItem extends TrompeElement {
       }
     `,
   ];
+
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.disabled });
+
 
   /** Destination URL. Without it the item renders a button. */
   @property({ reflect: true }) href?: string;

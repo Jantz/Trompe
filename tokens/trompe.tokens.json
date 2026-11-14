@@ -391,11 +391,39 @@
       },
       "release": {
         "$value": "160ms",
-        "$description": "A control springing back."
+        "$description": "A control springing back (colour, opacity and short release transitions)."
+      },
+      "return": {
+        "$value": "354ms",
+        "$description": "A pressed cap returning on its spring, with a small overshoot. Baked from the 'press' spring; pair with --tr-motion-easing-return."
       },
       "travel": {
         "$value": "220ms",
         "$description": "A thumb or cap travelling (switch throw)."
+      },
+      "throw": {
+        "$value": "244ms",
+        "$description": "A switch thumb or selector snapping over to its new position. Baked from the 'throw' spring; pair with --tr-motion-easing-throw."
+      },
+      "settle": {
+        "$value": "187ms",
+        "$description": "A part dropping into a notch or snap point. Baked from the 'detent' spring; pair with --tr-motion-easing-settle."
+      },
+      "glide": {
+        "$value": "471ms",
+        "$description": "A value travelling to a target set by code or keyboard, no overshoot. Baked from the 'glide' spring; pair with --tr-motion-easing-glide."
+      },
+      "lift": {
+        "$value": "240ms",
+        "$description": "A menu, popover or dialog lifting off the page."
+      },
+      "lamp": {
+        "$value": "90ms",
+        "$description": "An LED or indicator lamp lighting (off is twice as long, like a cooling filament)."
+      },
+      "press-min": {
+        "$value": "90ms",
+        "$description": "Shortest visible press. A quick tap is held down at least this long so it is always seen."
       }
     },
     "easing": {
@@ -409,6 +437,46 @@
         "$extensions": {
           "dev.trompe": {
             "cssOnly": true
+          }
+        }
+      },
+      "return": {
+        "$value": "linear(0, 0.0062 1.13%, 0.0292 2.54%, 0.0657 3.95%, 0.1127 5.37%, 0.2147 7.91%, 0.4688 13.56%, 0.5772 16.1%, 0.6854 18.93%, 0.7695 21.47%, 0.8403 24.01%, 0.9035 26.84%, 0.9519 29.66%, 0.99 32.77%, 1.0266 38.14%, 1.0384 44.35%, 1.003 72.6%, 1)",
+        "$description": "A pressed cap returning on its spring, with a small overshoot. Spring 'press' {\"duration\":0.22,\"bounce\":0.28} baked to CSS linear() by springEasing().",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true,
+            "spring": "press"
+          }
+        }
+      },
+      "throw": {
+        "$value": "linear(0, 0.0065 1.23%, 0.0244 2.46%, 0.0514 3.69%, 0.0984 5.33%, 0.2001 8.2%, 0.4268 13.93%, 0.5338 16.8%, 0.6301 19.67%, 0.7139 22.54%, 0.7845 25.41%, 0.8499 28.69%, 0.9004 31.97%, 0.9382 35.25%, 0.9655 38.52%, 0.9863 42.21%, 1.0085 51.23%, 1)",
+        "$description": "A switch thumb or selector snapping over to its new position. Spring 'throw' {\"duration\":0.16,\"bounce\":0.18} baked to CSS linear() by springEasing().",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true,
+            "spring": "throw"
+          }
+        }
+      },
+      "settle": {
+        "$value": "linear(0, 0.0052 1.07%, 0.0194 2.14%, 0.0411 3.21%, 0.0843 4.81%, 0.1752 7.49%, 0.4021 13.37%, 0.5186 16.58%, 0.6219 19.79%, 0.6961 22.46%, 0.7596 25.13%, 0.8222 28.34%, 0.8716 31.55%, 0.9151 35.29%, 0.9462 39.04%, 0.9702 43.32%, 0.996 52.94%, 1.0029 65.24%, 1)",
+        "$description": "A part dropping into a notch or snap point. Spring 'detent' {\"duration\":0.12,\"bounce\":0.12} baked to CSS linear() by springEasing().",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true,
+            "spring": "detent"
+          }
+        }
+      },
+      "glide": {
+        "$value": "linear(0, 0.0045 1.06%, 0.0202 2.34%, 0.0816 5.1%, 0.1582 7.64%, 0.4591 16.77%, 0.5563 20.17%, 0.6355 23.35%, 0.7073 26.75%, 0.7669 30.15%, 0.8183 33.76%, 0.8615 37.58%, 0.8998 42.04%, 0.9303 46.92%, 0.9542 52.44%, 0.9716 58.6%, 0.9914 73.67%, 1)",
+        "$description": "A value travelling to a target set by code or keyboard, no overshoot. Spring 'glide' {\"duration\":0.32,\"bounce\":0} baked to CSS linear() by springEasing().",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true,
+            "spring": "glide"
           }
         }
       }

@@ -1,6 +1,7 @@
 import { css, html, nothing, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
+import { PressController } from '../../interaction/press.js';
 
 /**
  * One command in a `tr-menu`. At rest it is an engraved legend on the menu plate; when it is
@@ -37,6 +38,9 @@ import { TrompeElement, define } from '../../internal/trompe-element.js';
  * @example <tr-menu-item separator></tr-menu-item>
  */
 export class TrMenuItem extends TrompeElement {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.disabled });
+
   static override styles = [
     ...TrompeElement.styles,
     css`
@@ -86,7 +90,7 @@ export class TrMenuItem extends TrompeElement {
         line-height: 1.25;
         transition:
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
-          translate var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out);
+          translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out);
       }
       /* at rest the item is only a legend on the plate: no cap, no rim, no shadow */
       :host(:not(:focus):not([data-expanded])) .key,
@@ -126,7 +130,7 @@ export class TrMenuItem extends TrompeElement {
       :host([disabled]:focus) .key {
         background: color-mix(in oklch, currentColor 9%, transparent);
       }
-      :host(:active:not([disabled])) .key {
+      :host([data-tr-pressed]:not([disabled])) .key {
         --_tr-z: -0.5;
         translate: 0 calc(var(--_sy) * 0.5px);
         transition-duration: var(--tr-motion-duration-press, 70ms);

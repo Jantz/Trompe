@@ -4,6 +4,7 @@ import { FormControl } from '../../internal/form-control.js';
 import { submitFor } from '../../internal/submitter.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Size, Tone } from '../../internal/types.js';
+import { PressController } from '../../interaction/press.js';
 
 /**
  * A physical push button. It rests raised, rises slightly under the pointer, and sinks into its
@@ -33,6 +34,9 @@ import type { Size, Tone } from '../../internal/types.js';
  * @example <tr-button shape="circle" profile="dome" finish="gloss" aria-label="Play"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M4 2l10 6-10 6z"/></svg></tr-button>
  */
 export class TrButton extends FormControl {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.isDisabled });
+
   static override styles = [
     ...FormControl.styles,
     css`
@@ -86,7 +90,7 @@ export class TrButton extends FormControl {
         white-space: nowrap;
         transition:
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
-          translate var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
+          translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
           background-color var(--tr-motion-duration-release, 160ms);
       }
       :host([tone='accent']) .surface {
@@ -100,7 +104,7 @@ export class TrButton extends FormControl {
       :host(:hover) .surface {
         --_tr-z: calc(var(--_depth) + 0.5);
       }
-      :host(:active) .surface,
+      :host([data-tr-pressed]) .surface,
       :host([data-active]) .surface,
       :host([toggle][pressed]) .surface {
         --_tr-z: -1;
