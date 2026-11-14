@@ -231,6 +231,8 @@ test.describe('tr-date-picker', () => {
     await page.setViewportSize({ width: 360, height: 640 });
     await mount(page, `<tr-date-picker id="d" label="Date" week-numbers value="2026-11-14" style="width:100%"></tr-date-picker>`);
     await page.locator('#d [part=button]').click();
+    // measure the sheet at rest: its spring-eased opening overshoots its scale for a moment
+    await page.locator('#d [part=popover]').evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
     const sheet = (await page.locator('#d [part=popover]').boundingBox())!;
     expect(sheet.x).toBeGreaterThanOrEqual(0);
     expect(sheet.x + sheet.width).toBeLessThanOrEqual(360);
