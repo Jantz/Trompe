@@ -1,9 +1,31 @@
+import { hasPainted, insertAnimated, removeAnimated } from '../../interaction/smooth.js';
 import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 import { PressController } from '../../interaction/press.js';
 
 let nextId = 0;
+
+/**
+ * Rows added to lists already on screen, opened into place together once the rows rendered in
+ * the same turn have all rendered (still before the next paint). A batch of more than a few rows in one list is a render, not an insertion: it appears
+ * at once, without a per-row animation.
+ */
+const arriving = new Set<TrListItem>();
+function queueArrival(row: TrListItem): void {
+  if (!arriving.size) {
+    queueMicrotask(() => {
+      const byList = new Map<Element | null, TrListItem[]>();
+      for (const r of arriving) {
+        const list = r.closest('tr-list');
+        byList.set(list, [...(byList.get(list) ?? []), r]);
+      }
+      arriving.clear();
+      for (const rows of byList.values()) if (rows.length <= 3) for (const r of rows) insertAnimated(r);
+    });
+  }
+  arriving.add(row);
+}
 
 /**
  * A row in a tr-list: optional leading icon or avatar, a title with an optional description
@@ -80,8 +102,17 @@ export class TrListItem extends TrompeElement {
         z-index: -1;
         border-radius: inherit;
         opacity: 0;
+        /* --_sel (registered) fades the selected tint in and out with the plate */
+        --_sel: 0;
+        --_base: color-mix(
+          in oklch,
+          var(--_m-base),
+          color-mix(in oklch, color-mix(in oklch, var(--_m-base), var(--tr-color-accent) 12%), var(--_sh) calc(6% + var(--tr-lift, 0) * 10%))
+            calc(var(--_sel) * 100%)
+        );
         transition:
           opacity var(--tr-motion-duration-release, 160ms),
+          --_sel var(--tr-motion-duration-release, 160ms),
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out);
       }
       :host([role='option']) {
@@ -101,11 +132,12 @@ export class TrListItem extends TrompeElement {
       }
       :host([role='option'][selected]) .plate {
         --_tr-z: -1;
-        --_base: color-mix(in oklch, color-mix(in oklch, var(--_m-base), var(--tr-color-accent) 12%), var(--_sh) calc(6% + var(--tr-lift, 0) * 10%));
+        --_sel: 1;
         opacity: 1;
       }
       :host(:focus-visible) .row {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: -2px;
       }
       ::slotted([slot='start']) {
@@ -120,6 +152,8 @@ export class TrListItem extends TrompeElement {
       }
       .title {
         overflow-wrap: anywhere;
+        /* variable fonts thicken smoothly; static fonts switch at the end of the fade */
+        transition: font-weight var(--tr-motion-duration-release, 160ms);
       }
       :host([selected]) .title {
         font-weight: var(--tr-font-weight-strong, 600);
@@ -197,6 +231,17 @@ export class TrListItem extends TrompeElement {
     if (!this.id) this.id = `tr-list-item-${++nextId}`;
     if (!this.hasAttribute('role')) this.setAttribute('role', 'listitem');
     if (!this.value) this.value = [...this.childNodes].filter((n) => n.nodeType === 3 || !(n as Element).slot).map((n) => n.textContent).join('').trim();
+  }
+
+  protected override firstUpdated(changed: PropertyValues): void {
+    super.firstUpdated(changed);
+    // A row added to a list already on screen opens into place instead of pushing rows down.
+    if (hasPainted(this.closest('tr-list'))) queueArrival(this);
+  }
+
+  /** Removes the row with an exit: it fades while its height closes, so the rows below slide up. */
+  dismiss(): Promise<void> {
+    return removeAnimated(this);
   }
 
   protected override render() {

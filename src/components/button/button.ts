@@ -91,7 +91,10 @@ export class TrButton extends FormControl {
         transition:
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
           translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
-          background-color var(--tr-motion-duration-release, 160ms);
+          background-color var(--tr-motion-duration-release, 160ms),
+          color var(--tr-motion-duration-release, 160ms),
+          border-color var(--tr-motion-duration-release, 160ms),
+          opacity var(--tr-motion-duration-release, 160ms);
       }
       :host([tone='accent']) .surface {
         --_base: var(--tr-color-accent);

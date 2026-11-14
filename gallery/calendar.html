@@ -15,6 +15,9 @@
   aluminium standoffs; events are vitreous enamel set in a silver rim.
   Every offset reads the kit light (--tr-shadow-x/y, --tr-light-angle).
   =================================================================== */
+@property --c { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --on { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --cd { syntax: "<color>"; inherits: true; initial-value: transparent; }
 :root {
   color-scheme: light;
   --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --sl: var(--tr-shadow-len); --la: var(--tr-light-angle);
@@ -257,10 +260,17 @@ h1, h2, h3 { margin: 0; }
 }
 .seg .gkey { height: 2.35em; min-width: 4.7em; font-size: .92em; }
 .seg .gkey .cap { flex-direction: column; gap: .28em; }
-.seg .gkey .cap::before { content: ""; width: 1.4em; height: 2px; border-radius: 2px; background: oklch(.6 .03 215 / .35); }
+.seg .gkey .cap { transition: color .2s, text-shadow .2s; }
+.seg .gkey .cap::before { content: ""; width: 1.4em; height: 2px; border-radius: 2px; background: oklch(.6 .03 215 / .35); transition: background-color .2s, box-shadow .2s; }
 .seg .gkey[aria-pressed="true"] .cap { color: var(--ice-ink); text-shadow: 0 0 .7em oklch(.82 .12 220 / .9); }
-.seg .gkey[aria-pressed="true"] .cap::after { opacity: 1; background: radial-gradient(80% 90% at 50% 0%, oklch(.9 .08 212 / .55), transparent 75%); }
-.seg .gkey[aria-pressed="true"] .sh { opacity: .35; }
+/* Latched state eases in through --on: the inner glow swaps from the hover pool to the top glow, the shadow tightens. */
+.seg .gkey { transition: --on .22s var(--tr-ease-out); }
+.seg .gkey[aria-pressed="true"] { --on: 1; }
+.seg .gkey .cap::after { background:
+  radial-gradient(80% 90% at 50% 0%, oklch(.9 .08 212 / calc(var(--on) * .55)), transparent 75%),
+  radial-gradient(90% 120% at 50% 100%, oklch(.95 .06 205 / calc((1 - var(--on)) * .7)), transparent 70%); }
+.seg .gkey:not(:hover) .cap::after { opacity: var(--on); }
+.seg .gkey .sh { opacity: calc(var(--on) * .35 + (1 - var(--on)) * (1 - var(--tr-press) * .8)); }
 .seg .gkey[aria-pressed="true"] .cap::before { background: var(--ice); box-shadow: 0 0 .5em var(--ice), 0 0 1em oklch(.84 .1 212 / .6); }
 
 /* ------------------------------------------------------------------ */
@@ -281,7 +291,8 @@ h1, h2, h3 { margin: 0; }
 .pday b { font-weight: inherit; transition: transform .28s var(--tr-ease-spring); }
 .pday.out { color: var(--ink-3); opacity: .55; }
 .pday.wkend { color: var(--ink-2); }
-.pday:hover::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; background: radial-gradient(circle, oklch(.95 .05 205 / .8), transparent 70%); z-index: -1; }
+.pday::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; background: radial-gradient(circle, oklch(.95 .05 205 / .8), transparent 70%); z-index: -1; opacity: 0; transition: opacity .16s; }
+.pday:hover::before { opacity: 1; }
 .pday.has::after { content: ""; position: absolute; bottom: 14%; width: .28em; height: .28em; border-radius: 50%; background: var(--ice); box-shadow: 0 0 .35em var(--ice); }
 .pday.today { color: var(--amber-ink); font-weight: 750; text-shadow: 0 0 .7em oklch(.85 .15 70 / .8); }
 .pday.today::after { background: var(--amber); box-shadow: 0 0 .4em var(--amber); }
@@ -318,6 +329,7 @@ h1, h2, h3 { margin: 0; }
 .search-note { font-size: .78em; color: var(--ink-2); margin: .55em .2em 0; min-height: 1.3em; }
 .cals { list-style: none; margin: 0; padding: 0; display: grid; gap: .1em; }
 .cals label { display: flex; align-items: center; gap: .8em; min-height: 2.6em; padding: 0 .4em; border-radius: .6em; cursor: pointer; font-weight: 520; }
+.cals label { transition: background-color .16s; }
 .cals label:hover { background: oklch(1 0 0 / .3); }
 .cals .n { margin-left: auto; font: 500 .8em/1 var(--disp); font-variant-numeric: tabular-nums; color: var(--ink-3); }
 
@@ -364,6 +376,7 @@ h1, h2, h3 { margin: 0; }
   var(--o1) 0 oklch(1 0 0 / .9);
 }
 .well::placeholder { color: oklch(.55 .02 235); }
+.well { transition: background-color .16s, color .2s; }
 .well:hover { background-color: oklch(1 0 0 / .25); }
 .well:focus-visible, .well:focus {
   outline-color: var(--tr-focus);
@@ -410,10 +423,17 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; w
   mask: linear-gradient(#000, #000c 45%, #0008);
 }
 .cell { position: relative; z-index: 1; min-width: 0; display: flex; flex-direction: column; gap: .22em; padding: .4em .45em .4em; cursor: pointer; }
+.cell { transition: background-color .2s; }
 .cell.wkend { background: oklch(.9 .015 214 / .16); }
 .cell.out .dnum { color: var(--ink-3); opacity: .6; }
-.cell.sel { background: radial-gradient(120% 90% at 50% 0%, oklch(.94 .04 210 / .55), transparent 70%); }
-.cell.drop { background: radial-gradient(110% 110% at 50% 50%, oklch(.9 .08 210 / .55), oklch(.93 .05 210 / .2)); box-shadow: inset 0 0 0 1.5px oklch(.78 .11 215 / .9), inset 0 0 1.4em oklch(.85 .1 212 / .6); }
+/* Selection (::after) and drop target (::before) are overlays that fade; they stand in for the cell's own tint. */
+.cell::before, .cell::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .2s var(--tr-ease-out); }
+.cell::after { background: radial-gradient(120% 90% at 50% 0%, oklch(.94 .04 210 / .55), transparent 70%); }
+.cell::before { background: radial-gradient(110% 110% at 50% 50%, oklch(.9 .08 210 / .55), oklch(.93 .05 210 / .2)); box-shadow: inset 0 0 0 1.5px oklch(.78 .11 215 / .9), inset 0 0 1.4em oklch(.85 .1 212 / .6); transition-duration: .14s; }
+.cell.sel::after, .cell.drop::before { opacity: 1; }
+.cell.drop::after { opacity: 0; }
+.cell.sel, .cell.drop { background-color: transparent; }
+.cell.today::before, .cell.today::after { opacity: 0; }
 .cell.today { box-shadow: inset 0 1.5px 0 oklch(.88 .14 75), inset 0 -1.5px 0 oklch(.88 .12 75 / .7), inset 1.5px 0 0 oklch(.88 .13 75 / .85), inset -1.5px 0 0 oklch(.88 .13 75 / .85), inset 0 0 1.6em .15em oklch(.87 .14 72 / .4);
   background: radial-gradient(110% 90% at 50% 0%, oklch(.975 .06 86 / .75), oklch(.965 .04 84 / .25) 75%); }
 .dnum {
@@ -421,6 +441,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; w
   font: 600 .95em/1 var(--disp); font-stretch: 96%; font-variant-numeric: tabular-nums; color: var(--ink);
   text-shadow: var(--o1) 0 oklch(1 0 0 / .75);
 }
+.dnum, .more { transition: background-color .16s, color .16s; }
 .dnum:hover { background: oklch(1 0 0 / .45); }
 .today .dnum { color: oklch(.3 .07 55); text-shadow: none;
   background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), var(--amber-hi), var(--amber) 70%);
@@ -479,7 +500,9 @@ body.dragging, body.dragging * { cursor: grabbing !important; }
   background: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px; }
 .tl-col.today { background: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px, linear-gradient(oklch(.96 .05 85 / .45), oklch(.96 .05 85 / .15)); }
 .tl.day .tl-col.today { background-image: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px; }
-.tl-col.drop { background: repeating-linear-gradient(to bottom, oklch(.995 .04 205) 0 1px, transparent 1px var(--hh)), oklch(.9 .08 210 / .4); }
+.tl-col::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .14s; background: repeating-linear-gradient(to bottom, oklch(.995 .04 205) 0 1px, transparent 1px var(--hh)), oklch(.9 .08 210 / .4); }
+.tl-col.drop::before { opacity: 1; }
+.tl-allday > div { transition: background-color .14s; }
 .chip.bar {
   color: oklch(from var(--cd) .33 calc(c * .85) h); text-shadow: 0 .5px 0 oklch(1 0 0 / .45);
   background:
@@ -516,6 +539,7 @@ body.dragging, body.dragging * { cursor: grabbing !important; }
 .ag-day.today h3 { color: var(--amber-ink); }
 .ag-day.today h3::before { content: ""; width: .55em; height: .55em; border-radius: 50%; align-self: center; background: var(--amber); box-shadow: 0 0 .5em var(--amber); }
 .ag-row { display: grid; grid-template-columns: .55em 3.2em 1fr; align-items: center; gap: .8em; width: 100%; min-height: 3.2em; padding: .35em .4em; border: 0; border-radius: .7em; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ag-row { transition: background-color .16s, opacity .2s; }
 .ag-row:hover { background: oklch(1 0 0 / .35); }
 .ag-row .pip { width: .55em; height: 2.2em; border-radius: .3em; background: linear-gradient(calc(var(--la) + 180deg), var(--c), var(--cd)); box-shadow: 0 0 0 1px oklch(.9 .005 240), var(--o1x2) 3px oklch(from var(--c) l c h / .45), inset var(--on1) 0 oklch(1 0 0 / .5); }
 .ag-row .t { font: 500 .85em/1.2 var(--ui); color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -528,7 +552,10 @@ body.dragging, body.dragging * { cursor: grabbing !important; }
 /* Editor dialog                                                       */
 /* ------------------------------------------------------------------ */
 dialog.editor { border: 0; padding: 0; margin: auto; background: none; color: var(--ink); overflow: visible; width: min(36em, calc(100vw - 24px)); max-height: calc(100dvh - 24px); font: 400 clamp(13px, .35vw + 9px, 15px)/1.35 var(--ui); }
-dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(80% 80% at 50% 45%, oklch(.32 .02 230 / .3), oklch(.24 .02 230 / .5)); }
+dialog.editor { transition: opacity .2s var(--tr-ease-out), display .22s allow-discrete, overlay .22s allow-discrete; }
+dialog.editor:not([open]), dialog.editor:not([open])::backdrop { opacity: 0; }
+@starting-style { dialog.editor[open] { opacity: 0; } }
+dialog.editor::backdrop { transition: opacity .22s, display .22s allow-discrete, overlay .22s allow-discrete; background: radial-gradient(80% 80% at 50% 45%, oklch(.32 .02 230 / .3), oklch(.24 .02 230 / .5)); }
 .ed {
   --r: 1.4em; position: relative; padding: 2.4em 2.4em 2em; border-radius: var(--r); max-height: calc(100dvh - 24px); overflow: hidden auto; overscroll-behavior: contain;
   -webkit-backdrop-filter: blur(22px) saturate(1.3); backdrop-filter: blur(22px) saturate(1.3);
@@ -545,7 +572,9 @@ dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(
 .ed-top .gkey { margin-left: auto; }
 .ed-title { font: 650 1.3em/1.2 var(--disp) !important; min-height: 2.4em !important; }
 .err { display: flex; align-items: center; gap: .4em; margin: .45em .2em 0; font-size: .82em; color: var(--e-vermilion-d); font-weight: 600; }
-.err[hidden] { display: none; }
+.err { interpolate-size: allow-keywords; overflow: hidden; transition: height .22s var(--tr-ease-out), margin-top .22s var(--tr-ease-out), opacity .18s, display .22s allow-discrete; }
+.err[hidden] { display: none; height: 0; margin-top: 0; opacity: 0; }
+@starting-style { .err:not([hidden]) { height: 0; margin-top: 0; opacity: 0; } }
 .err::before { content: "!"; display: grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 50%; font-size: .85em; color: white; background: radial-gradient(circle at 40% 35%, oklch(.75 .15 35), var(--e-vermilion-d)); }
 .row { display: grid; gap: .9em; margin-top: 1.05em; }
 .row.three { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: .7em; }
@@ -573,11 +602,11 @@ dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(
   box-shadow: inset 0 0 0 1px oklch(1 0 0 / .7), inset var(--o2) 2px oklch(.5 .05 210 / .35), var(--o1_5) 0 var(--edge-near), var(--o3x4) 5px oklch(.25 .03 225 / .35);
 }
 .gswitch:focus-visible { outline-offset: 3px; }
-.sw-state { font: 600 .74em/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); min-width: 2em; }
+.sw-state { font: 600 .74em/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); min-width: 2em; transition: color .2s; }
 .gswitch[aria-checked="true"] + .sw-state { color: var(--amber-ink); }
 
 /* Calendar select: button + listbox popover on clear glass. */
-.selbtn { display: flex; align-items: center; gap: .65em; text-align: left; cursor: pointer; }
+.selbtn { display: flex; align-items: center; gap: .65em; text-align: left; cursor: pointer; transition: --c .22s, --cd .22s, background-color .16s; }
 .selbtn .dot, .opt .dot { width: .85em; height: .85em; border-radius: 50%; flex: none; background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), oklch(1 0 0 / .6), var(--c) 45%, var(--cd)); box-shadow: 0 0 0 1px oklch(.9 .005 240), var(--o1) 2px oklch(from var(--c) l c h / .5); }
 .selbtn svg { margin-left: auto; width: 1em; height: 1em; fill: none; stroke: var(--ink-2); stroke-width: 2; stroke-linecap: round; transition: transform .2s; }
 .selbtn[aria-expanded="true"] svg { transform: rotate(180deg); }
@@ -589,11 +618,15 @@ dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(
   box-shadow: inset 0 0 0 1px oklch(1 0 0 / .7), inset var(--on1_5) .5px oklch(1 0 0), var(--o2) 0 var(--edge-near), var(--o3_5) 0 var(--edge-far), var(--o12x16) 26px oklch(.2 .03 230 / .3);
   transform-origin: 50% 0;
 }
-.listbox[hidden] { display: none; }
+.listbox { transition: opacity .15s var(--tr-ease-out), display .15s allow-discrete; }
+.listbox[hidden] { display: none; opacity: 0; }
 .listbox:focus-visible { outline-color: var(--tr-focus); }
 .opt { display: flex; align-items: center; gap: .7em; min-height: 2.6em; padding: 0 .8em; border-radius: .6em; cursor: pointer; font-weight: 520; }
 .opt[aria-selected="true"]::after { content: ""; margin-left: auto; width: .4em; height: .75em; border: solid var(--ice-ink); border-width: 0 2px 2px 0; transform: rotate(42deg) translate(-2px, -2px); }
-.opt.active { background: radial-gradient(120% 140% at 50% 100%, oklch(.9 .07 210 / .7), oklch(.95 .04 210 / .5)); box-shadow: inset 0 0 0 1px oklch(.78 .1 215 / .7); }
+.opt { position: relative; isolation: isolate; }
+.opt::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .14s;
+  background: radial-gradient(120% 140% at 50% 100%, oklch(.9 .07 210 / .7), oklch(.95 .04 210 / .5)); box-shadow: inset 0 0 0 1px oklch(.78 .1 215 / .7); }
+.opt.active::before { opacity: 1; }
 
 /* Repeat: radios as engraved sockets taking a cobalt bead. */
 .radios { display: flex; flex-wrap: wrap; gap: .3em 1.1em; }
@@ -615,12 +648,19 @@ dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(
   background: linear-gradient(calc(var(--la) + 135deg), transparent 25%, oklch(1 0 0 / .6) 40%, transparent 55%), linear-gradient(calc(var(--la) + 180deg), oklch(.99 .006 205 / .92), oklch(.88 .03 205 / .75));
   box-shadow: inset 0 0 0 1px oklch(1 0 0 / .7), inset var(--o2) 2px oklch(.5 .05 210 / .35), var(--o1_5) 0 var(--edge-near), var(--o3) 0 var(--edge-far), var(--o4x6) 7px oklch(.25 .03 225 / .35); }
 .gslider .knob::after { content: ""; position: absolute; left: calc(50% - 1px); top: 22%; bottom: 22%; width: 2px; border-radius: 1px; background: var(--ice); box-shadow: 0 0 .4em var(--ice); }
+.gslider .knob { transition: scale .16s var(--tr-ease-out); }
 .gslider[data-dragging] .knob { scale: 1.06; }
 .gslider:focus-visible { outline-offset: 2px; }
 .alert-val { font: 600 1.2em/1 var(--ui); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 
 .ed-foot { display: flex; align-items: center; gap: .7em; margin-top: 1.6em; padding-top: 1.3em; border-top: 1.5px solid oklch(.995 .035 200); box-shadow: inset 0 1px 0 oklch(.56 .05 214 / .4), 0 -3px 5px -3px oklch(.86 .09 205 / .5); }
 .ed-foot .grow { flex: 1; }
+
+/* Calendar view in a view transition: slides in the direction of travel (--slide) or rises (--rise). */
+::view-transition-old(cal-view) { animation: cal-out .2s cubic-bezier(.4, 0, 1, 1) both; }
+::view-transition-new(cal-view) { animation: cal-in .32s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes cal-out { to { opacity: 0; transform: translateX(calc(var(--slide, 0) * -2%)); } }
+@keyframes cal-in { from { opacity: 0; transform: translateX(calc(var(--slide, 0) * 2.5%)) translateY(calc(var(--rise, 0) * 10px)) scale(calc(1 - var(--rise, 0) * .015)); } }
 
 .tg-caption { color: oklch(.3 .015 240); }
 .tg-caption ul { margin: 0; padding-left: 1.1em; opacity: .85; }
@@ -777,7 +817,7 @@ dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(
 </section>
 
 <script type="module">
-import { mountBar, PressController, ToggleController, LinearController, feedback, reduceMotion } from "./kit/objects.js";
+import { mountBar, PressController, ToggleController, LinearController, feedback, reduceMotion, morph, swapText } from "./kit/objects.js";
 
 mountBar({ title: "Frost", subtitle: "Calendar · edge-lit acrylic, satin aluminium, vitreous enamel", tone: "light" });
 feedback.define("tink", { parts: [{ n: 0.003, f: 6400, q: 2.2, g: 0.32 }, { s: 3300, d: 0.07, g: 0.035 }], vib: 5 });
@@ -853,46 +893,90 @@ const label = (e, d) => `${e.title}, ${fmt(d, { weekday: "long", day: "numeric",
 
 function chipHTML(e, d, cls = "") {
   const c = calOf(e.cal);
-  return `<button type="button" class="chip c-${c.c} ${cls}${matches(e) ? "" : " dim"}" data-id="${e.id}" data-date="${iso(d)}" aria-label="${esc(label(e, d))}. Enter to edit, Alt plus arrows to move." aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown">${e.allDay ? "" : `<span class="tm">${e.start}</span>`}<span class="tx">${esc(e.title)}</span></button>`;
+  return `<button type="button" class="chip c-${c.c} ${cls}" data-id="${e.id}" data-date="${iso(d)}" aria-label="${esc(label(e, d))}. Enter to edit, Alt plus arrows to move." aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown">${e.allDay ? "" : `<span class="tm">${e.start}</span>`}<span class="tx">${esc(e.title)}</span></button>`;
 }
 
-/* ---------------- Rendering ---------------- */
-const vMonth = $("#vMonth"), vTime = $("#vTime"), agenda = $("#agenda"), pgrid = $("#pgrid"), lens = $("#lens");
-let shown = null; // first of displayed month, for slide direction
+/* ---------------- Rendering ----------------
+   render() works out what every region should show (plan), then applies it. The picker's 42 keys
+   and the month's 42 cells are permanent and updated in place; selection and search dimming are
+   classes that transition. A change of structure (another month, week, day or view; events moved,
+   added or hidden) runs inside a view transition: the calendar view slides in the direction of
+   travel and everything else cross-fades, so nothing jumps. */
+const vMonth = $("#vMonth"), vTime = $("#vTime"), agenda = $("#agenda"), pgrid = $("#pgrid"), lens = $("#lens"), viewport = $("#viewport");
+const memo = { picker: [], month: [] }, railEl = $("#main > .alu-rail");
+let vtSeq = 0;
 
-function render(opts = {}) {
+function plan() {
   const m = cursor.toLocaleDateString("en-GB", { month: "long" }), y = cursor.getFullYear();
-  $("#title").innerHTML = `${m} <span>${y}</span>`;
-  $("#pmonth").textContent = `${m} ${y}`;
+  const ws = weekStart(cursor), th = addDays(ws, 3), wn = Math.ceil(((th - new Date(th.getFullYear(), 0, 1)) / 864e5 + 1) / 7);
+  const nd = onDay(cursor).length;
+  return {
+    title: `${m} <span>${y}</span>`, pmonth: `${m} ${y}`, view,
+    rail: view === "week" ? `Week ${wn} · ${fmt(ws, { day: "numeric", month: ws.getMonth() === addDays(ws, 6).getMonth() ? undefined : "short" })} – ${fmt(addDays(ws, 6), { day: "numeric", month: "long" })}` : view === "day" ? `${fmt(cursor, { weekday: "long", day: "numeric", month: "long" })} · ${nd || "no"} event${nd === 1 ? "" : "s"}` : `Agenda from ${fmt(cursor, { weekday: "short", day: "numeric", month: "short" })}`,
+    picker: pickerCells(), month: view === "month" ? monthCells() : null, time: view !== "month" ? timeHTML() : null, agenda: agendaHTML(),
+  };
+}
+const agendaShown = () => getComputedStyle(agenda).display !== "none";
+function structural(p) {
+  return p.title !== memo.title || p.view !== memo.view || (p.time != null && p.time !== memo.time)
+    || (p.month && p.month.some((c, i) => c.key !== memo.month[i]?.key)) || p.picker.some((c, i) => c.key !== memo.picker[i]?.key)
+    || (agendaShown() && p.agenda !== memo.agenda);
+}
+function render(opts = {}) {
+  const p = plan();
+  if (!animOK() || !document.startViewTransition || document.visibilityState === "hidden" || !structural(p)) { apply(p, opts); return Promise.resolve(); }
+  const n = ++vtSeq, root = document.documentElement.style;
+  root.setProperty("--slide", opts.slide || 0); root.setProperty("--rise", opts.rise || 0);
+  viewport.style.viewTransitionName = "cal-view"; railEl.style.viewTransitionName = "cal-rail"; // the rail casts its shadow over the view
+  let done; const applied = new Promise((r) => (done = r));
+  morph(() => { apply(plan(), opts); done(); }).then(() => { if (n === vtSeq) viewport.style.viewTransitionName = railEl.style.viewTransitionName = ""; });
+  return applied;
+}
+/* Text that changes in place cross-fades (and its box eases) unless a view transition is showing it. */
+const setText = (el, t, quiet) => { if (quiet || !el.textContent || !el.checkVisibility()) { if (el.textContent !== t) el.textContent = t; } else swapText(el, t); };
+function apply(p, { focus } = {}) {
+  const quiet = p.title !== memo.title || p.view !== memo.view; // structural: the view transition cross-fades it
+  if (p.title !== memo.title) $("#title").innerHTML = p.title;
+  setText($("#pmonth"), p.pmonth, true);
   const unit = { month: "month", week: "week", day: "day" }[view];
   $("#prev").setAttribute("aria-label", `Previous ${unit}`); $("#next").setAttribute("aria-label", `Next ${unit}`);
-  renderPicker(opts);
-  const ws = weekStart(cursor);
   $("#wkl").hidden = view !== "month";
   $("#railText").hidden = view === "month";
-  const th = addDays(ws, 3), wn = Math.ceil(((th - new Date(th.getFullYear(), 0, 1)) / 864e5 + 1) / 7);
-  $("#railText").textContent = view === "week" ? `Week ${wn} · ${fmt(ws, { day: "numeric", month: ws.getMonth() === addDays(ws, 6).getMonth() ? undefined : "short" })} – ${fmt(addDays(ws, 6), { day: "numeric", month: "long" })}` : view === "day" ? `${fmt(cursor, { weekday: "long", day: "numeric", month: "long" })} · ${onDay(cursor).length || "no"} event${onDay(cursor).length === 1 ? "" : "s"}` : `Agenda from ${fmt(cursor, { weekday: "short", day: "numeric", month: "short" })}`;
-  if (view === "month") renderMonth(); else renderTime();
-  renderAgenda();
+  setText($("#railText"), p.rail, quiet);
+  vMonth.hidden = view !== "month"; vTime.hidden = view === "month";
+  applyPicker(p.picker, focus);
+  if (p.month) applyMonth(p.month);
+  if (p.time != null && p.time !== memo.time) vTime.innerHTML = p.time;
+  if (p.agenda !== memo.agenda) agenda.innerHTML = p.agenda;
+  Object.assign(memo, { title: p.title, view: p.view, picker: p.picker, agenda: p.agenda }, p.month ? { month: p.month } : {}, p.time != null ? { time: p.time } : {});
+  // Search dims what does not match; the chips fade (CSS) instead of being re-drawn.
+  const byId = new Map(events.map((e) => [e.id, e]));
+  for (const el of viewport.querySelectorAll(".chip, .ag-row")) el.classList.toggle("dim", !matches(byId.get(+el.dataset.id) || {}));
   renderCals();
   const n = query ? events.filter((e) => !hidden.has(e.cal) && matches(e)).length : 0;
-  $("#qnote").textContent = query ? (n ? `${n} event${n > 1 ? "s" : ""} match “${$("#q").value}”` : "No events match") : "";
+  setText($("#qnote"), query ? (n ? `${n} event${n > 1 ? "s" : ""} match “${$("#q").value}”` : "No events match") : "");
 }
 
-function renderPicker({ focus } = {}) {
-  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1), start = weekStart(first);
-  let html = "";
-  for (let r = 0; r < 6; r++) {
-    html += `<div role="row">`;
-    for (let c = 0; c < 7; c++) {
-      const d = addDays(start, r * 7 + c), sel = sameDay(d, cursor);
-      const cls = ["pday", d.getMonth() !== cursor.getMonth() && "out", c > 4 && "wkend", sameDay(d, today) && "today", onDay(d).length && "has"].filter(Boolean).join(" ");
-      html += `<button type="button" role="gridcell" class="${cls}" data-date="${iso(d)}" tabindex="${sel ? 0 : -1}" aria-selected="${sel}" aria-label="${fmt(d, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}${sameDay(d, today) ? ", today" : ""}${onDay(d).length ? `, ${onDay(d).length} events` : ""}"><b>${d.getDate()}</b></button>`;
-    }
-    html += `</div>`;
+function pickerCells() {
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1), start = weekStart(first), out = [];
+  for (let i = 0; i < 42; i++) {
+    const d = addDays(start, i), n = onDay(d).length, t = sameDay(d, today);
+    const cls = ["pday", d.getMonth() !== cursor.getMonth() && "out", i % 7 > 4 && "wkend", t && "today", n && "has"].filter(Boolean).join(" ");
+    const label = `${fmt(d, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}${t ? ", today" : ""}${n ? `, ${n} events` : ""}`;
+    out.push({ cls, date: iso(d), label, text: String(d.getDate()), key: cls + iso(d) + label });
   }
-  pgrid.innerHTML = html;
-  const cell = pgrid.querySelector('[aria-selected="true"]');
+  return out;
+}
+function applyPicker(cells, focus) {
+  if (!pgrid.children.length) pgrid.innerHTML = Array.from({ length: 6 }, () => `<div role="row">${`<button type="button" role="gridcell" class="pday"><b></b></button>`.repeat(7)}</div>`).join("");
+  const sel = iso(cursor);
+  let cell = null;
+  pgrid.querySelectorAll(".pday").forEach((b, i) => {
+    const c = cells[i];
+    if (b._key !== c.key) { b._key = c.key; b.className = c.cls; b.dataset.date = c.date; b.setAttribute("aria-label", c.label); b.firstChild.textContent = c.text; }
+    const on = c.date === sel; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1;
+    if (on) cell = b;
+  });
   if (focus) cell.focus({ preventScroll: true });
   requestAnimationFrame(() => placeLens(cell));
 }
@@ -901,6 +985,7 @@ function placeLens(cell) {
   const wrap = lens.parentElement.getBoundingClientRect(), r = cell.getBoundingClientRect();
   const s = lens.offsetWidth, x = r.left - wrap.left + (r.width - s) / 2, y = r.top - wrap.top + (r.height - s) / 2;
   const to = `translate(${x}px, ${y}px)`;
+  if (lensAt?.t === to) return;
   if (lensAt && lensAt.m === cursor.getMonth() && animOK()) {
     lens.animate([{ transform: lensAt.t }, { transform: to }], { duration: 340, easing: "cubic-bezier(.25,1.35,.45,1)" });
   } else if (lensAt && animOK()) {
@@ -910,25 +995,36 @@ function placeLens(cell) {
   lensAt = { t: to, m: cursor.getMonth() };
 }
 
-function renderMonth() {
-  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1), start = weekStart(first);
-  let html = `<div class="mgrid" role="grid" aria-label="${fmt(first, { month: "long", year: "numeric" })}">`;
+function monthCells() {
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1), start = weekStart(first), out = [];
   for (let i = 0; i < 42; i++) {
     const d = addDays(start, i), evs = onDay(d);
-    if (i % 7 === 0) html += `<div role="row" style="display:contents">`;
-    const cls = ["cell", d.getMonth() !== cursor.getMonth() && "out", i % 7 > 4 && "wkend", sameDay(d, today) && "today", sameDay(d, cursor) && "sel"].filter(Boolean).join(" ");
+    const cls = ["cell", d.getMonth() !== cursor.getMonth() && "out", i % 7 > 4 && "wkend", sameDay(d, today) && "today"].filter(Boolean).join(" ");
     const max = evs.length > 3 ? 2 : 3;
-    html += `<div role="gridcell" class="${cls}" data-date="${iso(d)}" data-drop><button type="button" class="dnum" aria-label="${fmt(d, { weekday: "long", day: "numeric", month: "long" })}${sameDay(d, today) ? ", today" : ""}, ${evs.length || "no"} event${evs.length === 1 ? "" : "s"}. Open day">${d.getDate()}</button>`;
+    let html = `<button type="button" class="dnum" aria-label="${fmt(d, { weekday: "long", day: "numeric", month: "long" })}${sameDay(d, today) ? ", today" : ""}, ${evs.length || "no"} event${evs.length === 1 ? "" : "s"}. Open day">${d.getDate()}</button>`;
     html += evs.slice(0, max).map((e) => chipHTML(e, d)).join("");
     if (evs.length > max) html += `<button type="button" class="more" data-date="${iso(d)}">+${evs.length - max} more</button>`;
-    html += `</div>`;
-    if (i % 7 === 6) html += `</div>`;
+    out.push({ cls, date: iso(d), html, key: cls + iso(d) + html });
   }
-  vMonth.innerHTML = html + `</div>`;
+  return out;
+}
+function applyMonth(cells) {
+  let g = vMonth.firstElementChild;
+  if (!g) {
+    vMonth.innerHTML = `<div class="mgrid" role="grid">${Array.from({ length: 6 }, () => `<div role="row" style="display:contents">${`<div role="gridcell" class="cell" data-drop></div>`.repeat(7)}</div>`).join("")}</div>`;
+    g = vMonth.firstElementChild;
+  }
+  g.setAttribute("aria-label", fmt(new Date(cursor.getFullYear(), cursor.getMonth(), 1), { month: "long", year: "numeric" }));
+  const sel = iso(cursor);
+  g.querySelectorAll(".cell").forEach((cell, i) => {
+    const c = cells[i];
+    if (cell._key !== c.key) { cell._key = c.key; cell.className = c.cls; cell.dataset.date = c.date; cell.innerHTML = c.html; }
+    cell.classList.toggle("sel", c.date === sel);
+  });
 }
 
 const H0 = 7, H1 = 21;
-function renderTime() {
+function timeHTML() {
   const days = view === "week" ? Array.from({ length: 7 }, (_, i) => addDays(weekStart(cursor), i)) : [cursor];
   let head = `<div></div>`, all = `<div class="lab">all-day</div>`, cols = "";
   let hours = `<div class="tl-hours" aria-hidden="true">` + Array.from({ length: H1 - H0 }, (_, i) => i ? `<span style="top:${(i / (H1 - H0) * 100).toFixed(3)}%">${pad(H0 + i)}:00</span>` : "").join("") + `</div>`;
@@ -948,21 +1044,21 @@ function renderTime() {
     if (t) { const n = new Date(), m = n.getHours() * 60 + n.getMinutes(); if (m > H0 * 60 && m < H1 * 60) cols += `<i class="now" style="top:${((m - H0 * 60) / 60 / (H1 - H0) * 100).toFixed(3)}%"></i>`; }
     cols += `</div>`;
   }
-  vTime.innerHTML = `<div class="tl ${view}" style="--n:${days.length}"><div class="tl-head">${head}</div><div class="tl-allday">${all}</div><div class="tl-body">${hours}${cols}</div></div>`;
+  return `<div class="tl ${view}" style="--n:${days.length}"><div class="tl-head">${head}</div><div class="tl-allday">${all}</div><div class="tl-body">${hours}${cols}</div></div>`;
 }
 
-function renderAgenda() {
+function agendaHTML() {
   const y = cursor.getFullYear(), m = cursor.getMonth(), n = new Date(y, m + 1, 0).getDate();
   let html = "";
   for (let i = cursor.getDate(); i <= n; i++) {
     const d = new Date(y, m, i), evs = onDay(d), t = sameDay(d, today), s = sameDay(d, cursor);
     if (!evs.length && !t && !s) continue;
     html += `<section class="ag-day${t ? " today" : ""}" data-date="${iso(d)}"><h3>${fmt(d, { weekday: "long", day: "numeric" })}<small>${t ? "Today" : fmt(d, { month: "short" })}</small></h3>`;
-    html += evs.length ? evs.map((e) => { const c = calOf(e.cal); return `<button type="button" class="ag-row c-${c.c}${matches(e) ? "" : " dim"}" data-id="${e.id}" data-date="${iso(d)}"><i class="pip"></i><span class="t">${e.allDay ? "All day" : `${e.start}<br>${e.end}`}</span><span><b>${esc(e.title)}</b><small>${c.name}${e.repeat !== "none" ? ` · repeats ${e.repeat}` : ""}</small></span></button>`; }).join("")
+    html += evs.length ? evs.map((e) => { const c = calOf(e.cal); return `<button type="button" class="ag-row c-${c.c}" data-id="${e.id}" data-date="${iso(d)}"><i class="pip"></i><span class="t">${e.allDay ? "All day" : `${e.start}<br>${e.end}`}</span><span><b>${esc(e.title)}</b><small>${c.name}${e.repeat !== "none" ? ` · repeats ${e.repeat}` : ""}</small></span></button>`; }).join("")
       : `<p class="ag-empty" style="padding:.2em .4em .8em;margin:0">Nothing scheduled.</p>`;
     html += `</section>`;
   }
-  agenda.innerHTML = html;
+  return html;
 }
 
 function renderCals() {
@@ -980,7 +1076,7 @@ function renderCals() {
   const y = cursor.getFullYear(), m = cursor.getMonth(), n = new Date(y, m + 1, 0).getDate();
   for (const c of CALS) {
     let k = 0; for (let i = 1; i <= n; i++) k += events.filter((e) => e.cal === c.id && occursOn(e, new Date(y, m, i))).length;
-    ul.querySelector(`[data-n="${c.id}"]`).textContent = k;
+    setText(ul.querySelector(`[data-n="${c.id}"]`), String(k));
   }
 }
 
@@ -990,13 +1086,9 @@ const say = (t) => { live.textContent = ""; requestAnimationFrame(() => (live.te
 /* ---------------- Navigation ---------------- */
 function setCursor(d, { focus = false, slide = 0 } = {}) {
   const monthChanged = d.getMonth() !== cursor.getMonth() || d.getFullYear() !== cursor.getFullYear();
-  const dir = slide || (monthChanged ? Math.sign(d - cursor) : 0);
+  const dir = slide || (monthChanged || view !== "month" ? Math.sign(d - cursor) : 0);
   cursor = d;
-  render({ focus });
-  const v = view === "month" ? vMonth : vTime;
-  if (animOK() && ((view === "month" && monthChanged) || (view !== "month" && slide))) {
-    v.animate([{ transform: `translateX(${dir * 2.5}%)`, opacity: 0.2 }, { transform: "none", opacity: 1 }], { duration: 300, easing: "cubic-bezier(.2,.8,.2,1)" });
-  }
+  return render({ focus, slide: dir });
 }
 const step = (n) => view === "month" ? addMonths(cursor, n) : addDays(cursor, n * (view === "week" ? 7 : 1));
 const keyCtl = (el, fn, o = {}) => new PressController(el, { sound: "click", ...o, onActivate: () => fn() });
@@ -1012,21 +1104,16 @@ for (const b of document.querySelectorAll(".seg [data-view]")) {
 }
 function setView(v) {
   if (v === view) return;
-  const from = view === "month" ? vMonth : vTime;
   view = v;
-  const to = view === "month" ? vMonth : vTime;
   for (const [k, c] of Object.entries(segs)) if ((k === v) !== c.pressed) { c.setPressed(k === v, k !== v); c._rest(); }
-  render();
-  if (from !== to) { from.hidden = true; to.hidden = false; }
-  if (animOK()) to.animate([{ opacity: 0, transform: "scale(.985) translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.8,.2,1)" });
+  render({ rise: 1 });
   say(`${v[0].toUpperCase() + v.slice(1)} view`);
 }
 
 /* Mini picker: grid keyboard pattern. */
 pgrid.addEventListener("click", (e) => {
   const b = e.target.closest(".pday"); if (!b) return;
-  feedback.play("tink"); setCursor(parse(b.dataset.date), { focus: e.detail === 0 });
-  scrollAgenda();
+  feedback.play("tink"); setCursor(parse(b.dataset.date), { focus: e.detail === 0 }).then(scrollAgenda);
 });
 pgrid.addEventListener("keydown", (e) => {
   let d = null;
@@ -1055,14 +1142,13 @@ function scrollAgenda() {
 $("#q").addEventListener("input", (e) => { query = e.target.value.trim().toLowerCase(); render(); });
 
 /* ---------------- Grid interactions: click, open day, drag to move ---------------- */
-const viewport = $("#viewport");
 let dragged = false;
 viewport.addEventListener("click", (e) => {
   if (dragged) { dragged = false; return; }
   const chip = e.target.closest(".chip, .ag-row");
   if (chip) { openEditor(+chip.dataset.id, parse(chip.dataset.date)); return; }
   const more = e.target.closest(".more, .dnum");
-  if (more) { const d = parse(more.closest("[data-date]").dataset.date); feedback.play("click"); cursor = d; setView("day"); render(); return; }
+  if (more) { const d = parse(more.closest("[data-date]").dataset.date); feedback.play("click"); cursor = d; if (view === "day") render(); else setView("day"); return; }
   const cell = e.target.closest(".cell");
   if (cell) { feedback.play("tick"); openEditor(null, parse(cell.dataset.date)); }
 });
@@ -1071,9 +1157,7 @@ viewport.addEventListener("keydown", (e) => {
   const n = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key]; if (!n) return;
   e.preventDefault();
   const id = +chip.dataset.id, to = addDays(parse(chip.dataset.date), n);
-  moveEvent(id, parse(chip.dataset.date), to);
-  const nc = viewport.querySelector(`.chip[data-id="${id}"][data-date="${iso(to)}"]`);
-  nc?.focus();
+  moveEvent(id, parse(chip.dataset.date), to)?.then(() => viewport.querySelector(`.chip[data-id="${id}"][data-date="${iso(to)}"]`)?.focus());
 });
 viewport.addEventListener("pointerdown", (e) => {
   const chip = e.target.closest(".chip");
@@ -1121,10 +1205,9 @@ viewport.addEventListener("pointerdown", (e) => {
 function moveEvent(id, from, to) {
   const ev = events.find((e) => e.id === id); if (!ev) return;
   ev.date = iso(addDays(parse(ev.date), Math.round((to - from) / 864e5)));
-  render();
   feedback.play("thunk");
-  dropIn(id, to);
   say(`Moved ${ev.title} to ${fmt(to, { weekday: "long", day: "numeric", month: "long" })}`);
+  return render().then(() => dropIn(id, to));
 }
 function dropIn(id, d) {
   if (!animOK()) return;
@@ -1139,15 +1222,15 @@ const allDay = new ToggleController(F("fAll"), { axis: "x", sound: "latch", onCh
 function syncAllDay() {
   const on = F("fAll").value === 1;
   F("fStart").disabled = on; F("fEnd").disabled = on;
-  F("fAllS").textContent = on ? "On" : "Off";
+  setText(F("fAllS"), on ? "On" : "Off", !dlg.open);
 }
 const ALERTS = [0, 5, 10, 15, 30, 60];
 const alertTxt = (i) => ALERTS[i] === 0 ? "At start time" : ALERTS[i] === 60 ? "1 hour before" : `${ALERTS[i]} min before`;
-const alertCtl = new LinearController(F("fAlert"), { min: 0, max: 5, step: 1, value: 3, detentStrength: 0.7, thumb: () => F("fAlertK"), track: () => F("fAlert"), inset: 0, valueText: alertTxt, sound: "detent", onInput: (v) => (F("fAlertV").textContent = alertTxt(v)) });
+const alertCtl = new LinearController(F("fAlert"), { min: 0, max: 5, step: 1, value: 3, detentStrength: 0.7, thumb: () => F("fAlertK"), track: () => F("fAlert"), inset: 0, valueText: alertTxt, sound: "detent", onInput: (v) => setText(F("fAlertV"), alertTxt(v), !dlg.open) });
 
 function setCal(id) {
   cal = id; const c = calOf(id);
-  F("fCal").className = `well selbtn c-${c.c}`; F("fCalT").textContent = c.name;
+  F("fCal").className = `well selbtn c-${c.c}`; setText(F("fCalT"), c.name, !dlg.open);
 }
 function openEditor(id, d) {
   const ev = id != null ? events.find((e) => e.id === id) : null;
@@ -1165,6 +1248,7 @@ function openEditor(id, d) {
   F("eTitle").hidden = F("eTime").hidden = true;
   const del = F("edDel"); del.setAttribute("aria-disabled", String(!ev)); del.disabled = !ev;
   closeList(false);
+  dlg.firstElementChild.getAnimations().forEach((a) => a.cancel());
   dlg.showModal();
   alertCtl.o.inset = F("fAlertK").offsetWidth / 2;
   if (animOK()) {
@@ -1174,7 +1258,8 @@ function openEditor(id, d) {
 }
 async function closeEditor() {
   if (!dlg.open) return;
-  if (animOK()) await dlg.firstElementChild.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(8px) scale(.98)" }], { duration: 150, easing: "ease-in" }).finished;
+  // The card drops back (and stays faded) while the dialog and its backdrop fade out (CSS).
+  if (animOK()) await dlg.firstElementChild.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(8px) scale(.98)" }], { duration: 150, easing: "ease-in", fill: "forwards" }).finished;
   dlg.close();
 }
 keyCtl(F("edx"), closeEditor);
@@ -1183,7 +1268,7 @@ keyCtl(F("edDel"), () => {
   if (!editing) return;
   events = events.filter((e) => e !== editing);
   feedback.play("clack"); say(`Deleted ${editing.title}`);
-  closeEditor().then(render);
+  closeEditor().then(() => render());
 });
 keyCtl(F("edSave"), save);
 F("edform").addEventListener("submit", (e) => { e.preventDefault(); save(); });
@@ -1212,9 +1297,9 @@ function save() {
   if (ev) Object.assign(ev, data); else { ev = { id: nextId++, ...data }; events.push(ev); }
   hidden.delete(ev.cal); const box = document.querySelector(`[data-cal="${ev.cal}"]`); if (box) box.checked = true;
   closeEditor().then(() => {
-    cursor = parse(ev.date); render();
-    feedback.play("click"); dropIn(ev.id, parse(ev.date));
-    say(`Saved ${ev.title}`);
+    cursor = parse(ev.date);
+    feedback.play("click"); say(`Saved ${ev.title}`);
+    return render().then(() => dropIn(ev.id, parse(ev.date)));
   });
 }
 
@@ -1262,7 +1347,7 @@ dlg.addEventListener("change", (e) => { if (e.target.name === "rep") feedback.pl
 for (const b of document.querySelectorAll(".bolt")) b.style.setProperty("--r", Math.round(Math.random() * 60) + "deg");
 
 window.frost = { get events() { return events; }, get view() { return view; }, get cursor() { return iso(cursor); }, hidden };
-render();
+apply(plan());
 addEventListener("resize", () => placeLens(pgrid.querySelector('[aria-selected="true"]')));
 </script>
 </body>

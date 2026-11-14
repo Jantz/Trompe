@@ -3,6 +3,7 @@ import { property, query } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { live } from 'lit/directives/live.js';
 import { FormControl } from '../../internal/form-control.js';
+import { SizeTransition, crossfadeText } from '../../interaction/smooth.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
 
@@ -97,7 +98,10 @@ export class TrInput extends FormControl {
         padding: 0 var(--_pad);
         border-radius: var(--tr-input-radius, var(--tr-radius-md, 10px));
         cursor: text;
-        transition: box-shadow var(--tr-motion-duration-release, 160ms);
+        transition:
+          box-shadow var(--tr-motion-duration-release, 160ms),
+          border-color var(--tr-motion-duration-release, 160ms),
+          border-width var(--tr-motion-duration-release, 160ms);
         /* the floor of the well catches a little light near its far wall */
         --_layer: linear-gradient(
           calc(var(--tr-light-angle, 330deg) + 180deg),
@@ -108,6 +112,7 @@ export class TrInput extends FormControl {
       }
       .field:has(input:focus-visible) {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 2px;
       }
       input {
@@ -167,9 +172,33 @@ export class TrInput extends FormControl {
         flex: none;
         margin-top: 0.12em;
       }
-      .hint[hidden],
-      .error[hidden] {
+      /* Messages fade in and out; the box around them animates its height (SizeTransition), so
+         content below the field glides instead of jumping. */
+      .messages {
+        margin-top: -0.35em;
+      }
+      .stack {
+        display: grid;
+      }
+      .msg {
+        /* the host's 0.35em gap, in the message's smaller (0.8125em) type */
+        margin-top: calc(0.35em / 0.8125);
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
+          translate var(--tr-motion-duration-travel, 220ms) cubic-bezier(0.2, 0.7, 0.2, 1),
+          display var(--tr-motion-duration-release, 160ms) allow-discrete;
+      }
+      .msg[hidden] {
         display: none;
+        opacity: 0;
+        translate: 0 -0.3em;
+        transition-timing-function: ease-in;
+      }
+      @starting-style {
+        .msg {
+          opacity: 0;
+          translate: 0 -0.3em;
+        }
       }
       .clear {
         flex: none;
@@ -185,6 +214,19 @@ export class TrInput extends FormControl {
         color: var(--tr-color-ink-muted);
         font: inherit;
         cursor: pointer;
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
+          scale var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out),
+          visibility var(--tr-motion-duration-release, 160ms) allow-discrete,
+          background-color var(--tr-motion-duration-release, 160ms),
+          color var(--tr-motion-duration-release, 160ms);
+      }
+      /* Its space is kept while empty, so the text never reflows when it appears. */
+      .clear.off {
+        opacity: 0;
+        scale: 0.6;
+        visibility: hidden;
+        pointer-events: none;
       }
       .clear:hover {
         background: color-mix(in oklch, var(--tr-color-ink) 18%, transparent);
@@ -284,6 +326,15 @@ export class TrInput extends FormControl {
   /** The value a form reset restores. Captured on first connect only, so moving the field keeps it. */
   private defaultValue: string | null = null;
   private slots = { start: false, end: false, hint: false };
+  /** The hint/error area glides to its new height instead of pushing content in one frame. */
+  protected readonly messageSize = new SizeTransition(this, () => ({
+    outer: this.renderRoot?.querySelector<HTMLElement>('.messages'),
+    inner: this.renderRoot?.querySelector<HTMLElement>('.stack'),
+  }));
+  private shownError = '';
+  /** The error on screen in the last render ('' when none), to tell a replaced error from a new one. */
+  private visibleError = '';
+  private renderedError = '';
 
   constructor() {
     super();
@@ -326,6 +377,7 @@ export class TrInput extends FormControl {
     const name = this.label ? undefined : (this.accessibleLabel ?? undefined);
     const showError = Boolean(this.error) || this.hasAttribute('data-user-invalid');
     const errorText = this.error || (showError ? this.input?.validationMessage : '') || '';
+    this.renderedError = showError && errorText ? errorText : '';
     const hasHint = Boolean(this.hint) || this.slots.hint;
     const describedBy = [hasHint ? 'hint' : '', showError && errorText ? 'error' : ''].filter(Boolean).join(' ');
     return html`
@@ -353,17 +405,29 @@ export class TrInput extends FormControl {
           @change=${this.onChange}
           @blur=${this.onBlur}
         />
-        ${this.clearable && this.value && !this.readonly && !this.isDisabled
-          ? html`<button part="clear" class="clear" type="button" aria-label="Clear" tabindex="-1" @click=${this.onClear}>
+        ${this.clearable && !this.readonly
+          ? html`<button
+              part="clear"
+              class="clear ${this.value && !this.isDisabled ? '' : 'off'}"
+              type="button"
+              aria-label="Clear"
+              aria-hidden=${this.value && !this.isDisabled ? nothing : 'true'}
+              tabindex="-1"
+              @click=${this.onClear}
+            >
               <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none" /></svg>
             </button>`
           : nothing}
         <span class="end ${this.slots.end ? 'has' : ''}"><slot name="end" @slotchange=${this.onSlotChange}></slot></span>
       </div>
-      <div part="hint" id="hint" class="hint" ?hidden=${!hasHint}><slot name="hint" @slotchange=${this.onSlotChange}>${this.hint}</slot></div>
-      <div part="error" id="error" class="error" ?hidden=${!(showError && errorText)}>
-        <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor" /><path d="M8 4.2v4.6M8 10.9v.9" stroke="var(--_err-ink, #fff)" stroke-width="1.8" stroke-linecap="round" /></svg>
-        <span>${errorText}</span>
+      <div class="messages">
+        <div class="stack">
+          <div part="hint" id="hint" class="msg hint" ?hidden=${!hasHint}><slot name="hint" @slotchange=${this.onSlotChange}>${this.hint}</slot></div>
+          <div part="error" id="error" class="msg error" ?hidden=${!this.renderedError}>
+            <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor" /><path d="M8 4.2v4.6M8 10.9v.9" stroke="var(--_err-ink, #fff)" stroke-width="1.8" stroke-linecap="round" /></svg>
+            <span class="error-text">${errorText || this.shownError}</span>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -372,6 +436,14 @@ export class TrInput extends FormControl {
     super.updated(changed);
     this.internals.setFormValue(this.value);
     this.syncValidity();
+    // A different error replacing a visible one cross-fades instead of flicking over.
+    const text = this.renderRoot.querySelector<HTMLElement>('.error-text');
+    const now = this.renderedError;
+    // Only an error that was on screen cross-fades; a new error after a cleared one just fades in.
+    if (text && now && this.visibleError && now !== this.visibleError) crossfadeText(text, this.visibleError);
+    this.visibleError = now;
+    // Kept after the error clears, so the message fades out with its words still in it.
+    if (now) this.shownError = now;
     // An author-set error is shown right away; clearing it hides it again.
     if (changed.has('error')) {
       if (this.error) this.setAttribute('data-user-invalid', '');

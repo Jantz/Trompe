@@ -1,3 +1,4 @@
+import { afterExit } from '../../interaction/smooth.js';
 import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
@@ -143,6 +144,7 @@ export class TrTooltip extends TrompeElement {
   private anchorEl: HTMLElement | null = null;
   private timer = 0;
   private unplace: (() => void) | null = null;
+  private pendingUnplace: (() => void) | null = null;
 
   constructor() {
     super();
@@ -220,6 +222,7 @@ export class TrTooltip extends TrompeElement {
         return;
       }
       this.unplace?.();
+      this.pendingUnplace?.();
       this.unplace = this.anchorEl ? anchorTo(this, this.anchorEl, this.placement, 8) : null;
       document.addEventListener('keydown', this.onDocKeyDown, true);
       this.dispatchEvent(new Event('open'));
@@ -229,16 +232,27 @@ export class TrTooltip extends TrompeElement {
       } catch {
         /* already hidden */
       }
-      this.release();
+      this.release(true);
       lastHiddenAt = performance.now();
       this.dispatchEvent(new Event('close'));
     }
   }
 
   /** Drops what an open tooltip holds: placement, the shared `current` slot, the Escape listener. */
-  private release(): void {
-    this.unplace?.();
+  private release(fading = false): void {
+    // While fading out it stays where it was; it is un-anchored once the exit has played.
+    const unplace = this.unplace;
     this.unplace = null;
+    if (unplace && fading) {
+      const pending = (this.pendingUnplace = () => {
+        if (this.pendingUnplace === pending) this.pendingUnplace = null;
+        unplace();
+      });
+      void afterExit(this).then(() => this.pendingUnplace === pending && pending());
+    } else {
+      unplace?.();
+      this.pendingUnplace?.();
+    }
     if (current === this) current = null;
     document.removeEventListener('keydown', this.onDocKeyDown, true);
   }

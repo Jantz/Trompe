@@ -82,10 +82,14 @@ Run `npm run build` and read `llms.txt` for every attribute, allowed value, even
 ```sh
 npx trompe check src/            # .html, .vue, .svelte, Lit html``, .css and *.skin.json
 npx trompe check --fix src/      # fix typos in element, attribute and value names
-npx trompe check --render page.html --format json   # + axe, contrast, target size, forced colours
+npx trompe check --render page.html --format json   # + axe, contrast, target size, forced colours, motion
 ```
 
 `trompe check` reads the package's own `custom-elements.json`, `tokens.json` and `skins.json`, so it always matches the installed version. It is built for agents: JSON findings with stable rule ids, the allowed values and a fix. See [docs/check.md](docs/check.md).
+
+## Motion
+
+Every state change animates and nothing jumps: menus, dialogs and tooltips enter and leave, tab panels and messages animate their height, list rows open and close into place, changed text cross-fades, and theme or skin changes run as View Transitions. The same primitives (`SizeTransition`, `insertAnimated`, `crossfadeText`, `viewTransition`, ...) are exported for your own code. A motion probe freezes the page on the first frame after each change and fails the tests, or `trompe check --render`, when something cut, jumped or popped. See [docs/motion.md](docs/motion.md).
 
 ## Accessibility
 

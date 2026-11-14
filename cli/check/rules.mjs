@@ -24,6 +24,9 @@ export const RULES = {
   TR104: { name: 'forced-colors-edge', severity: 'error', summary: 'Under forced colours the control has no visible boundary.' },
   TR105: { name: 'paint-budget', severity: 'warning', summary: 'Too many backdrop-filter surfaces or shadow layers for smooth rendering.' },
   TR106: { name: 'runtime-error', severity: 'error', summary: 'The page threw an error or a Trompe element failed to upgrade.' },
+  TR120: { name: 'unanimated-change', severity: 'error', summary: 'Clicking a control changes the page with no animation: the new state is fully there on the first frame.' },
+  TR121: { name: 'layout-shift', severity: 'error', summary: 'Clicking a control makes content jump: a layout shift, or an element that moves or resizes with no animation.' },
+  TR122: { name: 'pop-in', severity: 'warning', summary: 'Clicking a control makes an element appear or vanish with no enter or exit transition.' },
 
   TR201: { name: 'skin-schema', severity: 'error', summary: 'The skin file does not match the skin format.' },
   TR202: { name: 'skin-unknown-token', severity: 'error', summary: 'The skin sets a token, element, variable or bundle value Trompe does not have.' },

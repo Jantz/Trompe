@@ -123,6 +123,7 @@ export class TrDialog extends TrompeElement {
       }
       dialog:focus-visible {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 3px;
       }
       dialog::backdrop {
@@ -241,6 +242,7 @@ export class TrDialog extends TrompeElement {
       }
       .close:focus-visible {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 3px;
       }
       .close svg {

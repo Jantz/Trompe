@@ -153,7 +153,10 @@ export class TrOption extends TrompeElement {
         border-radius: 50%;
         /* unlit: a hollow ring, so "off" differs in shape, not only in color */
         border: 1.5px solid color-mix(in oklch, currentColor 45%, transparent);
-        transition: background-color var(--tr-motion-duration-release, 160ms), box-shadow var(--tr-motion-duration-release, 160ms);
+        transition:
+          background-color var(--tr-motion-duration-release, 160ms),
+          border-color var(--tr-motion-duration-release, 160ms),
+          box-shadow var(--tr-motion-duration-release, 160ms);
       }
       :host([data-mode='segment'][selected]) .lamp {
         border-color: color-mix(in oklch, var(--_lamp), var(--_sh) 25%);
@@ -164,6 +167,7 @@ export class TrOption extends TrompeElement {
       }
       :host([data-mode='segment']:focus-visible) .row {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 2px;
         z-index: 1;
       }

@@ -74,6 +74,7 @@ export class TrNavItem extends TrompeElement {
       }
       .item:focus-visible {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 1px;
       }
       .plate {
@@ -171,6 +172,38 @@ export class TrNavItem extends TrompeElement {
       :host([expanded]) .chevron {
         rotate: 90deg;
       }
+      /* The group opens and closes by animating its row from 0fr to 1fr while the items fade,
+         so the items below slide instead of jumping. Collapsed, it is invisible to focus and AT. */
+      .fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        visibility: hidden;
+        transition:
+          grid-template-rows var(--tr-motion-duration-lift, 240ms) cubic-bezier(0.3, 0, 0.2, 1),
+          visibility var(--tr-motion-duration-lift, 240ms) allow-discrete;
+      }
+      :host([expanded]) .fold {
+        grid-template-rows: 1fr;
+        visibility: visible;
+      }
+      .fold[hidden] {
+        display: none;
+      }
+      .fold-body {
+        min-height: 0;
+        overflow: clip;
+        overflow-clip-margin: 4px;
+        opacity: 0;
+        translate: 0 -0.25em;
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-in,
+          translate var(--tr-motion-duration-lift, 240ms) cubic-bezier(0.3, 0, 0.2, 1);
+      }
+      :host([expanded]) .fold-body {
+        opacity: 1;
+        translate: none;
+        transition-timing-function: ease-out, cubic-bezier(0.3, 0, 0.2, 1);
+      }
       .group {
         margin-inline-start: 1.35em;
         padding: 0.15em 0 0.15em 0.5em;
@@ -180,9 +213,6 @@ export class TrNavItem extends TrompeElement {
         /* engraved guide line */
         border-inline-start: 1px solid color-mix(in oklch, var(--_sh) calc(14% + var(--_r) * 14%), transparent);
         box-shadow: inset 1px 0 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent);
-      }
-      .group[hidden] {
-        display: none;
       }
       :host([disabled]) .item {
         opacity: 0.5;
@@ -264,8 +294,10 @@ export class TrNavItem extends TrompeElement {
             ${content}
           </button>`;
     return html`${item}
-      <div part="group" id="group" class="group" role="group" ?hidden=${!this.hasChildren || !this.expanded}>
-        <slot name="children" @slotchange=${this.onChildren}></slot>
+      <div id="group" class="fold" role="group" ?hidden=${!this.hasChildren}>
+        <div class="fold-body">
+          <div part="group" class="group"><slot name="children" @slotchange=${this.onChildren}></slot></div>
+        </div>
       </div>`;
   }
 
