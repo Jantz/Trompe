@@ -76,7 +76,7 @@ test.describe('tr-button', () => {
         <tr-button>Plastic</tr-button><tr-button tone="accent">Accent</tr-button>
         <tr-button material="metal">Metal</tr-button><tr-button material="chrome" profile="bevel">Chrome</tr-button>
         <tr-button material="rubber" finish="gloss" shape="pill">Gloss</tr-button>
-        <tr-button shape="circle" profile="dome" finish="gloss" tone="accent" aria-label="Play">▶</tr-button>
+        <tr-button shape="circle" profile="dome" finish="gloss" tone="accent" aria-label="Play">+</tr-button>
         <tr-button toggle pressed>Latched</tr-button><tr-button realism="flat">Flat</tr-button>
       </div>`,
     );
