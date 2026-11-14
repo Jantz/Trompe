@@ -107,6 +107,14 @@ export function checkMarkup(file, src, data, abs) {
         });
         continue;
       }
+      if (decl.parsed.kind === 'boolean' && a.value != null && (a.value.includes(EXPR) || /\$\{/.test(a.value)) && !a.value.includes(MARK)) {
+        // pressed="${done}" in a template string writes pressed="false", which is still on.
+        push('TR004', a.start, {
+          element: el.tag, attribute: name, value: a.value, severity: 'warning',
+          message: `${name}="\${…}" sets the attribute whatever the value is, and ${name}="false" is still on. Write \${done ? '${name}' : ''} in a template string, ?${name}=\${done} in Lit, or set the .${decl.fieldName ?? name} property.`,
+        });
+        continue;
+      }
       if (isDynamic(a.value)) continue;
       const t = decl.parsed;
       if (t.kind === 'enum' && !t.values.includes(a.value)) {

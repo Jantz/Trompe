@@ -14,7 +14,7 @@ import './choice-group.js';
  *
  * The default slot is the title. Put a short line in the `description` slot, an icon or picture
  * in `start` and a price or figure in `end`. Wide cards lay out in a row; narrow cards (under
- * about 20em, as in a three-column plan picker) stack: icon and indicator on top, then the title,
+ * 24em, as in a three-column plan picker) stack: icon and indicator on top, then the title,
  * description and figure.
  *
  * Selection, focus and the form value are managed by the parent `tr-choice-group`.
@@ -79,6 +79,7 @@ export class TrChoiceCard extends TrompeElement {
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
           --_sel var(--tr-motion-duration-release, 160ms) ease-out,
           border-color var(--tr-motion-duration-release, 160ms) ease-out,
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
           translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out);
       }
       /* the accent rim: drawn over the 1px edge so the border width never changes */

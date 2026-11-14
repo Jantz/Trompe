@@ -132,7 +132,7 @@ export class TrBadge extends TrompeElement {
         --_ink: color-mix(in oklab, var(--_tone), var(--_m-ink) 35%);
         /* cut letters: dark on the edge facing the light, lit on the far edge */
         text-shadow:
-          0 calc(var(--_sy) * 1px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 70%), transparent),
+          0 calc(var(--_sy) * 1px) 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 70%), transparent),
           0 calc(var(--_sy) * -1px) 0 color-mix(in oklch, var(--_sh) calc(var(--_r) * 30%), transparent);
         padding-inline-start: 0.85em;
         --_layer: linear-gradient(to right, var(--_tone) 0 0.22em, transparent 0.22em);
@@ -157,7 +157,7 @@ export class TrBadge extends TrompeElement {
         width: 0.6em;
         height: 0.6em;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, color-mix(in oklch, white 70%, var(--_tone)), var(--_tone) 55%, color-mix(in oklch, var(--_tone), black 25%));
+        background: radial-gradient(circle at 35% 30%, color-mix(in oklab, white 70%, var(--_tone)), var(--_tone) 55%, color-mix(in oklch, var(--_tone), black 25%));
         box-shadow:
           0 0 0 1px color-mix(in oklch, var(--_sh) calc(15% + var(--_r) * 20%), transparent),
           0 0 calc(2px + var(--_r) * 5px) color-mix(in oklch, var(--_tone) 80%, transparent);

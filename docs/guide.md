@@ -67,6 +67,9 @@ import type {} from 'trompe/frameworks/vue';
 - Prefer `:value` + `@input` to `v-model` (which is made for native fields): `:value="name" @input="name = ($event.target as TrInput).value"`.
 - Events: `@change`, `@input`, `@click`, `@select`, `@close`, `@sort`.
 - Refs: `const dlg = ref<TrDialog>()`, then `dlg.value?.show()`.
+- Swapping a wizard step, pane or list order: let `viewTransition()` wait for Vue to render:
+  `viewTransition(async () => { step.value++; await nextTick(); })`. Use `<TransitionGroup>` only
+  for items entering and leaving a list; don't nest it inside a view transition.
 
 ### Svelte 5
 
@@ -81,6 +84,7 @@ import 'trompe/skins.css';
 - Numbers and booleans in braces: `<tr-slider max={100} value={vol} disabled={busy} />`.
 - `bind:value` does not work on custom elements: `value={vol} oninput={(e) => (vol = e.currentTarget.value)}`.
 - Events: `onchange`, `oninput`, `onclick`, `onselect`, `onclose`, `onsort`.
+- Swapping a step, pane or list order: `viewTransition(async () => { step++; await tick(); })`.
 - Svelte's a11y linter does not know that `tr-button` is a button and warns about `onclick`. Silence
   only those warnings in `svelte.config.js`:
 
@@ -130,14 +134,14 @@ import 'trompe/skins.css';
 | One of many options | `tr-select` + `tr-option` (`hint`, `error` as on `tr-input`) |
 | On / off setting | `tr-switch`; a list of options: `tr-checkbox` |
 | Amount on a scale | `tr-slider` |
-| Text | `tr-input` (`type="search"` + `clearable` for search), `tr-textarea` |
+| Text, time of day | `tr-input` (`type="search"` + `clearable` for search, `type="time"` for "07:30"), `tr-textarea` |
 | Sections of one screen | `tr-tabs` + `tr-tab` + `tr-tab-panel` |
 | App navigation | `tr-nav` + `tr-nav-item` (`current`, badges in the `end` slot) |
 | Rows of things | `tr-list` + `tr-list-item` (`selectable` for a listbox) |
 | Commands | `tr-menu` + `tr-menu-item`, `tr-toolbar` |
 | Confirmation, form in a layer | `tr-dialog` (`show()`, `close()`, footer slot for actions) |
 | Hints on icons | `tr-tooltip` |
-| Icons | `tr-icon name="search"` (100+ built in; `variant` printed, engraved, embossed, lit) |
+| Icons | `tr-icon name="search"` (150+ built in; `variant` printed, engraved, embossed, lit) |
 | Charts, sparklines | `tr-chart` (`type` line, area, bar, sparkline; a `<table>` inside or `data`) |
 | Date, date range | `tr-date-picker` (field + popover), `tr-calendar` (always on screen) |
 | Plans, shipping options, templates | `tr-choice-group` + `tr-choice-card` (`multiple` for several) |
@@ -148,7 +152,7 @@ Not in Trompe yet (build with plain HTML/CSS and Trompe tokens): skeletons, file
 steppers for multi-step flows (use `tr-progress` or `tr-segmented` as the step indicator).
 
 ### Icons
-`<tr-icon name="search"></tr-icon>` draws one of 100+ built-in icons (`iconNames()` lists them) at 1em, in the text colour, so it lines up in `slot="start"`/`"end"` of tr-button, tr-input, tr-list-item, tr-menu-item, tr-badge and `slot="icon"` of tr-nav-item. Don't hand-draw SVGs.
+`<tr-icon name="search"></tr-icon>` draws one of 150+ built-in icons (`iconNames()` lists them) at 1em, in the text colour, so it lines up in `slot="start"`/`"end"` of tr-button, tr-input, tr-list-item, tr-menu-item, tr-badge and `slot="icon"` of tr-nav-item. Don't hand-draw SVGs.
 `variant` matches the material: `printed` (ink, default), `engraved` (cut in, letterpress), `embossed` (raised), `lit` (backlit glow; best on dark skins, accent by default). Relief follows the scene light.
 Icons are decorative by default. An icon-only button needs a name: `<tr-button shape="circle" aria-label="Settings"><tr-icon name="settings"></tr-icon></tr-button>`, or `<tr-icon name="close" label="Close">`.
 Add your own with `registerIcons({ espresso: '<path d="…"/>' })` (24×24 grid, strokes).

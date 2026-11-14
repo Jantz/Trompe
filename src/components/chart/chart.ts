@@ -152,7 +152,7 @@ export class TrChart extends TrompeElement {
         height: 0.75em;
         border-radius: 3px;
         background: var(--_c);
-        box-shadow: inset 0 1px 0 color-mix(in oklch, white 30%, transparent);
+        box-shadow: inset 0 1px 0 color-mix(in oklab, white 30%, transparent);
       }
       .key.line {
         height: 2px;
@@ -206,7 +206,7 @@ export class TrChart extends TrompeElement {
         shape-rendering: crispEdges;
       }
       .grid .lit {
-        stroke: color-mix(in oklch, var(--tr-color-highlight, #fff) calc(var(--_r) * (55% - var(--tr-lift, 0) * 45%)), transparent);
+        stroke: color-mix(in oklab, var(--tr-color-highlight, #fff) calc(var(--_r) * (55% - var(--tr-lift, 0) * 45%)), transparent);
         stroke-width: 1;
         translate: 0 calc(var(--_sy) * 1px);
         shape-rendering: crispEdges;
@@ -409,13 +409,13 @@ export class TrChart extends TrompeElement {
    * (key, optional label). As a property: `[{ key: 'income', label: 'Income', color: '#2a78d6' }]`
    * or plain keys. Default: every numeric key.
    */
-  @property({ converter: seriesConverter }) series?: Array<ChartSeries | string>;
+  @property({ converter: seriesConverter }) series?: Array<ChartSeries | string> | string;
 
   /** A single series as numbers, e.g. `values="3,5,2,8"`. */
-  @property({ converter: listConverter }) values?: string[];
+  @property({ converter: listConverter }) values?: Array<string | number> | string;
 
   /** X labels for `values`, e.g. `labels="Mon,Tue,Wed,Thu"`. */
-  @property({ converter: listConverter }) labels?: string[];
+  @property({ converter: listConverter }) labels?: string[] | string;
 
   /** Stack the series (bars and areas) instead of grouping or overlapping them. */
   @property({ type: Boolean, reflect: true }) stacked = false;
@@ -547,7 +547,7 @@ export class TrChart extends TrompeElement {
       const first = this.data[0];
       const keys = Object.keys(first);
       const xKey = this.x || (keys.includes('x') ? 'x' : (keys.find((k) => typeof first[k] === 'string' || first[k] instanceof Date) ?? ''));
-      const wanted = (this.series?.length ? this.series : keys.filter((k) => k !== xKey && typeof first[k] === 'number')).map((s) =>
+      const wanted = (this.seriesList?.length ? this.seriesList : keys.filter((k) => k !== xKey && typeof first[k] === 'number')).map((s) =>
         typeof s === 'string' ? { key: s } : s,
       );
       const xs = this.data.map((row, i) => {
@@ -569,10 +569,10 @@ export class TrChart extends TrompeElement {
         values: wanted.map((s) => this.data.map((row) => (typeof row[s.key] === 'number' ? (row[s.key] as number) : parseNumber(String(row[s.key] ?? ''))))),
       };
     }
-    if (this.values?.length) {
-      const nums = this.values.map((v) => parseNumber(v));
-      const xs = nums.map((_, i) => this.labels?.[i] ?? String(i + 1));
-      const s = (this.series?.[0] as ChartSeries | undefined) ?? {
+    if (this.valuesList?.length) {
+      const nums = this.valuesList.map((v) => (typeof v === 'number' ? v : parseNumber(v)));
+      const xs = nums.map((_, i) => this.labelsList?.[i] ?? String(i + 1));
+      const s = (this.seriesList?.[0] as ChartSeries | undefined) ?? {
         key: 'value',
       };
       return {
@@ -590,9 +590,9 @@ export class TrChart extends TrompeElement {
     if (this.tableModel) {
       const m = this.tableModel;
       // `series` on a table chart can rename or recolour columns, in order
-      if (this.series?.length) {
+      if (this.seriesList?.length) {
         m.series = m.series.map((s, i) => {
-          const o = this.series![i];
+          const o = this.seriesList![i];
           return o
             ? {
                 ...s,
@@ -646,6 +646,17 @@ export class TrChart extends TrompeElement {
     if (own) return own;
     const slot = this.palette[i % this.palette.length];
     return `var(--tr-chart-color-${i + 1}, var(--_p${slot}))`;
+  }
+
+  // The attribute syntax also works as a property value: chart.series = 'income:Income,spend:Spending'.
+  private get seriesList(): Array<ChartSeries | string> | undefined {
+    return typeof this.series === 'string' ? seriesConverter.fromAttribute(this.series) : this.series;
+  }
+  private get valuesList(): Array<string | number> | undefined {
+    return typeof this.values === 'string' ? listConverter.fromAttribute(this.values) : this.values;
+  }
+  private get labelsList(): string[] | undefined {
+    return typeof this.labels === 'string' ? listConverter.fromAttribute(this.labels) : this.labels;
   }
 
   protected override willUpdate(changed: PropertyValues): void {

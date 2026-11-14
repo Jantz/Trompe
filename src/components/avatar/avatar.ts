@@ -140,7 +140,7 @@ export class TrAvatar extends TrompeElement {
         height: max(0.55em, calc(var(--_size) * 0.28));
         border-radius: 50%;
         --_lamp: var(--tr-color-success, oklch(68% 0.16 150));
-        background: radial-gradient(circle at 35% 30%, color-mix(in oklch, white 65%, var(--_lamp)), var(--_lamp) 55%, color-mix(in oklch, var(--_lamp), black 25%));
+        background: radial-gradient(circle at 35% 30%, color-mix(in oklab, white 65%, var(--_lamp)), var(--_lamp) 55%, color-mix(in oklch, var(--_lamp), black 25%));
         box-shadow:
           0 0 0 max(1.5px, calc(var(--_size) * 0.04)) var(--tr-color-surface, #fff),
           0 0 calc(2px + var(--_r) * 5px) color-mix(in oklch, var(--_lamp) 75%, transparent);

@@ -107,7 +107,7 @@ export class TrInput extends FormControl {
           calc(var(--tr-light-angle, 330deg) + 180deg),
           color-mix(in oklch, var(--_sh) calc(var(--_r) * 10%), transparent),
           transparent 45%,
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 12%), transparent)
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 12%), transparent)
         );
       }
       .field:has(input:focus-visible) {
@@ -138,6 +138,21 @@ export class TrInput extends FormControl {
         cursor: pointer;
       }
       /* with clearable, Trompe's own clear key replaces the browser's */
+      /* time: the browser's segments in the field's own type; the clock key follows color-scheme */
+      input[type='time'] {
+        font-variant-numeric: tabular-nums;
+      }
+      input[type='time']::-webkit-calendar-picker-indicator {
+        opacity: 0.6;
+        cursor: pointer;
+        transition: opacity var(--tr-motion-duration-release, 160ms) ease-out;
+      }
+      input[type='time']::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+      }
+      input[type='time']::-webkit-datetime-edit-fields-wrapper {
+        padding: 0;
+      }
       :host([clearable]) input::-webkit-search-cancel-button {
         -webkit-appearance: none;
         appearance: none;
@@ -278,8 +293,8 @@ export class TrInput extends FormControl {
   /** Visible label. Also the accessible name of the field. */
   @property({ reflect: true }) label = '';
 
-  /** Kind of text the field takes. */
-  @property({ reflect: true }) type: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number' = 'text';
+  /** Kind of text the field takes. `time` is a time of day (value "07:30"); for dates use `tr-date-picker`. */
+  @property({ reflect: true }) type: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number' | 'time' = 'text';
 
   /** Current value. */
   @property() value = '';
@@ -440,6 +455,8 @@ export class TrInput extends FormControl {
 
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    // a hint that changes wording cross-fades instead of flicking over
+    if (changed.get('hint') && this.hint) crossfadeText(this.renderRoot.querySelector<HTMLElement>('.hint'), changed.get('hint') as string);
     this.internals.setFormValue(this.value);
     this.syncValidity();
     // A different error replacing a visible one cross-fades instead of flicking over.

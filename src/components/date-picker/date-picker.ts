@@ -118,7 +118,7 @@ export class TrDatePicker extends FormControl {
           calc(var(--tr-light-angle, 330deg) + 180deg),
           color-mix(in oklch, var(--_sh) calc(var(--_r) * 10%), transparent),
           transparent 45%,
-          color-mix(in oklch, var(--_hl) calc(var(--_r) * 12%), transparent)
+          color-mix(in oklab, var(--_hl) calc(var(--_r) * 12%), transparent)
         );
       }
       .field:has(input:focus-visible) {
@@ -691,6 +691,8 @@ export class TrDatePicker extends FormControl {
 
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    // a hint that changes wording cross-fades instead of flicking over
+    if (changed.get('hint') && this.hint) crossfadeText(this.renderRoot.querySelector<HTMLElement>('.hint'), changed.get('hint') as string);
     // An unfinished range is submitted as typed; validity reports the missing end date.
     this.internals.setFormValue(this.start ? this.value : null);
     this.syncValidity();

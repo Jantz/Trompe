@@ -2,7 +2,7 @@ import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { FormControl } from '../../internal/form-control.js';
 import { define } from '../../internal/trompe-element.js';
-import { SizeTransition } from '../../interaction/smooth.js';
+import { SizeTransition, crossfadeText } from '../../interaction/smooth.js';
 import { TrChoiceCard } from './choice-card.js';
 
 /**
@@ -268,6 +268,8 @@ export class TrChoiceGroup extends FormControl {
 
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    // a hint that changes wording cross-fades instead of flicking over
+    if (changed.get('hint') && this.hint) crossfadeText(this.renderRoot.querySelector<HTMLElement>('.hint'), changed.get('hint') as string);
     if (changed.has('label')) {
       if (this.label && (this.ownsLabel || !this.hasAttribute('aria-label'))) {
         this.aria('aria-label', this.label);

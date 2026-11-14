@@ -85,7 +85,7 @@ export class TrListItem extends TrompeElement {
         inset: 0 0.85em auto;
         height: 0;
         border-top: 1px solid color-mix(in oklch, var(--_sh) calc(12% + var(--_r) * 14%), transparent);
-        border-bottom: 1px solid color-mix(in oklch, var(--_hl) calc(var(--_r) * 50%), transparent);
+        border-bottom: 1px solid color-mix(in oklab, var(--_hl) calc(var(--_r) * 50%), transparent);
         translate: 0 -1px;
         transition: opacity var(--tr-motion-duration-release, 160ms);
       }
@@ -181,7 +181,7 @@ export class TrListItem extends TrompeElement {
         height: 1.1em;
         color: var(--tr-color-accent);
         display: none;
-        filter: drop-shadow(0 calc(var(--_sy) * 1px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 60%), transparent));
+        filter: drop-shadow(0 calc(var(--_sy) * 1px) 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 60%), transparent));
       }
       :host([role='option']) .check {
         display: block;

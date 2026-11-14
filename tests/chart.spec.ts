@@ -185,3 +185,23 @@ test.describe('tr-chart', () => {
     expect(r.violations).toEqual([]);
   });
 });
+
+test('series, values and labels accept the attribute syntax as property values', async ({ page }) => {
+  await mount(page, `<tr-chart id="c" label="Done" type="bar"></tr-chart>`);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.locator('#c').evaluate(async (el: any) => {
+    el.data = [{ day: 'Mon', done: 3, skipped: 1 }, { day: 'Tue', done: 5, skipped: 0 }];
+    el.x = 'day';
+    el.series = 'done:Completed';
+    await el.updateComplete;
+  });
+  await expect(page.locator('#c').locator('[part=legend]')).toHaveCount(0); // one series: no legend needed
+  await page.locator('#c').evaluate(async (el: any) => {
+    el.data = undefined;
+    el.values = '3,5,2';
+    el.labels = 'Mon,Tue,Wed';
+    await el.updateComplete;
+  });
+  expect(errors).toEqual([]);
+});

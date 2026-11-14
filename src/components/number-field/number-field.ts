@@ -4,6 +4,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { live } from 'lit/directives/live.js';
 import { FormControl } from '../../internal/form-control.js';
 import { define } from '../../internal/trompe-element.js';
+import { SizeTransition, crossfadeText } from '../../interaction/smooth.js';
 import type { Size } from '../../internal/types.js';
 
 const decimals = (n: number) => (String(n).split('.')[1] ?? '').length;
@@ -30,6 +31,7 @@ const decimals = (n: number) => (String(n).split('.')[1] ?? '').length;
  * @csspart increment - The + key.
  * @csspart unit - The unit after the number.
  * @csspart hint - The help text.
+ * @csspart error - The error message (from `error`).
  *
  * @cssprop --tr-number-field-width - Width of the whole control. Defaults to 9em (fits 4 digits and the keys).
  * @cssprop --tr-number-field-color - Colour of the well. Defaults to --tr-color-well.
@@ -39,6 +41,7 @@ const decimals = (n: number) => (String(n).split('.')[1] ?? '').length;
  *
  * @example <tr-number-field label="Quantity" value="1" min="1" max="10"></tr-number-field>
  * @example <tr-number-field label="Weight" value="82.5" step="2.5" min="0" unit="kg"></tr-number-field>
+ * @example <tr-number-field label="Shares" value="0" min="0" error="Enter at least 1 share."></tr-number-field>
  * @example <tr-number-field aria-label="Guests" value="2" min="1" max="12" size="sm"></tr-number-field>
  */
 export class TrNumberField extends FormControl {
@@ -72,7 +75,6 @@ export class TrNumberField extends FormControl {
         line-height: 1.3;
       }
       .label[hidden],
-      .hint[hidden],
       .unit[hidden] {
         display: none;
       }
@@ -92,9 +94,14 @@ export class TrNumberField extends FormControl {
         min-height: var(--_h);
         padding: 0.2em;
         border-radius: var(--tr-radius-md, 10px);
+        transition:
+          box-shadow var(--tr-motion-duration-release, 160ms),
+          border-color var(--tr-motion-duration-release, 160ms),
+          border-width var(--tr-motion-duration-release, 160ms);
       }
       .field:has(input:focus-visible) {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 2px;
       }
       .readout {
@@ -181,10 +188,53 @@ export class TrNumberField extends FormControl {
         width: 0.9em;
         height: 0.9em;
       }
-      .hint {
+      /* hint and error under the field, as on tr-input: they fade, and the box glides to its height */
+      .messages {
+        margin-top: -0.35em;
+      }
+      .stack {
+        display: grid;
+      }
+      .msg {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.35em;
+        margin-top: calc(0.35em / 0.8125);
         font-size: 0.8125em;
         line-height: 1.35;
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
+          translate var(--tr-motion-duration-travel, 220ms) cubic-bezier(0.2, 0.7, 0.2, 1),
+          display var(--tr-motion-duration-release, 160ms) allow-discrete;
+      }
+      .msg[hidden] {
+        display: none;
+        opacity: 0;
+        translate: 0 -0.3em;
+        transition-timing-function: ease-in;
+      }
+      @starting-style {
+        .msg {
+          opacity: 0;
+          translate: 0 -0.3em;
+        }
+      }
+      .hint {
         color: color-mix(in oklch, currentColor 72%, transparent);
+      }
+      .error {
+        --_err-ink: var(--tr-color-danger-ink, #fff);
+        color: color-mix(in oklch, var(--tr-color-danger) 78%, currentColor);
+        font-weight: var(--tr-font-weight-strong, 600);
+      }
+      .error svg {
+        flex: none;
+        margin-top: 0.12em;
+      }
+      :host([data-user-invalid]) .field {
+        --_edge: var(--tr-color-danger);
+        --_edge-strong: var(--tr-color-danger);
+        border-width: 1.5px;
       }
       :host([disabled]),
       :host(:state(disabled)) {
@@ -235,6 +285,20 @@ export class TrNumberField extends FormControl {
   /** Help text under the field. Or use the `hint` slot. */
   @property({ reflect: true }) hint = '';
 
+  /**
+   * Error message shown under the field, as on `tr-input`: the field gets a danger edge, the
+   * message is read out, and the form will not submit until it is cleared.
+   */
+  @property({ reflect: true }) error = '';
+
+  /** The hint/error area glides to its new height instead of pushing content in one frame. */
+  protected readonly messageSize = new SizeTransition(this, () => ({
+    outer: this.renderRoot?.querySelector<HTMLElement>('.messages'),
+    inner: this.renderRoot?.querySelector<HTMLElement>('.stack'),
+  }));
+  /** Kept after the error clears, so the message fades out with its words still in it. */
+  private shownError = '';
+
   /** Shows the value but does not let the user change it. */
   @property({ type: Boolean, reflect: true }) readonly = false;
 
@@ -244,6 +308,13 @@ export class TrNumberField extends FormControl {
   @query('input') private input!: HTMLInputElement;
 
   /** Focuses the number itself (the − key comes first in the shadow tree but is not a tab stop). */
+  /** A press on the frame (not on a key) puts the caret in the number, as a native field does. */
+  private onFrameDown = (e: MouseEvent): void => {
+    if ((e.target as Element).closest?.('button, input')) return;
+    e.preventDefault();
+    this.input?.focus();
+  };
+
   override focus(options?: FocusOptions): void {
     if (this.input) this.input.focus(options);
     else super.focus(options);
@@ -332,7 +403,17 @@ export class TrNumberField extends FormControl {
 
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    // a hint that changes wording cross-fades instead of flicking over
+    if (changed.get('hint') && this.hint) crossfadeText(this.renderRoot.querySelector<HTMLElement>('.hint'), changed.get('hint') as string);
     this.internals.setFormValue(String(this.value));
+    if (changed.has('error')) {
+      if (this.error) {
+        this.shownError = this.error;
+        this.setAttribute('data-user-invalid', '');
+      } else if (changed.get('error')) this.removeAttribute('data-user-invalid');
+      if (this.error) this.internals.setValidity({ customError: true }, this.error, this.input ?? undefined);
+      else this.internals.setValidity({});
+    }
   }
 
   formResetCallback(): void {
@@ -425,7 +506,7 @@ export class TrNumberField extends FormControl {
     const plus = html`<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M8 3.5v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>`;
     return html`
       <label part="label" class="label" for="input" ?hidden=${!this.label}>${this.label}</label>
-      <div part="field" class="field surface">
+      <div part="field" class="field surface" @mousedown=${this.onFrameDown}>
         <button
           part="decrement"
           class="key surface"
@@ -442,7 +523,6 @@ export class TrNumberField extends FormControl {
             part="input"
             id="input"
             role="spinbutton"
-            autofocus
             inputmode=${(this.step % 1 !== 0 || (this.min ?? 0) % 1 !== 0) ? 'decimal' : 'numeric'}
             autocomplete="off"
             .value=${live(shown)}
@@ -454,7 +534,8 @@ export class TrNumberField extends FormControl {
             aria-valuemin=${ifDefined(this.min)}
             aria-valuemax=${ifDefined(this.max)}
             aria-valuetext=${this.unit ? `${this.value} ${this.unit}` : nothing}
-            aria-describedby=${hasHint ? 'hint' : nothing}
+            aria-describedby=${[this.error ? 'error' : '', hasHint ? 'hint' : ''].filter(Boolean).join(' ') || nothing}
+            aria-invalid=${this.error ? 'true' : nothing}
             @input=${this.onInput}
             @change=${(e: Event) => e.stopPropagation()}
             @blur=${this.commit}
@@ -474,7 +555,15 @@ export class TrNumberField extends FormControl {
           ${plus}
         </button>
       </div>
-      <div part="hint" id="hint" class="hint" ?hidden=${!hasHint}><slot name="hint" @slotchange=${this.onSlotChange}>${this.hint}</slot></div>
+      <div class="messages">
+        <div class="stack">
+          <div part="hint" id="hint" class="msg hint" ?hidden=${!hasHint}><slot name="hint" @slotchange=${this.onSlotChange}>${this.hint}</slot></div>
+          <div part="error" id="error" class="msg error" ?hidden=${!this.error}>
+            <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor" /><path d="M8 4.2v4.6M8 10.9v.9" stroke="var(--_err-ink, #fff)" stroke-width="1.8" stroke-linecap="round" /></svg>
+            <span>${this.error || this.shownError}</span>
+          </div>
+        </div>
+      </div>
     `;
   }
 }

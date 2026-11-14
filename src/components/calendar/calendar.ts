@@ -28,6 +28,8 @@ function ym(year: number, month0: number): string {
   return toISO(d).slice(0, 7);
 }
 
+export type CalendarMarkTone = 'accent' | 'success' | 'warning' | 'danger' | 'muted';
+
 /**
  * A month of days as small keys on a recessed tray. Pick one date, or a range with `range`.
  * The grid always has six weeks, so moving between months never changes its height; the new
@@ -40,6 +42,11 @@ function ym(year: number, month0: number): string {
  * its selected, disabled and today states.
  *
  * Form-associated: with a `name`, it submits its `value` like an input.
+ *
+ * Marks show state on days without selecting them, such as completed habit days, bookings or
+ * holidays: `marks="2026-11-02,2026-11-03"` (accent), or the `marks` property with a tone and a
+ * spoken label per day: `{ '2026-11-02': 'success', '2026-11-05': { tone: 'danger', label: 'missed' } }`.
+ * Add `readonly` for a calendar that only shows (days stay focusable and read out, but cannot be chosen).
  *
  * @summary Calendar month grid: pick a date or a date range.
  * @tag tr-calendar
@@ -55,10 +62,12 @@ function ym(year: number, month0: number): string {
  * @cssprop --tr-calendar-cell-size - Size of a day key. Defaults to 2.5em (44px on touch screens).
  * @cssprop --tr-calendar-color - Selection colour. Defaults to --tr-color-accent.
  * @cssprop --tr-calendar-radius - Corner radius of the day keys. Defaults to 0.55em.
+ * @cssprop --tr-calendar-mark-strength - How strongly a mark tints its day key, 0 to 1. Defaults to 0.32.
  *
  * @fires input - The selection changed, including the first click of a range (value is then a single date).
  * @fires change - A date, or a complete range, was chosen.
  *
+ * @example <tr-calendar readonly label="Meditation" marks="2026-11-02,2026-11-03,2026-11-05" mark-label="done"></tr-calendar>
  * @example <tr-calendar value="2026-11-03" label="Delivery day"></tr-calendar>
  * @example <tr-calendar range value="2026-11-03/2026-11-09" min="2026-11-01" label="Stay"></tr-calendar>
  * @example <tr-calendar week-numbers first-day-of-week="1" locale="de-DE"></tr-calendar>
@@ -382,7 +391,7 @@ export class TrCalendar extends FormControl {
         --_tr-z: 1;
         opacity: 1;
         box-shadow:
-          inset 0 0 0 1px color-mix(in oklch, var(--_hl) calc(var(--_r) * 25%), transparent),
+          inset 0 0 0 1px color-mix(in oklab, var(--_hl) calc(var(--_r) * 25%), transparent),
           0 0 calc(4px + var(--_r) * 8px) color-mix(in oklch, var(--_sel-color) calc(var(--_r) * 45%), transparent),
           calc(var(--_sx) * 1.5px) calc(var(--_sy) * 1.5px) 3px color-mix(in oklch, var(--_sh) calc(var(--_r) * 30%), transparent);
       }
@@ -408,6 +417,27 @@ export class TrCalendar extends FormControl {
       .pick.today:not(.selected) .num::after {
         background: var(--_sel-color);
         opacity: 1;
+      }
+      /* marks: the day's key is shown, tinted with the mark's tone (state without selection) */
+      .cell.marked {
+        --_mark: var(--tr-color-accent);
+      }
+      .cell.mark-success { --_mark: var(--tr-color-success, oklch(62% 0.15 150)); }
+      .cell.mark-warning { --_mark: var(--tr-color-warning, oklch(75% 0.15 75)); }
+      .cell.mark-danger { --_mark: var(--tr-color-danger); }
+      .cell.mark-muted { --_mark: var(--tr-color-ink-muted); }
+      .cell.marked:not(.selected) .plate {
+        opacity: 1;
+        --_base: color-mix(in oklab, var(--_m-base), var(--_mark) calc(var(--tr-calendar-mark-strength, 0.32) * 100%));
+      }
+      .cell.marked:not(.selected) .num {
+        font-weight: var(--tr-font-weight-strong, 600);
+      }
+      :host([readonly]) .cell:not(.disabled) {
+        cursor: default;
+      }
+      :host([readonly]) .cell:active .plate {
+        --_tr-z: 0.5;
       }
       .cell.disabled,
       .pick:disabled {
@@ -473,6 +503,20 @@ export class TrCalendar extends FormControl {
 
   /** Return true for dates that cannot be chosen (weekends, booked days). Property only. */
   @property({ attribute: false }) isDateDisabled?: (date: Date) => boolean;
+
+  /**
+   * Days to mark, without selecting them: a comma-separated list of yyyy-mm-dd (attribute), or as a
+   * property an array of dates or an object of date to tone (`accent`, `success`, `warning`,
+   * `danger`, `muted`) or `{ tone, label }`.
+   */
+  @property({ converter: { fromAttribute: (v: string | null) => (v ? v.split(',').map((x) => x.trim()).filter(Boolean) : undefined) } })
+  marks?: string[] | Record<string, CalendarMarkTone | { tone?: CalendarMarkTone; label?: string }> | string;
+
+  /** Spoken after a marked day's date, e.g. "done": "Monday 2 November 2026, done". */
+  @property({ attribute: 'mark-label' }) markLabel = '';
+
+  /** Shows dates without letting them be chosen (for a log or a history). */
+  @property({ type: Boolean, reflect: true }) readonly = false;
 
   /** The focused day, month or year. */
   @state() private cursor = '';
@@ -825,6 +869,7 @@ export class TrCalendar extends FormControl {
         const span = this.range && !!lo && !!hi && lo !== hi;
         const selected = this.picking ? iso === this.anchor : iso === s || (this.range && !!e0 && iso === e0);
         const inRange = span && iso > lo && iso < hi;
+        const mark = this.markOf(iso);
         const cls = [
           'cell',
           monthOf(iso) !== month ? 'outside' : '',
@@ -837,16 +882,17 @@ export class TrCalendar extends FormControl {
           this.picking ? 'preview' : '',
           c === 0 ? 'row-start' : '',
           c === 6 ? 'row-end' : '',
+          mark ? `marked mark-${mark.tone}` : '',
         ]
           .filter(Boolean)
           .join(' ');
         cells.push(html`<div
-          part="day"
+          part=${mark ? 'day marked' : 'day'}
           role="gridcell"
           class=${cls}
           data-date=${iso}
           tabindex=${iso === this.cursor ? '0' : '-1'}
-          aria-label=${dayName.format(d)}
+          aria-label=${mark?.label ? `${dayName.format(d)}, ${mark.label}` : dayName.format(d)}
           aria-selected=${selected || (inRange && !this.picking) || (span && !this.picking && (iso === lo || iso === hi)) ? 'true' : 'false'}
           aria-disabled=${disabled ? 'true' : nothing}
           aria-current=${iso === today ? 'date' : nothing}
@@ -960,8 +1006,19 @@ export class TrCalendar extends FormControl {
     this.refocus = true;
   }
 
+  /** The mark on a day, if any. */
+  private markOf(iso: string): { tone: CalendarMarkTone; label: string } | null {
+    const m = typeof this.marks === 'string' ? this.marks.split(',').map((x) => x.trim()) : this.marks;
+    if (!m) return null;
+    if (Array.isArray(m)) return m.includes(iso) ? { tone: 'accent', label: this.markLabel } : null;
+    const v = m[iso];
+    if (!v) return null;
+    if (typeof v === 'string') return { tone: v, label: this.markLabel };
+    return { tone: v.tone ?? 'accent', label: v.label ?? this.markLabel };
+  }
+
   private choose(iso: string): void {
-    if (this.isDisabled || this.dateOff(iso)) return;
+    if (this.isDisabled || this.readonly || this.dateOff(iso)) return;
     this.cursor = iso;
     if (monthOf(iso) !== this.shownMonth()) this.month = monthOf(iso);
     if (!this.range) {

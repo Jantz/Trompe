@@ -24,13 +24,14 @@ const TABBABLE =
  * @tag tr-dialog
  * @role dialog
  *
- * @slot heading - The dialog title, such as an h2. Names the dialog unless `label` is set.
+ * @slot heading - The dialog title, such as an h2. Names the dialog unless `label` is set. Without it, `label` is shown as the title.
  * @slot header - Extra content next to the heading, such as an icon or status.
  * @slot - The dialog body. It scrolls when the dialog is taller than the viewport.
  * @slot footer - Actions, sitting in the recessed tray, aligned to the end.
  *
  * @csspart dialog - The native dialog element and its surface.
  * @csspart header - Row holding the heading, header slot and close button.
+ * @csspart title - The title shown from `label` when there is no `heading` slot.
  * @csspart body - Scrolling body wrapper.
  * @csspart footer - The recessed action tray.
  * @csspart close-button - The built-in close button.
@@ -75,7 +76,10 @@ export class TrDialog extends TrompeElement {
       :host([size='lg']) {
         --_w: var(--tr-dialog-width, 46em);
       }
-      dialog {
+      /* dialog.surface: the shared .surface rule sets position: relative, which in the top layer
+         would place the dialog at the top of the document (and scroll the page there) */
+      dialog,
+      dialog.surface {
         --_tr-z: var(--_depth);
         position: fixed;
         inset: 0;
@@ -169,7 +173,8 @@ export class TrDialog extends TrompeElement {
         gap: 0.6em;
         min-height: 2em;
       }
-      ::slotted([slot='heading']) {
+      ::slotted([slot='heading']),
+      .title {
         margin: 0;
         font-size: 1.25em;
         font-weight: var(--tr-font-weight-strong, 600);
@@ -286,8 +291,11 @@ export class TrDialog extends TrompeElement {
   /** Whether the dialog is showing. Set it, or call show() and close(). */
   @property({ type: Boolean, reflect: true }) open = false;
 
-  /** Accessible name. Use it when there is no visible `heading`. */
+  /** The dialog's name. Without a `heading` slot it is also shown as the title (unless `hide-label`). */
   @property() label = '';
+
+  /** Keeps `label` as the accessible name only, without showing it as the title. */
+  @property({ type: Boolean, reflect: true, attribute: 'hide-label' }) hideLabel = false;
 
   /** Opens without a backdrop and leaves the page interactive (non-modal). */
   @property({ type: Boolean, reflect: true, attribute: 'non-modal' }) nonModal = false;
@@ -323,7 +331,7 @@ export class TrDialog extends TrompeElement {
   }
 
   protected override render() {
-    const showHeader = this.hasHeading || this.hasHeader || !this.noCloseButton;
+    const showHeader = this.hasHeading || this.hasHeader || !this.noCloseButton || (!!this.label && !this.hideLabel);
     return html`<dialog
       part="dialog"
       class="surface"
@@ -337,7 +345,9 @@ export class TrDialog extends TrompeElement {
     >
       <div part="header" class="header ${showHeader ? '' : 'empty'}">
         <div class="titles">
-          <slot name="heading" @slotchange=${this.onSlotChange}></slot>
+          <slot name="heading" @slotchange=${this.onSlotChange}
+            >${this.label && !this.hideLabel ? html`<h2 part="title" class="title" aria-hidden="true">${this.label}</h2>` : nothing}</slot
+          >
           <slot name="header" @slotchange=${this.onSlotChange}></slot>
         </div>
         ${this.noCloseButton

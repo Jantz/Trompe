@@ -187,6 +187,31 @@ export const scenarios: MotionScenario[] = [
   { name: 'progress: value change', markup: '<tr-progress id="t" label="Upload" value="20" show-value></tr-progress>', trigger: set('#t', 'value', 70) },
   { name: 'progress: ring value change', markup: '<tr-progress id="t" variant="ring" label="Storage" value="20" show-value></tr-progress>', trigger: set('#t', 'value', 70) },
   { name: 'progress: becomes determinate', markup: '<tr-progress id="t" label="Sync" indeterminate></tr-progress>', trigger: async (p) => { await set('#t', 'value', 40)(p); await set('#t', 'indeterminate', false)(p); } },
+  {
+    name: 'progress: value text changes',
+    markup: '<tr-progress id="t" label="Basket" value="0" max="49" value-text="0 of 49" show-value style="width:420px"></tr-progress>',
+    trigger: (p) => p.evaluate(() => { const el = document.querySelector('#t')!; el.setAttribute('value', '1'); el.setAttribute('value-text', '1 of 49'); }),
+  },
+  {
+    name: 'choice: card becomes disabled',
+    markup: '<tr-choice-group label="Time" style="width:640px"><tr-choice-card value="a">9:00</tr-choice-card><tr-choice-card id="t" value="b">9:30</tr-choice-card></tr-choice-group>',
+    trigger: attr('#t', 'disabled', ''),
+  },
+  {
+    name: 'choice: hint changes',
+    markup: `<tr-choice-group id="t" label="Delivery" hint="Prices include tax." style="width:640px"><tr-choice-card value="a">Standard</tr-choice-card></tr-choice-group>${AFTER}`,
+    trigger: attr('#t', 'hint', 'Express ships tomorrow.'),
+  },
+  {
+    name: 'input: hint changes',
+    markup: `<tr-input id="t" label="Name" hint="As on your card."></tr-input>${AFTER}`,
+    trigger: attr('#t', 'hint', 'Use your full name.'),
+  },
+  { name: 'slider: value set by code', markup: '<tr-slider id="t" label="Volume" value="8" style="width:320px"></tr-slider>', trigger: set('#t', 'value', 64) },
+  { name: 'slider: arrow key step', markup: '<tr-slider id="t" label="Volume" value="9" style="width:320px"></tr-slider>', setup: (p) => p.focus('#t'), trigger: (p) => p.keyboard.press('ArrowRight') },
+  { name: 'slider: becomes disabled', markup: '<tr-slider id="t" label="Volume" value="40" style="width:320px"></tr-slider>', trigger: attr('#t', 'disabled', '') },
+  { name: 'knob: value set by code', markup: '<tr-knob id="t" label="Gain" value="8"></tr-knob>', trigger: set('#t', 'value', 64) },
+  { name: 'knob: becomes disabled', markup: '<tr-knob id="t" label="Gain" value="40"></tr-knob>', trigger: attr('#t', 'disabled', '') },
   { name: 'progress: tone change', markup: '<tr-progress id="t" label="Disk" value="80"></tr-progress>', trigger: attr('#t', 'tone', 'danger') },
   { name: 'meter: value change', markup: '<tr-meter id="t" label="Level" value="0.2"></tr-meter>', trigger: set('#t', 'value', 0.8) },
   { name: 'badge: tone change', markup: '<tr-badge id="t" tone="neutral">Pending</tr-badge>', trigger: attr('#t', 'tone', 'success') },
@@ -265,6 +290,29 @@ export const scenarios: MotionScenario[] = [
     markup: '<tr-button>Save</tr-button>',
     trigger: (p) => p.evaluate(() => (window as unknown as { trompe: { toast(m: string, o?: object): void } }).trompe.toast('Saved', { tone: 'success', duration: 0 })),
   },
+  {
+    name: 'toast: a second toast stacks',
+    markup: '<tr-button>Save</tr-button>',
+    setup: async (p) => {
+      await p.evaluate(() => (window as unknown as { trompe: { toast(m: string, o?: object): void } }).trompe.toast('Saved', { duration: 0 }));
+      await p.waitForTimeout(500);
+    },
+    trigger: (p) => p.evaluate(() => (window as unknown as { trompe: { toast(m: string, o?: object): void } }).trompe.toast('Synced', { tone: 'success', duration: 0 })),
+  },
+  {
+    name: 'toast: one of two closes',
+    markup: '<tr-button>Save</tr-button>',
+    setup: async (p) => {
+      await p.evaluate(() => {
+        const t = (window as unknown as { trompe: { toast(m: string, o?: object): HTMLElement } }).trompe;
+        t.toast('Saved', { duration: 0 }).id = 'first';
+        t.toast('Synced', { duration: 0 });
+      });
+      await p.waitForTimeout(500);
+    },
+    trigger: (p) => p.evaluate(() => (document.getElementById('first') as unknown as { hide(r: string): void }).hide('api')),
+    wait: 300,
+  },
   { name: 'select: error appears', markup: `<tr-select id="t" label="Payee"><tr-option value="a">Ada</tr-option></tr-select>${AFTER}`, trigger: attr('#t', 'error', 'Choose who to pay.') },
   { name: 'select: hint appears', markup: `<tr-select id="t" label="Payee"><tr-option value="a">Ada</tr-option></tr-select>${AFTER}`, trigger: attr('#t', 'hint', 'Saved payees only.') },
   // Choice cards and pagination
@@ -293,6 +341,16 @@ export const scenarios: MotionScenario[] = [
   { name: 'icon: tone change', markup: '<tr-icon id="t" name="bolt" size="xl" variant="lit"></tr-icon>', trigger: set('#t', 'tone', 'danger') },
 
   // Calendar and date picker
+  {
+    name: 'number field: error appears',
+    markup: `<tr-number-field id="t" label="Shares" value="0"></tr-number-field>${AFTER}`,
+    trigger: attr('#t', 'error', 'Enter at least 1 share.'),
+  },
+  {
+    name: 'calendar: mark a day',
+    markup: `<tr-calendar id="t" readonly month="2026-11" marks="2026-11-02" locale="en-GB"></tr-calendar>${AFTER}`,
+    trigger: attr('#t', 'marks', '2026-11-02,2026-11-03'),
+  },
   { name: 'calendar: next month', markup: `<tr-calendar id="t" value="2026-11-14" locale="en-GB"></tr-calendar>${AFTER}`, trigger: (p) => p.click('#t [part=next]') },
   { name: 'calendar: select day', markup: '<tr-calendar id="t" value="2026-11-14" locale="en-GB"></tr-calendar>', trigger: (p) => p.click('#t [data-date="2026-11-19"]') },
   { name: 'calendar: range end', markup: '<tr-calendar id="t" range value="2026-11-03" locale="en-GB"></tr-calendar>', setup: (p) => p.click('#t [data-date="2026-11-03"]'), trigger: (p) => p.click('#t [data-date="2026-11-12"]') },

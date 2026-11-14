@@ -118,7 +118,7 @@ export class TrIcon extends TrompeElement {
         color: color-mix(in oklch, var(--_tone) calc(88% - var(--_r) * 22%), var(--_m-base));
         --_ax: calc(var(--_sx) * var(--_d));
         --_ay: calc(var(--_sy) * var(--_d));
-        --_a: color-mix(in oklch, var(--_hlc) calc(35% + var(--_r) * 60%), transparent);
+        --_a: color-mix(in oklab, var(--_hlc) calc(35% + var(--_r) * 60%), transparent);
         --_bx: calc(var(--_sx) * var(--_d) * -0.7);
         --_by: calc(var(--_sy) * var(--_d) * -0.7);
         --_bb: 0px;
@@ -129,7 +129,7 @@ export class TrIcon extends TrompeElement {
       :host([variant='embossed']) svg {
         --_ax: calc(var(--_sx) * var(--_d) * -0.8);
         --_ay: calc(var(--_sy) * var(--_d) * -0.8);
-        --_a: color-mix(in oklch, var(--_hlc) calc(40% + var(--_r) * 60%), transparent);
+        --_a: color-mix(in oklab, var(--_hlc) calc(40% + var(--_r) * 60%), transparent);
         --_bx: calc(var(--_sx) * var(--_d) * 1.35);
         --_by: calc(var(--_sy) * var(--_d) * 1.35);
         --_bb: calc(var(--_d) * 1.1);
@@ -147,7 +147,7 @@ export class TrIcon extends TrompeElement {
       :host([variant='lit'][tone='danger']) { --_lit-tone: var(--tr-color-danger); }
       :host([variant='lit'][tone='muted']) { --_lit-tone: var(--tr-color-ink-muted); }
       :host([variant='lit']) svg {
-        color: color-mix(in oklch, var(--_tone) 72%, white);
+        color: color-mix(in oklab, var(--_tone) 72%, white);
         --_a: color-mix(in oklch, var(--_tone) 85%, transparent);
         --_bb: calc(var(--_size) * 0.06);
         --_b: color-mix(in oklch, var(--_tone) calc(40% + var(--_r) * 40%), transparent);
@@ -254,3 +254,6 @@ declare global {
     'tr-icon': TrIcon;
   }
 }
+
+// So `import { iconNames, registerIcons } from 'trompe/components/icon'` works as well as the root import.
+export { registerIcons, iconNames } from './icons.js';

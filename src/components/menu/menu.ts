@@ -116,7 +116,7 @@ export class TrMenu extends TrompeElement {
         margin: 0.3em 0.4em;
         border: 0;
         border-top: 1px solid color-mix(in oklch, var(--tr-color-shadow) 30%, transparent);
-        border-bottom: 1px solid color-mix(in oklch, var(--tr-color-highlight, #fff) 40%, transparent);
+        border-bottom: 1px solid color-mix(in oklab, var(--tr-color-highlight, #fff) 40%, transparent);
       }
       @media (prefers-reduced-motion: reduce) {
         :host,

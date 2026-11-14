@@ -122,7 +122,7 @@ export class TrNavItem extends TrompeElement {
         background: var(--_ind);
         box-shadow:
           0 0 calc(var(--_r) * 6px) color-mix(in oklch, var(--_ind) calc(var(--_r) * 70%), transparent),
-          inset 0 1px 0 color-mix(in oklch, white calc(var(--_r) * 50%), transparent);
+          inset 0 1px 0 color-mix(in oklab, white calc(var(--_r) * 50%), transparent);
         opacity: 0;
         scale: 1 0.3;
         transition:
@@ -212,7 +212,7 @@ export class TrNavItem extends TrompeElement {
         gap: 0.1em;
         /* engraved guide line */
         border-inline-start: 1px solid color-mix(in oklch, var(--_sh) calc(14% + var(--_r) * 14%), transparent);
-        box-shadow: inset 1px 0 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 55%), transparent);
+        box-shadow: inset 1px 0 0 color-mix(in oklab, var(--_hl) calc(var(--_r) * 55%), transparent);
       }
       :host([disabled]) .item {
         opacity: 0.5;

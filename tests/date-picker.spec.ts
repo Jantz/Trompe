@@ -249,3 +249,21 @@ test.describe('tr-date-picker', () => {
     expect(r.violations).toEqual([]);
   });
 });
+
+test('tr-calendar marks days, reads the mark out, and readonly does not choose', async ({ page }) => {
+  await mount(page, `<tr-calendar id="c" readonly month="2026-11" marks="2026-11-02,2026-11-03" mark-label="done" label="Meditation"></tr-calendar>`);
+  const day = page.locator('#c [data-date="2026-11-02"]');
+  await expect(day).toHaveClass(/marked/);
+  await expect(day).toHaveAttribute('aria-label', /, done$/);
+  await day.click();
+  expect(await page.locator('#c').evaluate((el: any) => el.value)).toBe('');
+  await page.locator('#c').evaluate(async (el: any) => {
+    el.marks = { '2026-11-05': { tone: 'danger', label: 'missed' } };
+    await el.updateComplete;
+  });
+  await expect(page.locator('#c [data-date="2026-11-05"]')).toHaveClass(/mark-danger/);
+  await expect(page.locator('#c [data-date="2026-11-05"]')).toHaveAttribute('aria-label', /, missed$/);
+  await expect(page.locator('#c [data-date="2026-11-02"]')).not.toHaveClass(/marked/);
+  const r = await new AxeBuilder({ page }).include('#root').analyze();
+  expect(r.violations).toEqual([]);
+});

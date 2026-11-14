@@ -233,7 +233,7 @@ export class TrTable extends TrompeElement {
         --_cell-y: var(--tr-table-cell-padding-y, 0.75em);
         --_rule: color-mix(in oklch, var(--tr-color-shadow, #000) calc(10% + var(--_r) * 8%), transparent);
         --_rule-strong: color-mix(in oklch, var(--tr-color-edge) 55%, transparent);
-        --_rule-light: color-mix(in oklch, var(--tr-color-highlight, #fff) calc(var(--_r) * 22% * (1 - var(--tr-lift, 0) * 0.7)), transparent);
+        --_rule-light: color-mix(in oklab, var(--tr-color-highlight, #fff) calc(var(--_r) * 22% * (1 - var(--tr-lift, 0) * 0.7)), transparent);
         --_head-bg: transparent;
         container: tr-table / inline-size;
         display: block;
@@ -332,6 +332,7 @@ export class TrTable extends TrompeElement {
       }
       .sortkey:focus-visible {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 2px;
       }
       .sortkey .arrow {

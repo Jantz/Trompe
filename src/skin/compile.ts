@@ -73,6 +73,9 @@ export function textureDeclarations(texture: SkinTexture, skin?: Pick<Skin, 'tok
   return [`--tr-m-texture: ${t.image};`, `--tr-m-texture-size: ${t.size};`, `--tr-m-texture-blend: ${t.blend};`];
 }
 
+/** Which bundle group a parameter belongs to: --tr-f-* finish, --tr-p-* profile, anything else material. */
+const varGroup = (name: string): Group => (name.startsWith('--tr-f-') ? 'finish' : name.startsWith('--tr-p-') ? 'profile' : 'material');
+
 const decls = (o: Record<string, string>) => Object.entries(o).map(([k, v]) => `${k}: ${v};`);
 
 /** Compiles a skin to CSS. Throws on unknown materials, finishes, profiles or textures. */
@@ -90,10 +93,10 @@ export function compileSkin(skin: Skin, options: CompileOptions = {}): string {
   for (const [el, spec] of Object.entries(skin.elements ?? {}) as [string, SkinElement][]) {
     const target = el === '*' ? `:is(${allTags})` : el;
     for (const group of Object.keys(GROUPS) as Group[]) {
-      const extra =
-        group === 'material'
-          ? [...decls(spec.vars ?? {}), ...(spec.texture ? textureDeclarations(spec.texture, skin, options.textureLight) : [])]
-          : [];
+      // each parameter goes in its own group's rule, after that group's bundle, so a finish
+      // value such as --tr-f-gloss is not reset by the finish bundle that follows the material rule
+      const own = Object.fromEntries(Object.entries(spec.vars ?? {}).filter(([k]) => varGroup(k) === group));
+      const extra = [...decls(own), ...(group === 'material' && spec.texture ? textureDeclarations(spec.texture, skin, options.textureLight) : [])];
       if (!spec[group] && !extra.length) continue;
       const body = [...(spec[group] ? bundleDeclarations(group, spec[group]!) : []), ...extra];
       out.push(`${scope} :where(${target}:not([${group}])) {\n  ${body.join('\n  ')}\n}`);

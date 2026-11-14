@@ -312,6 +312,9 @@ export function crossfadeText(el: HTMLElement | null | undefined, previous: stri
   if (!el || !el.isConnected || typeof el.animate !== 'function') return;
   if (previous === (el.textContent ?? '')) return;
   const still = reducedMotion(el);
+  // fade to the text's own opacity (a muted figure at 0.8 must not flash to 1 and back)
+  fadeOf.get(el)?.cancel();
+  const shownOpacity = Number(getComputedStyle(el).opacity) || 1;
   const ghosts = ghostsOf.get(el);
   for (const g of ghosts ?? []) g.remove();
   if (previous.trim()) {
@@ -319,28 +322,49 @@ export function crossfadeText(el: HTMLElement | null | undefined, previous: stri
     ghost.setAttribute('aria-hidden', 'true');
     ghost.className = el.className;
     ghost.textContent = previous;
-    // Sub-pixel position inside the containing block, so the old text does not jitter by a pixel.
-    const parent = el.offsetParent as HTMLElement | null;
+    // Placed at 0,0 of its containing block first, then moved by the measured difference: exact to
+    // the sub-pixel wherever that block is (offsetParent is wrong across shadow roots, slots and
+    // grid cells), so the old text does not jitter.
     const r = el.getBoundingClientRect();
-    const pr = parent?.getBoundingClientRect();
-    const left = pr ? r.left - pr.left - parent!.clientLeft : el.offsetLeft;
-    const top = pr ? r.top - pr.top - parent!.clientTop : el.offsetTop;
-    ghost.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:auto;height:${r.height}px;white-space:pre;pointer-events:none;margin:0;flex:none;`;
+    // Where the old words sat: an element wider than its text keeps its box (the ghost copies it
+    // and its text-align); a shrink-wrapped one is anchored to the side of its container it sits
+    // against, so a right-aligned figure that gets shorter or longer does not jump sideways.
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const textW = range.getBoundingClientRect().width;
+    const boxed = r.width - textW > 1;
+    const cs = getComputedStyle(el);
+    ghost.style.cssText = `position:absolute;left:0;top:0;width:${boxed ? `${r.width}px` : 'auto'};height:${r.height}px;white-space:${boxed ? cs.whiteSpace : 'pre'};pointer-events:none;margin:0;flex:none;text-align:${cs.textAlign};`;
     el.after(ghost);
+    const g = ghost.getBoundingClientRect();
+    let x = r.left;
+    if (!boxed) {
+      const parent = el.parentElement ?? ((el.getRootNode() as ShadowRoot).host as HTMLElement | undefined);
+      const p = parent?.getBoundingClientRect();
+      if (p) {
+        const before = r.left - p.left;
+        const after = p.right - r.right;
+        if (Math.abs(before - after) < 1 && before > 1) x = r.left + (r.width - g.width) / 2;
+        else if (after < before) x = r.right - g.width;
+      }
+    }
+    ghost.style.left = `${x - g.left}px`;
+    ghost.style.top = `${r.top - g.top}px`;
     ghostsOf.set(el, [ghost]);
     ghost
-      .animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: still ? 'none' : 'translateY(-0.3em)' }], { duration: duration * 0.8, easing: 'ease-in', fill: 'forwards' })
+      .animate([{ opacity: shownOpacity, transform: 'none' }, { opacity: 0, transform: still ? 'none' : 'translateY(-0.3em)' }], { duration: duration * 0.8, easing: 'ease-in', fill: 'forwards' })
       .finished.then(() => ghost.remove(), () => ghost.remove());
   }
-  el.animate([{ opacity: 0, translate: still ? 'none' : '0 0.3em' }, { opacity: 1, translate: 'none' }], { duration, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' });
+  fadeOf.set(el, el.animate([{ opacity: 0, translate: still ? 'none' : '0 0.3em' }, { opacity: shownOpacity, translate: 'none' }], { duration, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' }));
 }
 
 const ghostsOf = new WeakMap<Element, HTMLElement[]>();
+const fadeOf = new WeakMap<Element, Animation>();
 
 // ---------------------------------------------------------------------------------------------
 // Page-wide changes: View Transitions
 
-type VTDocument = Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void>; skipTransition(): void } };
+type VTDocument = Document & { startViewTransition?: (cb: () => void | Promise<void>) => { finished: Promise<void>; skipTransition(): void } };
 
 let active = 0;
 
@@ -350,16 +374,17 @@ let active = 0;
  * Falls back to running it directly where View Transitions are missing, and under reduced motion
  * uses a shorter fade.
  */
-export function viewTransition(update: () => void, doc: Document = document): Promise<void> {
+export function viewTransition(update: () => void | Promise<unknown>, doc: Document = document): Promise<void> {
   const d = doc as VTDocument;
   if (typeof d.startViewTransition !== 'function' || doc.visibilityState === 'hidden' || doc.documentElement.dataset.trViewTransitions === 'off') {
-    update();
-    return Promise.resolve();
+    return Promise.resolve(update()).then(() => {});
   }
   doc.documentElement.toggleAttribute('data-tr-vt-reduced', reducedMotion(doc.documentElement));
   active++;
-  const t = d.startViewTransition(() => {
-    update();
+  // An async update (a framework that renders on the next tick: await nextTick() in Vue, tick() in
+  // Svelte, or a promise of your own) is awaited before the new state is captured.
+  const t = d.startViewTransition(async () => {
+    await update();
     // Look changes made inside this transition are already animated by it: don't start another.
     watching?.takeRecords();
   });

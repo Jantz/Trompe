@@ -71,8 +71,9 @@ export class TrSegmented extends FormControl {
         --_gloss: 0;
         --_mirror: 0;
         --_curve: 0;
-        /* Equal columns as wide as the widest key; they shrink (labels ellipsize) only when the
-           tray itself is squeezed. */
+        /* Equal columns as wide as the widest key. When equal keys would cut a label but the
+           labels fit at their own widths, data-fit="content" lets each key keep its label; only
+           when even that does not fit do labels ellipsize. */
         display: grid;
         grid-auto-flow: column;
         grid-auto-columns: minmax(0, 1fr);
@@ -81,6 +82,14 @@ export class TrSegmented extends FormControl {
         padding: 0.25em;
         border-radius: var(--_trad);
         min-width: 0;
+      }
+      :host([data-fit~='content']) .tray {
+        grid-auto-columns: minmax(max-content, 1fr);
+      }
+      /* a squeezed tray trades key padding for label room before it cuts labels */
+      :host([data-fit~='tight']) {
+        --_seg-pad: 0.45em;
+        --_seg-gap: 0.3em;
       }
       :host([full-width]) {
         display: flex;
@@ -146,6 +155,7 @@ export class TrSegmented extends FormControl {
 
   override connectedCallback(): void {
     super.connectedCallback();
+    if (this.hasUpdated) this.watchFit();
     this.observer.observe(this, { childList: true, attributes: true, subtree: true, attributeFilter: ['disabled', 'value'] });
     if (!this.valueSet) {
       // Read attributes, not TrOption properties: the children may not be upgraded yet (innerHTML).
@@ -159,7 +169,62 @@ export class TrSegmented extends FormControl {
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this.observer.disconnect();
+    this.sizer?.disconnect();
+    this.sizer = undefined;
   }
+
+  private sizer?: ResizeObserver;
+
+  protected override firstUpdated(changed: PropertyValues): void {
+    super.firstUpdated(changed);
+    this.watchFit();
+  }
+
+  private watchFit(): void {
+    const tray = this.renderRoot.querySelector<HTMLElement>('.tray');
+    if (!tray || this.sizer || typeof ResizeObserver === 'undefined') return;
+    this.sizer = new ResizeObserver(() => this.fit());
+    this.sizer.observe(tray);
+  }
+
+  /**
+   * Equal keys when the widest label fits in an equal share; otherwise keys sized to their labels
+   * when those fit; otherwise the same two tries with tighter key padding; and only then equal keys
+   * that ellipsize. Runs when the tray is resized, before paint, so the switch is not seen.
+   */
+  private fit(): void {
+    const tray = this.renderRoot.querySelector<HTMLElement>('.tray');
+    const keys = this.options;
+    if (!tray || !keys.length) return;
+    const set = (mode: string) => {
+      if ((this.getAttribute('data-fit') ?? '') === mode) return;
+      if (mode) this.setAttribute('data-fit', mode);
+      else this.removeAttribute('data-fit');
+    };
+    const measure = () => {
+      const cs = getComputedStyle(tray);
+      const gap = parseFloat(cs.columnGap) || 0;
+      const room = tray.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - gap * (keys.length - 1) + 0.5;
+      const range = document.createRange();
+      const natural = keys.map((k) => {
+        const label = k.shadowRoot?.querySelector<HTMLElement>('.label');
+        const w = k.getBoundingClientRect().width;
+        if (!label) return w;
+        // the label box stretches, so measure the slotted text itself
+        range.selectNodeContents(k);
+        const text = Math.max(range.getBoundingClientRect().width, label.scrollWidth > label.clientWidth + 0.5 ? label.scrollWidth : 0);
+        return w - label.clientWidth + text;
+      });
+      return { room, equal: Math.max(...natural) * keys.length, sum: natural.reduce((a, b) => a + b, 0) };
+    };
+    for (const tight of ['', 'tight']) {
+      set(tight);
+      const m = measure();
+      if (m.equal <= m.room) return;
+      if (m.sum <= m.room) return set(tight ? 'tight content' : 'content');
+    }
+  }
+
 
   /** The keys, in order. */
   get options(): TrOption[] {

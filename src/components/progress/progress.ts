@@ -124,10 +124,10 @@ export class TrProgress extends TrompeElement {
         --_layer:
           linear-gradient(
             to bottom,
-            color-mix(in oklch, white calc(25% + var(--_r) * 45%), transparent) 0%,
-            color-mix(in oklch, white calc(var(--_r) * 18%), transparent) 38%,
+            color-mix(in oklab, white calc(25% + var(--_r) * 45%), transparent) 0%,
+            color-mix(in oklab, white calc(var(--_r) * 18%), transparent) 38%,
             transparent 52%,
-            color-mix(in oklch, var(--_fill), white calc(var(--_r) * 20%)) 100%
+            color-mix(in oklab, var(--_fill), white calc(var(--_r) * 20%)) 100%
           );
       }
       /* the hot leading edge */
@@ -139,8 +139,8 @@ export class TrProgress extends TrompeElement {
         border-radius: inherit;
         background: radial-gradient(
           ellipse 60% 90% at 85% 50%,
-          color-mix(in oklch, white calc(20% + var(--_r) * 50%), transparent),
-          color-mix(in oklch, var(--_fill), white 30%) 45%,
+          color-mix(in oklab, white calc(20% + var(--_r) * 50%), transparent),
+          color-mix(in oklab, var(--_fill), white 30%) 45%,
           transparent 75%
         );
         mix-blend-mode: screen;
@@ -206,7 +206,7 @@ export class TrProgress extends TrompeElement {
         place-items: center;
         /* the lit arc lies on the groove floor, under the groove's own inner shadow */
         --_layer:
-          radial-gradient(circle, transparent 52%, color-mix(in oklch, white calc(var(--_r) * 35%), transparent) 75%, transparent 92%),
+          radial-gradient(circle, transparent 52%, color-mix(in oklab, white calc(var(--_r) * 35%), transparent) 75%, transparent 92%),
           conic-gradient(from 0deg, var(--_fill) 0 var(--_a), transparent var(--_a));
       }
       .spin {
@@ -270,7 +270,7 @@ export class TrProgress extends TrompeElement {
           translate: none;
           --_layer: repeating-linear-gradient(
             -45deg,
-            color-mix(in oklch, white 30%, transparent) 0 0.35em,
+            color-mix(in oklab, white 30%, transparent) 0 0.35em,
             transparent 0.35em 0.7em
           );
         }

@@ -65,7 +65,7 @@ export class TrMenuItem extends TrompeElement {
         display: block;
         height: 0;
         border-top: 1px solid color-mix(in oklch, var(--tr-color-shadow) calc(18% + var(--_r) * 22%), transparent);
-        border-bottom: 1px solid color-mix(in oklch, var(--tr-color-highlight, #fff) calc(var(--_r) * 55%), transparent);
+        border-bottom: 1px solid color-mix(in oklab, var(--tr-color-highlight, #fff) calc(var(--_r) * 55%), transparent);
       }
       .glow {
         position: absolute;
@@ -116,7 +116,7 @@ export class TrMenuItem extends TrompeElement {
         /* light passing through a translucent cap, brightest under the legend */
         --_layer: radial-gradient(
           ellipse 70% 120% at 50% 110%,
-          color-mix(in oklch, var(--tr-color-highlight, #fff) calc(var(--_r) * 34%), transparent),
+          color-mix(in oklab, var(--tr-color-highlight, #fff) calc(var(--_r) * 34%), transparent),
           transparent 70%
         );
         translate: 0 calc(var(--_sy) * -0.5px);

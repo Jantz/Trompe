@@ -43,7 +43,7 @@ export { TrNumberField } from './components/number-field/number-field.js';
 export { TrToast, TrToaster, toast, type ToastOptions, type ToastTone } from './components/toast/toast.js';
 export { TrTable } from './components/table/table.js';
 export { TrChart, type ChartSeries, type ChartType, type ChartRow } from './components/chart/chart.js';
-export { TrCalendar } from './components/calendar/calendar.js';
+export { TrCalendar, type CalendarMarkTone } from './components/calendar/calendar.js';
 export { TrDatePicker } from './components/date-picker/date-picker.js';
 export { parseDate } from './components/calendar/dates.js';
 export { TrIcon } from './components/icon/icon.js';
