@@ -16,6 +16,12 @@ export interface CompileOptions {
   scope?: string;
   /** Element tags that "*" expands to. Default: every element Trompe defines. */
   tags?: readonly string[];
+  /**
+   * Light used to bake texture relief, instead of the skin's own light.angle/light.elevation.
+   * Editors pass the previous light while the user drags the light, so textures are not
+   * regenerated on every pointer move.
+   */
+  textureLight?: { angle: number; elevation: number };
 }
 
 const GROUPS = { material: 'm', finish: 'f', profile: 'p' } as const;
@@ -55,14 +61,14 @@ const angle = (v: unknown, fallback: number) => {
 };
 
 /** Declarations for a texture entry: --tr-m-texture, --tr-m-texture-size, --tr-m-texture-blend. */
-export function textureDeclarations(texture: SkinTexture, skin?: Pick<Skin, 'tokens'>): string[] {
+export function textureDeclarations(texture: SkinTexture, skin?: Pick<Skin, 'tokens'>, light?: CompileOptions['textureLight']): string[] {
   if (texture === 'none') return ['--tr-m-texture: none;'];
   const spec = typeof texture === 'string' ? { name: texture } : texture;
   if (!isTexture(spec.name)) throw new Error(`unknown texture "${String(spec.name)}"`);
   const t = textureCss(spec.name, {
     ...spec,
-    lightAngle: angle(skin?.tokens?.['light.angle'], 330),
-    lightElevation: angle(skin?.tokens?.['light.elevation'], 55),
+    lightAngle: light?.angle ?? angle(skin?.tokens?.['light.angle'], 330),
+    lightElevation: light?.elevation ?? angle(skin?.tokens?.['light.elevation'], 55),
   });
   return [`--tr-m-texture: ${t.image};`, `--tr-m-texture-size: ${t.size};`, `--tr-m-texture-blend: ${t.blend};`];
 }
@@ -86,7 +92,7 @@ export function compileSkin(skin: Skin, options: CompileOptions = {}): string {
     for (const group of Object.keys(GROUPS) as Group[]) {
       const extra =
         group === 'material'
-          ? [...decls(spec.vars ?? {}), ...(spec.texture ? textureDeclarations(spec.texture, skin) : [])]
+          ? [...decls(spec.vars ?? {}), ...(spec.texture ? textureDeclarations(spec.texture, skin, options.textureLight) : [])]
           : [];
       if (!spec[group] && !extra.length) continue;
       const body = [...(spec[group] ? bundleDeclarations(group, spec[group]!) : []), ...extra];

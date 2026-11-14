@@ -22,7 +22,7 @@ The built file has no dependencies and no network requests; host it anywhere or 
 - **Colour**: a harmony editor (scheme, hue, tint, accent, crispness) that always produces passing
   WCAG contrast, plus every colour token for hand tuning.
 - **Materials**: pick a role (surfaces, buttons, fields, toggles, ranges, choice, lists, overlays),
-  then a real-world material from the library (31 presets across plastics, metals, glass, woods,
+  then a real-world material from the library (33 presets across plastics, metals, glass, woods,
   leathers, textiles, minerals and paper), and fine-tune substance, colour, finish, profile,
   texture scale and strength.
 - **Shape and type**: roundness and each radius, pill buttons, control height, typeface (system

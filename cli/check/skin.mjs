@@ -6,7 +6,7 @@ import { parseColor, themed, contrast } from './color.mjs';
 
 const ELEMENT_KEYS = new Set(['material', 'finish', 'profile', 'texture', 'vars', 'style']);
 /** Procedural textures the skin compiler knows (src/skin/textures.ts). */
-const TEXTURES = ['none', 'wood', 'leather', 'linen', 'felt', 'stone', 'paper', 'terrazzo', 'carbon', 'knurl'];
+const TEXTURES = ['none', 'wood', 'leather', 'linen', 'felt', 'stone', 'marble', 'paper', 'terrazzo', 'carbon', 'knurl'];
 
 /** Colour pairs a skin must keep readable: [foreground token, background token, minimum, why]. */
 const PAIRS = [ // [fg, bg, min, why, severity]

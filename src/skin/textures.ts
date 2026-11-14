@@ -10,7 +10,7 @@
  * --tr-m-texture-blend custom properties.
  */
 
-export const textures = ['wood', 'leather', 'linen', 'felt', 'stone', 'paper', 'terrazzo', 'carbon', 'knurl'] as const;
+export const textures = ['wood', 'leather', 'linen', 'felt', 'stone', 'marble', 'paper', 'terrazzo', 'carbon', 'knurl'] as const;
 export type Texture = (typeof textures)[number];
 
 export const textureDescriptions: Record<Texture, string> = {
@@ -19,9 +19,10 @@ export const textureDescriptions: Record<Texture, string> = {
   linen: 'Woven threads in a fine plain weave, like bookcloth or a linen-wrapped case.',
   felt: 'Dense matted fibres with a soft, diffuse surface, like a desk mat or baize.',
   stone: 'Cast concrete or honed stone: cloudy tone with small pits.',
+  marble: 'Polished marble: branching grey veins over a soft, cloudy stone.',
   paper: 'Cotton paper fibres. Subtler than the default grain, with a gentle tooth.',
   terrazzo: 'Polished chips of light and dark aggregate.',
-  carbon: 'Woven carbon fibre twill.',
+  carbon: 'Woven 2x2 carbon fibre twill whose tows catch the light by direction.',
   knurl: 'Machined diamond knurling, for grips and dials.',
 };
 
@@ -79,33 +80,42 @@ const filter = (w: number, h: number, inner: string) =>
 
 const RECIPES: Record<Texture, Recipe> = {
   wood: {
-    w: 640,
-    h: 320,
-    strength: 0.45,
+    w: 720,
+    h: 360,
+    strength: 0.42,
     blend: 'soft-light',
+    // Growth rings are contour lines of a smooth, mostly vertical field (as in a real plank, where
+    // the saw cuts through the tree's ring cylinders). A slow warp gives the figure (cathedrals),
+    // the ring profile is a soft earlywood ramp ending in a sharp latewood line, and fine pores
+    // run along the grain on top.
     body: (k, _az, _el, seed) =>
       filter(
-        640,
-        320,
-        `<feTurbulence type='fractalNoise' baseFrequency='0.0024 0.06' numOctaves='4' seed='${seed}' stitchTiles='stitch' result='n'/>
-<feComponentTransfer in='n' result='b'><feFuncR type='table' tableValues='0.5 0.15 0.62 0.3 0.75 0.2 0.58 0.38 0.85 0.25 0.6 0.42 0.5'/></feComponentTransfer>
-<feTurbulence type='fractalNoise' baseFrequency='0.012 0.9' numOctaves='2' seed='${seed + 3}' stitchTiles='stitch' result='p'/>
-<feComposite in='b' in2='p' operator='arithmetic' k1='0' k2='0.88' k3='0.16' k4='-0.02' result='w'/>
+        720,
+        360,
+        `<feTurbulence type='fractalNoise' baseFrequency='0.0009 0.0095' numOctaves='2' seed='${seed}' stitchTiles='stitch' result='y'/>
+<feTurbulence type='fractalNoise' baseFrequency='0.0028 0.0042' numOctaves='1' seed='${seed + 11}' stitchTiles='stitch' result='q'/>
+<feComposite in='y' in2='q' operator='arithmetic' k2='1.25' k3='0.4' k4='-0.32' result='f'/>
+<feComponentTransfer in='f' result='rings'><feFuncR type='table' tableValues='0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5 0.62 0.6 0.57 0.52 0.3 0.5'/></feComponentTransfer>
+<feTurbulence type='fractalNoise' baseFrequency='0.006 0.55' numOctaves='2' seed='${seed + 3}' stitchTiles='stitch' result='p'/>
+<feComposite in='rings' in2='p' operator='arithmetic' k2='0.86' k3='0.2' k4='-0.03' result='w'/>
 ${tone('w', k)}`,
       ),
   },
   leather: {
-    w: 220,
-    h: 220,
+    w: 260,
+    h: 260,
     strength: 0.34,
     blend: 'hard-light',
+    // Fine pebble grain (cells from turbulence, softened) over a few broad, shallow creases.
     body: (k, az, el, seed) =>
       filter(
-        220,
-        220,
-        `<feTurbulence type='turbulence' baseFrequency='0.16' numOctaves='3' seed='${seed}' stitchTiles='stitch' result='n'/>
-<feComponentTransfer in='n' result='c'><feFuncR type='gamma' amplitude='1' exponent='0.55' offset='0'/></feComponentTransfer>
-${lit('c', 1.6, k, az, el)}`,
+        260,
+        260,
+        `<feTurbulence type='turbulence' baseFrequency='0.3' numOctaves='2' seed='${seed}' stitchTiles='stitch' result='n'/>
+<feComponentTransfer in='n' result='c'><feFuncR type='gamma' amplitude='1' exponent='0.6' offset='0'/></feComponentTransfer>
+<feTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='2' seed='${seed + 4}' stitchTiles='stitch' result='w'/>
+<feComposite in='c' in2='w' operator='arithmetic' k2='0.55' k3='0.45' result='s'/>
+${lit('s', 0.9, k, az, el)}`,
       ),
   },
   linen: {
@@ -152,6 +162,30 @@ ${lit('n', 0.9, k, az, el)}`,
 ${lit('s', 1.4, k, az, el)}`,
       ),
   },
+  marble: {
+    w: 640,
+    h: 640,
+    strength: 0.6,
+    blend: 'soft-light',
+    // Veins are single contour lines of smooth, warped noise fields (one bold system, one fine),
+    // so they run long and sinuous like real marble, over a soft cloudy layer for depth.
+    body: (k, _az, _el, seed) =>
+      filter(
+        640,
+        640,
+        `<feTurbulence type='fractalNoise' baseFrequency='0.0024 0.0042' numOctaves='4' seed='${seed}' stitchTiles='stitch' result='a'/>
+<feColorMatrix in='a' type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1' result='ao'/>
+<feComponentTransfer in='ao' result='v'><feFuncR type='table' tableValues='0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.6 0.3 0.18 0.36 0.62 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8'/></feComponentTransfer>
+<feTurbulence type='fractalNoise' baseFrequency='0.006 0.009' numOctaves='3' seed='${seed + 5}' stitchTiles='stitch' result='b'/>
+<feColorMatrix in='b' type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1' result='bo'/>
+<feComponentTransfer in='bo' result='v2'><feFuncR type='table' tableValues='0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.66 0.48 0.68 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8'/></feComponentTransfer>
+<feComposite in='v' in2='v2' operator='arithmetic' k1='1.25' k4='-0.02' result='vv'/>
+<feTurbulence type='fractalNoise' baseFrequency='0.005' numOctaves='3' seed='${seed + 2}' stitchTiles='stitch' result='c'/>
+<feColorMatrix in='c' type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1' result='co'/>
+<feComposite in='vv' in2='co' operator='arithmetic' k2='0.95' k3='0.14' k4='-0.07' result='m'/>
+${tone('m', k)}`,
+      ),
+  },
   paper: {
     w: 240,
     h: 240,
@@ -185,15 +219,30 @@ ${tone('t', k)}`,
       ),
   },
   carbon: {
-    w: 12,
-    h: 12,
-    strength: 0.32,
+    w: 24,
+    h: 24,
+    strength: 0.34,
     blend: 'hard-light',
-    body: (k) => {
-      const hi = (0.5 + k * 0.5).toFixed(3);
-      const lo = (0.5 - k * 0.5).toFixed(3);
-      const g = (v: string) => `rgb(${Math.round(+v * 255)},${Math.round(+v * 255)},${Math.round(+v * 255)})`;
-      return `<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12'><defs><linearGradient id='a' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='${g(lo)}'/><stop offset='.5' stop-color='${g(hi)}'/><stop offset='1' stop-color='${g(lo)}'/></linearGradient><linearGradient id='b' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='${g(lo)}'/><stop offset='.5' stop-color='${g(hi)}'/><stop offset='1' stop-color='${g(lo)}'/></linearGradient></defs><rect width='6' height='6' fill='url(#a)'/><rect x='6' width='6' height='6' fill='url(#b)'/><rect y='6' width='6' height='6' fill='url(#b)'/><rect x='6' y='6' width='6' height='6' fill='url(#a)'/></svg>`;
+    // 2x2 twill: tows step one cell per row, so the weave reads as diagonal ribs. Each tow is a
+    // little cylinder with a sheen along its length; which direction shines depends on the light.
+    body: (k, az) => {
+      const rad = (az * Math.PI) / 180;
+      const lx = Math.abs(Math.cos(rad));
+      const ly = Math.abs(Math.sin(rad));
+      const g = (v: number) => {
+        const c = Math.round(Math.min(1, Math.max(0, v)) * 255);
+        return `rgb(${c},${c},${c})`;
+      };
+      // Horizontal tows catch light coming from above/below, vertical tows light from the sides.
+      const hx = 0.5 + k * (-0.2 + 0.9 * ly);
+      const vx = 0.5 + k * (-0.2 + 0.9 * lx);
+      const lo = 0.5 - k * 0.55;
+      const grad = (id: string, horizontal: boolean, peak: number) =>
+        `<linearGradient id='${id}' x1='0' y1='0' x2='${horizontal ? 0 : 1}' y2='${horizontal ? 1 : 0}'><stop offset='0' stop-color='${g(lo)}'/><stop offset='.18' stop-color='${g(peak - k * 0.2)}'/><stop offset='.42' stop-color='${g(peak)}'/><stop offset='.75' stop-color='${g(peak - k * 0.25)}'/><stop offset='1' stop-color='${g(lo + k * 0.1)}'/></linearGradient>`;
+      let cells = '';
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 4; c++) cells += `<rect x='${c * 6}' y='${r * 6}' width='6' height='6' fill='url(#${(c + r) % 4 < 2 ? 'h' : 'v'})'/>`;
+      return `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><defs>${grad('h', true, hx)}${grad('v', false, vx)}</defs>${cells}</svg>`;
     },
   },
   knurl: {
@@ -238,6 +287,42 @@ export function textureCss(name: Texture, options: TextureOptions = {}): Texture
     size: `${f(r.w * scale)}px ${f(r.h * scale)}px`,
     blend: r.blend,
   };
+}
+
+/**
+ * How far each texture moves the lightness (OKLCH L) of a flat base, measured in Chromium at the
+ * texture's default strength: [darkest, lightest] shift for bases at L = 0.15, 0.3 … 0.9, using the
+ * 2nd and 98th percentile of the rendered tile. Contrast checks use it to test text against the
+ * darkest and lightest parts of a textured surface, not only its base colour.
+ * Re-measure (scripts in the Studio PR) when a recipe changes.
+ */
+const SPREAD: Record<Texture, number[][]> = {
+  wood: [[0.023, 0.021], [0.055, 0.037], [0.071, 0.038], [0.075, 0.027], [0.061, 0.017], [0.031, 0.007]],
+  leather: [[0.004, 0.047], [0.012, 0.033], [0.02, 0.025], [0.027, 0.017], [0.034, 0.01], [0.042, 0.004]],
+  linen: [[0.01, 0.103], [0.03, 0.077], [0.05, 0.058], [0.07, 0.039], [0.088, 0.023], [0.105, 0.01]],
+  felt: [[0.009, 0.065], [0.02, 0.047], [0.028, 0.034], [0.042, 0.023], [0.051, 0.014], [0.063, 0.004]],
+  stone: [[0.004, 0.03], [0.008, 0.02], [0.012, 0.016], [0.017, 0.01], [0.021, 0.005], [0.025, 0.001]],
+  marble: [[0.059, 0.077], [0.133, 0.146], [0.179, 0.138], [0.185, 0.108], [0.148, 0.072], [0.073, 0.029]],
+  paper: [[0.004, 0.03], [0.008, 0.02], [0.012, 0.016], [0.017, 0.01], [0.021, 0.005], [0.025, 0.001]],
+  terrazzo: [[0.01, 0.358], [0.034, 0.282], [0.055, 0.215], [0.077, 0.154], [0.097, 0.095], [0.117, 0.037]],
+  carbon: [[0.012, 0.372], [0.038, 0.295], [0.058, 0.225], [0.084, 0.16], [0.105, 0.098], [0.128, 0.038]],
+  knurl: [[0.025, 0.316], [0.065, 0.248], [0.105, 0.19], [0.146, 0.135], [0.188, 0.083], [0.229, 0.032]],
+};
+
+/** The lightness range a texture gives a base of lightness `l` (0..1): { down, up } in L units. */
+export function textureSpread(name: Texture, l: number, strength?: number): { down: number; up: number } {
+  const rows = SPREAD[name];
+  const k = strength === undefined ? 1 : strength / RECIPES[name].strength;
+  const x = Math.min(5, Math.max(0, (l - 0.15) / 0.15));
+  const i = Math.min(4, Math.floor(x));
+  const t = x - i;
+  const lerp = (j: 0 | 1) => rows[i]![j]! * (1 - t) + rows[i + 1]![j]! * t;
+  return { down: lerp(0) * k, up: lerp(1) * k };
+}
+
+/** The relief strength a texture uses when a skin does not set one. */
+export function textureDefaultStrength(name: Texture): number {
+  return RECIPES[name].strength;
 }
 
 /** Whether a string names a built-in texture. */

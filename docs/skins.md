@@ -58,7 +58,7 @@ The Studio, the CLI, the package build and `applySkin()` share one compiler
   `vars` sets their parameters (`--tr-m-*`, `--tr-f-*`, `--tr-p-*`), which is how you make a
   material that is not built in; `style` sets component properties such as `--tr-button-radius`.
 - `texture`: a procedural surface texture under the material's lighting. One of `wood`, `leather`,
-  `linen`, `felt`, `stone`, `paper`, `terrazzo`, `carbon`, `knurl` (or `none` to switch one off),
+  `linen`, `felt`, `stone`, `marble`, `paper`, `terrazzo`, `carbon`, `knurl` (or `none` to switch one off),
   optionally with `scale` (tile size, 0.25 to 4), `strength` (0 to 1) and `seed`. Textures are SVG
   generated at build time, a few hundred bytes each, and their relief is lit from the skin's own
   `light.angle`, so embossed grain catches the light on the same side as the bevels.
@@ -72,10 +72,12 @@ over the skin.
 contrast-checked skin. It is deterministic: the same words give the same skin. It understands:
 
 - **materials**: walnut, oak, ebony, leather (saddle, black), linen, felt, concrete, slate,
-  terrazzo, carbon fibre, paper, kraft, brass, copper, gold, chrome, titanium, gunmetal, aluminium,
+  marble, terrazzo, carbon fibre, paper, kraft, brass, copper, gold, chrome, titanium, gunmetal, aluminium,
   anodized, knurled steel, ceramic, lacquer, candy, soft-touch, frosted and smoked glass. Words after
   a material say where it goes: "walnut **panels**", "brass **knobs**". A finish word before it
-  modifies it: "**brushed** titanium", "**polished** brass".
+  modifies it: "**brushed** titanium", "**polished** brass", and so do colour and tone words up
+  to two words back: "matte **black** iron", "**pale** hinoki wood". Negation works: "no wood, no
+  brass" keeps those out. Words like warm, cozy or icy set the temperature of the neutrals.
 - **looks**: retro, vintage, y2k, studio, luxury, scandinavian, japanese, industrial, automotive,
   cyberpunk, library, kitchen, clinical, rugged, playful, fintech, editorial, nautical, gaming, spa,
   cafe, minimal.
@@ -106,7 +108,7 @@ document.body.dataset.trSkin = skin.name;
 live.update(nextSkin);                   // restyle in place (cheap enough for every slider tick)
 ```
 
-Also exported: `materialPresets` (31 real-world material recipes), `textures` and `textureCss()`,
+Also exported: `materialPresets` (33 real-world material recipes), `textures` and `textureCss()`,
 `paletteTokens()` (a full, passing colour palette from a hue, tint and accent), `contrast()`,
 `ensureContrast()` and `parseColor()` (OKLCH, hex, rgb), and `describeVocabulary`.
 

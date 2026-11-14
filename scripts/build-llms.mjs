@@ -195,7 +195,7 @@ function skinsSection(full) {
     '(add `--format json` to get `{skin, notes, findings}`; `npx trompe skin vocab` lists every word it understands).',
     'In code: `import { skinFromDescription, validateSkin, fixContrast, compileSkin, applySkin } from \'trompe/skin\'`.',
     'Skin JSON: `{ name, description, colorScheme, tokens: { "color.accent": …, "light.angle": …, "realism.default": … }, elements: { "<tag>|*": { material, finish, profile, texture, vars: { "--tr-m-base": … }, style } } }`.',
-    'Textures: wood, leather, linen, felt, stone, paper, terrazzo, carbon, knurl (or `{ name, scale, strength }`); their relief follows the skin light.',
+    'Textures: wood, leather, linen, felt, stone, marble, paper, terrazzo, carbon, knurl (or `{ name, scale, strength }`); their relief follows the skin light.',
     'Validate with `npx trompe skin check <file> --fix` or `npx trompe check <file>`.',
   );
   return lines.join('\n');

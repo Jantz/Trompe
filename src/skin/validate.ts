@@ -6,7 +6,7 @@ import { finishes, materials, profiles, tokens } from '../generated/tokens.js';
 import { elementTags } from '../generated/elements.js';
 import { contrast, ensureContrast, formatOklch, parseColor, themed, type Oklch } from './color.js';
 import { CONTRAST_PAIRS } from './palette.js';
-import { isTexture, textures } from './textures.js';
+import { isTexture, textureDefaultStrength as defaultStrength, textureSpread, textures, type Texture } from './textures.js';
 import type { Skin, SkinElement } from './types.js';
 
 export interface SkinFinding {
@@ -40,6 +40,38 @@ export function resolveColor(skin: Skin, name: string): Oklch | null {
   const raw = own ?? (scheme === 'dark' ? (t?.darkValue ?? t?.value) : t?.value);
   return raw === undefined ? null : parseColor(themed(String(raw), scheme));
 }
+
+/** Elements whose own surface carries body text (panels, nav, lists, menus, dialogs). */
+const TEXT_SURFACES = ['tr-panel', 'tr-nav', 'tr-list', 'tr-toolbar', 'tr-dialog', 'tr-menu'];
+
+const textureOf = (spec: SkinElement | undefined): { name: Texture; strength?: number } | null => {
+  const t = spec?.texture;
+  if (!t || t === 'none') return null;
+  const o = typeof t === 'string' ? { name: t } : t;
+  return isTexture(o.name) ? o : null;
+};
+
+/**
+ * The darkest and lightest colours a textured surface really shows: its base moved by the
+ * texture's measured lightness range. Without a texture, just the base.
+ */
+export function surfaceRange(base: Oklch, texture?: SkinElement['texture']): Oklch[] {
+  const t = textureOf({ texture });
+  if (!t) return [base];
+  const { down, up } = textureSpread(t.name, base.l, t.strength);
+  return [
+    { ...base, l: Math.max(0, base.l - down) },
+    { ...base, l: Math.min(1, base.l + up) },
+  ];
+}
+
+/** Moves fg until it reaches `min` against every background (as far as that is possible). */
+function ensureAll(fg: Oklch, bgs: Oklch[], min: number, canvas?: Oklch): Oklch {
+  let out = fg;
+  for (let i = 0; i < 4; i++) for (const b of bgs) if (contrast(out, b, canvas) < min) out = ensureContrast(out, b, min + 0.05, canvas);
+  return out;
+}
+const worst = (fg: Oklch, bgs: Oklch[], canvas?: Oklch) => Math.min(...bgs.map((b) => contrast(fg, b, canvas)));
 
 /** Measures every pair in CONTRAST_PAIRS. */
 export function contrastReport(skin: Skin): { fg: string; bg: string; min: number; why: string; ratio: number }[] {
@@ -94,24 +126,51 @@ export function validateSkin(skin: Skin): SkinFinding[] {
         }
       }
     }
-    // Material ink on base.
-    const vars = { ...(skin.elements?.['*']?.vars ?? {}), ...(conf?.vars ?? {}) };
+    // Material ink on its base, across the texture's darkest and lightest parts.
+    const star = skin.elements?.['*'];
+    const vars = { ...(star?.vars ?? {}), ...(conf?.vars ?? {}) };
     const scheme = skin.colorScheme === 'dark' ? 'dark' : 'light';
-    const ink = conf?.vars?.['--tr-m-ink'] || conf?.vars?.['--tr-m-base'] ? vars['--tr-m-ink'] : undefined;
+    const canvas = resolveColor(skin, 'color.canvas') ?? undefined;
+    const texture = conf?.texture ?? star?.texture;
+    const ownsLook = !!(conf?.vars?.['--tr-m-ink'] || conf?.vars?.['--tr-m-base'] || (tag !== '*' && conf?.texture));
+    const ink = ownsLook ? vars['--tr-m-ink'] : undefined;
     const base = vars['--tr-m-base'];
-    if (ink && base) {
+    const B = base ? parseColor(themed(base, scheme)) : null;
+    if (ink && B) {
       const F = parseColor(themed(ink, scheme));
-      const B = parseColor(themed(base, scheme));
-      const canvas = resolveColor(skin, 'color.canvas') ?? undefined;
-      if (F && B) {
-        const ratio = contrast(F, B, canvas);
+      if (F) {
+        const range = surfaceRange(B, texture);
+        const ratio = worst(F, range, canvas);
         if (ratio < 4.5) {
+          const fixed = ensureAll(F, range, 4.6, canvas);
+          const reachable = worst(fixed, range, canvas) >= 4.5;
+          const t = textureOf({ texture });
           add({
             severity: 'error',
             path: `elements.${tag}.vars.--tr-m-ink`,
-            message: `${tag}: --tr-m-ink on --tr-m-base is ${ratio.toFixed(2)}:1, needs 4.5:1.`,
+            message: `${tag}: text on this ${t ? `${t.name} ` : ''}surface drops to ${ratio.toFixed(2)}:1${t ? ' where the texture is lightest or darkest' : ''}, needs 4.5:1.`,
             ratio: Number(ratio.toFixed(2)),
-            fix: { path: `elements.${tag}.vars.--tr-m-ink`, value: formatOklch(ensureContrast(F, B, 4.6, canvas)) },
+            fix: reachable || !t
+              ? { path: `elements.${tag}.vars.--tr-m-ink`, value: formatOklch(fixed) }
+              : { path: `elements.${tag}.texture.strength`, value: String(Number(((t.strength ?? defaultStrength(t.name)) * 0.6).toFixed(2))) },
+          });
+        }
+      }
+    }
+    // Secondary text (color.ink-muted) sits directly on panels, lists and dialogs too.
+    if (tag !== '*' && TEXT_SURFACES.includes(tag) && B && (conf?.vars?.['--tr-m-base'] || conf?.texture)) {
+      const own = conf?.style?.['--tr-color-ink-muted'];
+      const M = own ? parseColor(themed(own, scheme)) : resolveColor(skin, 'color.ink-muted');
+      if (M) {
+        const range = surfaceRange(B, texture);
+        const ratio = worst(M, range, canvas);
+        if (ratio < 4.5) {
+          add({
+            severity: 'error',
+            path: `elements.${tag}.style.--tr-color-ink-muted`,
+            message: `${tag}: secondary text (color.ink-muted) on this surface is ${ratio.toFixed(2)}:1, needs 4.5:1.`,
+            ratio: Number(ratio.toFixed(2)),
+            fix: { path: `elements.${tag}.style.--tr-color-ink-muted`, value: formatOklch(ensureAll(M, range, 4.6, canvas)) },
           });
         }
       }
@@ -141,11 +200,21 @@ export function setSkinPath(skin: Skin, path: string, value: string): Skin {
     next.tokens = { ...(next.tokens ?? {}), [path.slice(7)]: value };
     return next;
   }
-  const m = path.match(/^elements\.([^.]+)\.vars\.(.+)$/);
+  const m = path.match(/^elements\.([^.]+)\.(vars|style)\.(.+)$/);
   if (m) {
     const el = (next.elements ??= {})[m[1]!] ?? {};
-    el.vars = { ...(el.vars ?? {}), [m[2]!]: value };
+    el[m[2] as 'vars' | 'style'] = { ...(el[m[2] as 'vars' | 'style'] ?? {}), [m[3]!]: value };
     next.elements[m[1]!] = el;
+  }
+  const t = path.match(/^elements\.([^.]+)\.texture\.(strength|scale)$/);
+  if (t) {
+    const el = (next.elements ??= {})[t[1]!] ?? {};
+    const cur = el.texture ?? next.elements['*']?.texture;
+    if (cur && cur !== 'none') {
+      const o = typeof cur === 'string' ? { name: cur } : { ...cur };
+      el.texture = { ...o, [t[2]!]: Number(value) };
+      next.elements[t[1]!] = el;
+    }
   }
   return next;
 }
@@ -157,7 +226,7 @@ export function setSkinPath(skin: Skin, path: string, value: string): Skin {
 export function fixContrast(skin: Skin): { skin: Skin; changed: string[] } {
   let next = skin;
   const changed = new Set<string>();
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     const fixes = validateSkin(next).filter((f) => f.fix);
     if (!fixes.length) break;
     for (const f of fixes) {

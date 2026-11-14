@@ -97,7 +97,7 @@ const ROLES: Role[] = [
   { id: 'toggles', label: 'Toggles', tags: ['tr-switch', 'tr-checkbox', 'tr-radio'] },
   { id: 'ranges', label: 'Sliders & knobs', tags: ['tr-slider', 'tr-knob', 'tr-progress', 'tr-meter'] },
   { id: 'choice', label: 'Tabs & segments', tags: ['tr-segmented', 'tr-tabs', 'tr-tab'] },
-  { id: 'lists', label: 'Nav & lists', tags: ['tr-nav', 'tr-list', 'tr-toolbar'] },
+  { id: 'lists', label: 'Nav & lists', tags: ['tr-nav', 'tr-list', 'tr-toolbar', 'tr-nav-item', 'tr-list-item'] },
   { id: 'overlays', label: 'Menus & dialogs', tags: ['tr-menu', 'tr-dialog', 'tr-tooltip'] },
 ];
 const roleOfTag = (tag: string): Role => {
@@ -134,12 +134,29 @@ let applied: ReturnType<typeof applySkin> | null = null;
 let frameQueued = 0;
 const draftOf = (skin: Skin): Skin => ({ ...skin, name: 'draft' });
 
+/**
+ * While a pointer is down in the editor (dragging the light, a slider), textures keep the light
+ * they had when the drag began: their relief is rebuilt once, on release, instead of every frame.
+ */
+let dragLight: { angle: number; elevation: number } | null = null;
+const lightNow = () => ({ angle: parseFloat(String(state.skin.tokens?.['light.angle'] ?? 330)) || 330, elevation: parseFloat(String(state.skin.tokens?.['light.elevation'] ?? 55)) || 55 });
+document.addEventListener('pointerdown', (e) => {
+  if ((e.target as Element).closest?.('.rail')) dragLight = lightNow();
+}, true);
+const endDrag = () => {
+  if (!dragLight) return;
+  dragLight = null;
+  schedule();
+};
+document.addEventListener('pointerup', endDrag, true);
+document.addEventListener('pointercancel', endDrag, true);
+
 function flush() {
   cancelAnimationFrame(frameQueued);
   frameQueued = 0;
   try {
     if (!applied) applied = applySkin(draftOf(state.skin));
-    else applied.update(draftOf(state.skin));
+    else applied.update(draftOf(state.skin), dragLight ? { textureLight: dragLight } : undefined);
   } catch (e) {
     toast(`Could not apply: ${(e as Error).message}`);
   }

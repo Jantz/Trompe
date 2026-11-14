@@ -101,6 +101,11 @@ export class TrNavItem extends TrompeElement {
         --_base: color-mix(in oklch, var(--_m-base), var(--_sh) calc(7% + var(--tr-lift, 0) * 12%));
         opacity: 1;
       }
+      /* text on the plate takes the plate's own ink (the plate may differ from the panel around it) */
+      .item:hover,
+      :host([current]) .item {
+        color: var(--_m-ink);
+      }
       :host([current]) .item {
         font-weight: var(--tr-font-weight-strong, 600);
         translate: calc(var(--_sx) * 0.5px) calc(var(--_sy) * 0.5px);

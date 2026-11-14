@@ -94,6 +94,11 @@ export class TrListItem extends TrompeElement {
       :host([role='option'][data-tr-pressed]:not([disabled])) .plate {
         --_tr-z: -0.5;
       }
+      /* text on the plate takes the plate's own ink (the plate may differ from the list around it) */
+      :host([role='option']:hover:not([disabled])) .row,
+      :host([role='option'][selected]) .row {
+        color: var(--_m-ink);
+      }
       :host([role='option'][selected]) .plate {
         --_tr-z: -1;
         --_base: color-mix(in oklch, color-mix(in oklch, var(--_m-base), var(--tr-color-accent) 12%), var(--_sh) calc(6% + var(--tr-lift, 0) * 10%));

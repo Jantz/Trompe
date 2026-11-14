@@ -84,6 +84,21 @@ describe('validation', () => {
     expect(changed).toContain('tokens.color.ink');
     expect(errors(fixed)).toEqual([]);
   });
+  it('tests text against the lightest and darkest parts of a texture', () => {
+    const plank = { material: 'plastic' as const, texture: 'carbon' as const, vars: { '--tr-m-base': 'oklch(40% 0.01 260)', '--tr-m-ink': 'oklch(83% 0.01 260)' } };
+    const flat: Skin = { name: 't', colorScheme: 'dark', tokens: {}, elements: { 'tr-button': { ...plank, texture: 'none' } } };
+    const textured: Skin = { name: 't', colorScheme: 'dark', tokens: {}, elements: { 'tr-button': plank } };
+    expect(errors(flat)).toEqual([]);
+    expect(errors(textured).map((f) => f.path)).toContain('elements.tr-button.vars.--tr-m-ink');
+    expect(errors(fixContrast(textured).skin)).toEqual([]);
+  });
+  it('checks secondary text on textured panels', () => {
+    const skin: Skin = { name: 'w', colorScheme: 'dark', tokens: {}, elements: { 'tr-panel': { material: 'plastic', texture: 'wood', vars: { '--tr-m-base': 'oklch(48% 0.07 50)', '--tr-m-ink': 'oklch(97% 0.01 70)' } } } };
+    expect(errors(skin).map((f) => f.path)).toContain('elements.tr-panel.style.--tr-color-ink-muted');
+    const fixed = fixContrast(skin).skin;
+    expect(errors(fixed)).toEqual([]);
+    expect(fixed.elements!['tr-panel']!.style!['--tr-color-ink-muted']).toBeTruthy();
+  });
   it('rejects unknown vocabulary', () => {
     const skin = { name: 'v', colorScheme: 'light', tokens: {}, elements: { 'tr-button': { material: 'unobtainium', texture: 'plaid' } } } as unknown as Skin;
     const paths = errors(skin).map((f) => f.path);
@@ -95,8 +110,12 @@ describe('validation', () => {
 describe('material presets', () => {
   it('every preset is valid and keeps its ink readable on its own base', () => {
     for (const p of materialPresets) {
-      const skin: Skin = { name: 'p', colorScheme: 'light', tokens: {}, elements: { 'tr-panel': p.spec } };
+      // on a control: its own ink must hold across the texture's lightest and darkest parts
+      const skin: Skin = { name: 'p', colorScheme: 'light', tokens: {}, elements: { 'tr-button': p.spec } };
       expect(errors(skin), p.id).toEqual([]);
+      // on a panel, secondary text may need a local colour; fixContrast always finds one
+      const panel = fixContrast({ name: 'p', colorScheme: 'light', tokens: {}, elements: { 'tr-panel': p.spec } }).skin;
+      expect(errors(panel), p.id).toEqual([]);
       const base = p.spec.vars?.['--tr-m-base'];
       const ink = p.spec.vars?.['--tr-m-ink'];
       if (base && ink) expect(contrast(parseColor(ink)!, parseColor(base)!), p.id).toBeGreaterThanOrEqual(4.5);

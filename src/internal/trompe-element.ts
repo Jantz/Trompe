@@ -16,6 +16,8 @@ export function installGlobalStyles(doc: Document | undefined = globalThis.docum
   if (typeof CSS !== 'undefined' && 'registerProperty' in CSS) {
     const props: PropertyDefinition[] = [
       { name: '--tr-light-angle', syntax: '<angle>', inherits: true, initialValue: '330deg' },
+      // Resolved on each host (sibling-index() is per element), so textures start at a different spot.
+      { name: '--_tr-tex-i', syntax: '<integer>', inherits: true, initialValue: '0' },
       { name: '--tr-light-elevation', syntax: '<angle>', inherits: true, initialValue: '55deg' },
       { name: '--tr-realism', syntax: '<number>', inherits: true, initialValue: '0.65' },
       // Internal: the current depth level of a surface. Registered so press/hover animate smoothly.
