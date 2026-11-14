@@ -20,7 +20,8 @@ export interface PressOptions {
   /** Fires after this many ms of continuous pressing (touch and hold, context actions). */
   longPressMs?: number;
   /** Called once a press has been held for `longPressMs`. */
-  onLongPress?: (e: PointerEvent | KeyboardEvent) => void;
+  /** Called once a touch or mouse press has been held for `longPressMs`. The click that would follow is swallowed. */
+  onLongPress?: (e: PointerEvent) => void;
   /** Called when the press visual starts. */
   onPress?: () => void;
   /** Called when the press visual ends. `inside` is false when the pointer was dragged away (cancel). */
@@ -164,7 +165,17 @@ export class PressController {
     if (this.o.onLongPress && this.o.longPressMs) {
       clearTimeout(this.longTimer);
       this.longTimer = window.setTimeout(() => {
-        if (this.visual && this.pointerId === e.pointerId) this.o.onLongPress?.(e);
+        if (!this.visual || this.pointerId !== e.pointerId) return;
+        this.o.onLongPress?.(e);
+        // A long press is its own action; the release must not also click.
+        const swallow = (ev: Event) => {
+          ev.stopImmediatePropagation();
+          ev.preventDefault();
+        };
+        this.host.addEventListener('click', swallow, { capture: true, once: true });
+        const drop = () => setTimeout(() => this.host.removeEventListener('click', swallow, { capture: true }), 0);
+        addEventListener('pointerup', drop, { once: true });
+        addEventListener('pointercancel', drop, { once: true });
       }, this.o.longPressMs);
     }
   };

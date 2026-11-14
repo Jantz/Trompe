@@ -88,7 +88,9 @@ export function present(el: HTMLElement, options: PresentOptions = {}): Promise<
   } else {
     const { easing, duration } = eased(m.spring);
     const from = kind === 'sheet' ? sheetFrom(options.edge) : m.from;
-    anims.push(el.animate([{ transform: from.transform as string }, { transform: 'none' }], { duration, easing }));
+    // composite 'add' layers the motion on top of the surface's own transform (a centred popover's
+    // translate(-50%, -50%) survives the animation).
+    anims.push(el.animate([{ transform: from.transform as string }, { transform: 'translate(0)' }], { duration, easing, composite: 'add' }));
     // Opacity settles faster than the spring, so the surface is solid before it lands.
     if ('opacity' in from) anims.push(el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.min(160, duration * 0.5), easing: 'ease-out' }));
     if (options.shadow) {
@@ -106,8 +108,8 @@ export function present(el: HTMLElement, options: PresentOptions = {}): Promise<
  * Animates a surface out, then resolves so the caller can hide it (`close()`, `hidePopover()`, or
  * set `hidden`). Exits are quicker than entrances: things leave faster than they arrive.
  */
-export function dismiss(el: HTMLElement, options: Omit<PresentOptions, 'from'> = {}): Promise<void> {
-  if (typeof el.animate !== 'function') return Promise.resolve();
+export function dismiss(el: HTMLElement, options: Omit<PresentOptions, 'from'> = {}): Promise<boolean> {
+  if (typeof el.animate !== 'function') return Promise.resolve(true);
   cancel(el);
   const kind = options.kind ?? 'popover';
   const m = MOTION[kind];
@@ -117,7 +119,9 @@ export function dismiss(el: HTMLElement, options: Omit<PresentOptions, 'from'> =
   } else {
     const { duration } = eased(m.spring);
     const to = kind === 'sheet' ? sheetFrom(options.edge) : m.from;
-    anims.push(el.animate([{ opacity: 1, transform: 'none' }, to], { duration: Math.max(90, duration * m.out), easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }));
+    const d = Math.max(90, duration * m.out);
+    anims.push(el.animate([{ transform: 'translate(0)' }, { transform: to.transform as string }], { duration: d, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards', composite: 'add' }));
+    if ('opacity' in to) anims.push(el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: d, easing: 'ease-in', fill: 'forwards' }));
     if (options.shadow) {
       anims.push(options.shadow.animate([{ opacity: 1 }, { opacity: 0 }], { duration: duration * m.out * 0.7, easing: 'ease-in', fill: 'forwards' }));
     }
@@ -128,8 +132,10 @@ export function dismiss(el: HTMLElement, options: Omit<PresentOptions, 'from'> =
       // Clear the fill so the element is clean next time it opens.
       for (const a of anims) a.cancel();
       running.delete(el);
+      return true;
     },
-    () => undefined,
+    // Interrupted (e.g. reopened mid-exit): the caller must not hide it.
+    () => false,
   );
 }
 
@@ -148,13 +154,17 @@ export interface DialogOptions {
 export function dialogMotion(dialog: HTMLDialogElement, options: DialogOptions = {}) {
   const kind = options.kind ?? 'dialog';
   let closing = false;
+  let generation = 0;
   const close = async (value?: string): Promise<void> => {
     if (!dialog.open || closing) return;
     closing = true;
+    const gen = generation;
     dialog.setAttribute('data-tr-closing', '');
     const backdrop = animateBackdrop(dialog, false);
-    await dismiss(dialog, { kind, edge: options.edge });
+    const finished = await dismiss(dialog, { kind, edge: options.edge });
     await backdrop;
+    // Reopened while closing: open() owns the dialog now.
+    if (!finished || gen !== generation) return;
     dialog.removeAttribute('data-tr-closing');
     closing = false;
     dialog.close(value);
@@ -173,22 +183,31 @@ export function dialogMotion(dialog: HTMLDialogElement, options: DialogOptions =
   }
   return {
     open(from?: Element | null): Promise<void> {
+      // Read the trigger before showModal() moves focus into the dialog.
+      const origin = from ?? (document.activeElement as Element | null);
+      generation++;
+      closing = false;
+      dialog.removeAttribute('data-tr-closing');
       if (!dialog.open) dialog.showModal();
       void animateBackdrop(dialog, true);
-      return present(dialog, { kind, from: from ?? (document.activeElement as Element | null), edge: options.edge });
+      return present(dialog, { kind, from: origin && origin !== dialog && !dialog.contains(origin) ? origin : null, edge: options.edge });
     },
     close,
   };
 }
 
+const backdrops = new WeakMap<HTMLDialogElement, Animation>();
+
 function animateBackdrop(dialog: HTMLDialogElement, entering: boolean): Promise<void> {
   try {
+    backdrops.get(dialog)?.cancel();
     const a = dialog.animate(entering ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }], {
       duration: reducedMotion(dialog) ? 90 : entering ? 220 : 160,
       easing: 'ease-out',
       pseudoElement: '::backdrop',
       fill: entering ? 'none' : 'forwards',
     });
+    backdrops.set(dialog, a);
     return a.finished.then(
       () => undefined,
       () => undefined,
@@ -222,7 +241,7 @@ export function shake(el: HTMLElement, distance = 6): Promise<void> {
     frames.push({ transform: `translateX(${x.toFixed(2)}px)` });
   }
   el.setAttribute('data-tr-alert', '');
-  return el.animate(frames, { duration: 420, easing: 'linear' }).finished.then(
+  return el.animate(frames, { duration: 420, easing: 'linear', composite: 'add' }).finished.then(
     () => el.removeAttribute('data-tr-alert'),
     () => el.removeAttribute('data-tr-alert'),
   );

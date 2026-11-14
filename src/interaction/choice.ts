@@ -98,6 +98,10 @@ export class ChoiceController {
     this.host.removeEventListener('pointerdown', this.onDown);
     this.ro?.disconnect();
     this.ro = null;
+    removeEventListener('pointermove', this.onSlideMove);
+    removeEventListener('pointerup', this.onSlideEnd);
+    removeEventListener('pointercancel', this.onSlideEnd);
+    this.slidePointer = null;
     this.stopTicker?.();
     this.stopTicker = null;
   }
@@ -116,9 +120,12 @@ export class ChoiceController {
     const sel = this.slidePointer !== null ? this.slideIndex : this.o.selected();
     // Roving tabindex: the selected item (or the first enabled) is the group's only tab stop.
     const stop = sel >= 0 ? sel : items.findIndex((i) => !this.o.isDisabled?.(i));
+    const slideTouch = (this.o.slide ?? true) ? ((this.o.orientation ?? 'horizontal') === 'vertical' ? 'pan-x' : 'pan-y') : '';
     items.forEach((item, i) => {
       const t = i === stop ? '0' : '-1';
       if (item.getAttribute('tabindex') !== t) item.setAttribute('tabindex', t);
+      // Only a touch that starts on the selected item may slide; elsewhere the page scrolls as usual.
+      if (slideTouch && this.o.orientation !== 'both') item.style.touchAction = i === sel ? slideTouch : '';
     });
     if (!this.measured || this.boxes.length !== items.length) this.measure(items);
     const box = this.boxes[sel];
@@ -163,8 +170,11 @@ export class ChoiceController {
 
   private measure(items: readonly HTMLElement[]): void {
     const hr = this.host.getBoundingClientRect();
-    // Positions relative to the host's padding box, ignoring its own scroll.
-    this.origin = { x: hr.left + this.host.clientLeft, y: hr.top + this.host.clientTop };
+    // Positions relative to the host's scrolled content box, so a scrolled tab bar stays right.
+    this.origin = {
+      x: hr.left + this.host.clientLeft - this.host.scrollLeft,
+      y: hr.top + this.host.clientTop - this.host.scrollTop,
+    };
     this.boxes = items.map((i) => i.getBoundingClientRect());
     this.measured = true;
   }
@@ -206,9 +216,14 @@ export class ChoiceController {
 
   private onKeyDown = (e: KeyboardEvent): void => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
+    // composedPath sees through shadow roots, so items inside a component's shadow DOM work.
+    const t = e.composedPath()[0];
+    if (!(t instanceof Node)) return;
     const items = this.o.items();
-    const current = items.findIndex((i) => i === e.target || i.contains(e.target as Node));
+    const current = items.findIndex((i) => i === t || i.contains(t));
     if (current < 0) return;
+    // Typing in a field inside an item (an "Other: ___" radio) must type, not navigate.
+    if (t !== items[current] && t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
     const or = this.o.orientation ?? 'horizontal';
     const rtl = getComputedStyle(this.host).direction === 'rtl';
     const fwd = rtl ? 'ArrowLeft' : 'ArrowRight';
@@ -219,6 +234,10 @@ export class ChoiceController {
     else if (e.key === 'Home') next = this.enabledIndex(-1, 1, items);
     else if (e.key === 'End') next = this.enabledIndex(items.length, -1, items);
     else if ((e.key === 'Enter' || e.key === ' ') && (this.o.activation ?? 'auto') === 'manual') {
+      // Native buttons and links activate themselves (their click handler runs); only
+      // non-native items need the controller to choose for them.
+      const it = items[current]!;
+      if (it instanceof HTMLButtonElement || it instanceof HTMLAnchorElement) return;
       e.preventDefault();
       this.choose(current, 'keyboard');
       return;
@@ -287,18 +306,21 @@ export class ChoiceController {
     this.measure(items);
     this.slidePointer = e.pointerId;
     this.slideIndex = sel;
-    try {
-      this.host.setPointerCapture(e.pointerId);
-    } catch {
-      /* synthetic */
-    }
-    this.host.addEventListener('pointermove', this.onSlideMove);
-    this.host.addEventListener('pointerup', this.onSlideEnd);
-    this.host.addEventListener('pointercancel', this.onSlideEnd);
+    this.slideStart = { x: e.clientX, y: e.clientY, active: false };
+    // No pointer capture: a press that does not slide must stay an ordinary click on the item.
+    addEventListener('pointermove', this.onSlideMove);
+    addEventListener('pointerup', this.onSlideEnd);
+    addEventListener('pointercancel', this.onSlideEnd);
   };
+
+  private slideStart = { x: 0, y: 0, active: false };
 
   private onSlideMove = (e: PointerEvent): void => {
     if (e.pointerId !== this.slidePointer) return;
+    if (!this.slideStart.active) {
+      if (Math.hypot(e.clientX - this.slideStart.x, e.clientY - this.slideStart.y) < 6) return;
+      this.slideStart.active = true;
+    }
     const i = this.indexAt(e.clientX, e.clientY);
     if (i >= 0 && i !== this.slideIndex) {
       this.slideIndex = i;
@@ -314,9 +336,9 @@ export class ChoiceController {
     const moved = this.host.hasAttribute('data-dragging');
     const i = this.slideIndex;
     this.slidePointer = null;
-    this.host.removeEventListener('pointermove', this.onSlideMove);
-    this.host.removeEventListener('pointerup', this.onSlideEnd);
-    this.host.removeEventListener('pointercancel', this.onSlideEnd);
+    removeEventListener('pointermove', this.onSlideMove);
+    removeEventListener('pointerup', this.onSlideEnd);
+    removeEventListener('pointercancel', this.onSlideEnd);
     this.host.toggleAttribute('data-dragging', false);
     if (moved && e.type === 'pointerup') {
       // The following click lands on the original item; swallow it, the slide already chose.

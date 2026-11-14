@@ -16,6 +16,8 @@
   --accent-ink: #ffffff;
   --accent-hi: #19a386;
   --danger: #c2412d;
+  --danger-btn: #c2412d;
+  --primary-top: #0e826b;
   --lamp: #29d39a;
   --edge: rgba(27, 35, 48, 0.16);
   --hl: rgba(255, 255, 255, 0.85);
@@ -31,14 +33,14 @@
   :root:not([data-theme="light"]) {
     --canvas: #15181d; --surface: #23272e; --surface-hi: #2d323a; --well: #111418;
     --ink: #e7eaef; --ink-soft: #9aa3b2; --accent: #21a585; --accent-ink: #04140f; --accent-hi: #3cc9a5;
-    --danger: #ef6a52; --lamp: #3df0b0; --edge: rgba(0, 0, 0, 0.55); --hl: rgba(255, 255, 255, 0.09);
+    --danger: #ef6a52; --danger-btn: #cc4a33; --primary-top: #3cc9a5; --lamp: #3df0b0; --edge: rgba(0, 0, 0, 0.55); --hl: rgba(255, 255, 255, 0.09);
     --sh: 0 0 0; --sh-a: 0.55; --focus: #6aa8ff; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --canvas: #15181d; --surface: #23272e; --surface-hi: #2d323a; --well: #111418;
   --ink: #e7eaef; --ink-soft: #9aa3b2; --accent: #21a585; --accent-ink: #04140f; --accent-hi: #3cc9a5;
-  --danger: #ef6a52; --lamp: #3df0b0; --edge: rgba(0, 0, 0, 0.55); --hl: rgba(255, 255, 255, 0.09);
+  --danger: #ef6a52; --danger-btn: #cc4a33; --primary-top: #3cc9a5; --lamp: #3df0b0; --edge: rgba(0, 0, 0, 0.55); --hl: rgba(255, 255, 255, 0.09);
   --sh: 0 0 0; --sh-a: 0.55; --focus: #6aa8ff; color-scheme: dark;
 }
 
@@ -96,8 +98,9 @@ p { margin: 0; }
 .btn[data-tr-pressed] { transform: translateY(1.5px); transition-duration: var(--tr-motion-duration-press, 70ms); transition-timing-function: cubic-bezier(.3, 0, .6, 1); }
 .btn[data-tr-pressed]::before { opacity: 0; transition-duration: 60ms; }
 .btn[data-tr-pressed]::after { opacity: 1; transition-duration: 60ms; }
-.btn.primary { color: var(--accent-ink); background: linear-gradient(180deg, var(--accent-hi), var(--accent)); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 1px rgb(0 0 0 / .25); }
-.btn.danger { color: #fff; background: linear-gradient(180deg, color-mix(in oklab, var(--danger), white 14%), var(--danger)); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgb(0 0 0 / .25); }
+/* Text on filled buttons keeps 4.5:1 against the lightest part of the gradient. */
+.btn.primary { color: var(--accent-ink); background: linear-gradient(180deg, var(--primary-top), color-mix(in oklab, var(--primary-top), black 10%)); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 1px rgb(0 0 0 / .25); }
+.btn.danger { color: #fff; background: linear-gradient(180deg, var(--danger-btn), color-mix(in oklab, var(--danger-btn), black 12%)); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgb(0 0 0 / .25); }
 .btn.icon { width: 40px; padding: 0; display: grid; place-items: center; border-radius: 50%; }
 .btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .btn[aria-pressed="true"] { transform: translateY(1px); }
@@ -492,8 +495,7 @@ dialog h2 { margin-bottom: 6px; }
     else if (el.id === 'opt-motion') makeSwitch(el, (on) => (on ? root.setAttribute('data-tr-motion', 'reduce') : root.removeAttribute('data-tr-motion')));
     else makeSwitch(el);
   }
-  // Labels next to switches toggle them too.
-  for (const lab of $$('.mini')) lab.addEventListener('click', (e) => { if (e.target === lab) $('.switch', lab).click(); });
+  // Labels around the lab switches activate them natively (a <button> is labelable).
 
   // Checkboxes.
   for (const el of $$('[data-check]')) {
@@ -581,8 +583,7 @@ dialog h2 { margin-bottom: 6px; }
   });
   for (const it of menuItems()) it.addEventListener('click', async () => {
     $('#menu-out').textContent = it.textContent + ' chosen.';
-    await ti.dismiss(menu, { kind: 'menu' });
-    menu.hidePopover();
+    if (await ti.dismiss(menu, { kind: 'menu' })) menu.hidePopover();
     more.focus();
   });
 
@@ -600,8 +601,14 @@ dialog h2 { margin-bottom: 6px; }
     snapPoints: () => [0, 150, 290],
     handle: null,
     onMove: (off) => (scrim.style.opacity = String(Math.max(0, 1 - off / 290))),
-    onSnap: (i) => (scrim.style.pointerEvents = i < 2 ? 'auto' : 'none'),
+    onSnap: (i) => {
+      scrim.style.pointerEvents = i < 2 ? 'auto' : 'none';
+      // Closed: out of the tab order and the accessibility tree.
+      sheet.inert = i === 2;
+    },
   });
+  sheet.inert = true;
+  $('#share').addEventListener('click', () => (sheet.inert = false));
   $('#share').addEventListener('click', () => sheetCtl.snapTo(1));
   scrim.addEventListener('click', () => sheetCtl.snapTo(2));
   sheet.addEventListener('keydown', (e) => { if (e.key === 'Escape') sheetCtl.snapTo(2); });

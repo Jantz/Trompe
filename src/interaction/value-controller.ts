@@ -221,8 +221,17 @@ export abstract class ValueController {
     h.removeEventListener('dblclick', this.onDoubleClick);
     this.stopAnimation();
     this.endSlide();
-    this.pointerId = null;
     clearTimeout(this.wheelTimer);
+    // Removed or moved mid-gesture: finish it cleanly so no state or change event is left behind.
+    if (this.pointerId !== null || this.state !== 'idle') {
+      this.pointerId = null;
+      this.following = false;
+      this.samples = [];
+      this.display.snap(this.model);
+      this.state = 'idle';
+      this.write();
+      this.commit();
+    }
   }
 
   /** Detaches every listener. Use for hosts that are not Lit elements. */
@@ -291,7 +300,7 @@ export abstract class ValueController {
     const span = max - min || 1;
     let ratio = (d - min) / span;
     if (!this.endless) ratio = Math.min(1, Math.max(0, ratio));
-    const r = ratio.toFixed(4);
+    const r = (Math.abs(ratio) < 0.00005 ? 0 : ratio).toFixed(4);
     if (force || r !== this.written.ratio) {
       this.written.ratio = r;
       this.host.style.setProperty('--tr-value-ratio', r);
@@ -403,6 +412,7 @@ export abstract class ValueController {
     this.display.target = target;
     if (velocity !== undefined) this.display.velocity = velocity;
     if (!this.dragging) this.state = 'settling';
+    this.write();
     this.ensureAnimation();
   }
 
@@ -517,11 +527,15 @@ export abstract class ValueController {
     // Coalesced events give the true path between frames: better velocity, smoother detents.
     const events = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : [];
     const list = events.length ? events : [e];
+    // Coalesced events give the true path between frames for velocity; the value and events are
+    // applied once per frame with the latest position.
+    let p = this.raw;
     for (const ev of list) {
-      const p = this.dragTo(ev);
+      p = this.clamp(this.dragTo(ev));
+      this.raw = p;
       this.record(p, ev.timeStamp);
-      this.setRaw(p, 'pointer', this.following);
     }
+    this.setRaw(p, 'pointer', this.following);
     this.onDragMove(e);
   };
 
@@ -601,7 +615,8 @@ export abstract class ValueController {
     const big = Math.max(this.keyStep, span / 10);
     const step = this.o.fine && e.shiftKey && this.range.step === 0 ? this.keyStep * this.fineFactor : this.keyStep;
     const or = this.orientation();
-    const rtl = or !== 'vertical' && getComputedStyle(this.host).direction === 'rtl';
+    // Only horizontal linear controls mirror in RTL; a knob turns clockwise for ArrowRight everywhere.
+    const rtl = or === 'horizontal' && getComputedStyle(this.host).direction === 'rtl';
     let next: number | null = null;
     switch (e.key) {
       case 'ArrowUp':

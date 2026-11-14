@@ -87,6 +87,8 @@ export class DragSurfaceController {
     if (this.connected) return;
     this.connected = true;
     this.host.addEventListener('pointerdown', this.onDown);
+    // An image or link inside would otherwise start the browser's own drag and cancel ours.
+    this.host.addEventListener('dragstart', this.onNativeDrag);
     if (!this.host.style.touchAction) this.host.style.touchAction = this.o.axis === 'y' ? 'pan-x pinch-zoom' : 'pan-y pinch-zoom';
     this.write();
   }
@@ -95,6 +97,7 @@ export class DragSurfaceController {
     if (!this.connected) return;
     this.connected = false;
     this.host.removeEventListener('pointerdown', this.onDown);
+    this.host.removeEventListener('dragstart', this.onNativeDrag);
     this.untrack();
     this.stopTicker?.();
     this.stopTicker = null;
@@ -147,6 +150,10 @@ export class DragSurfaceController {
       this.o.onMove(v, b === a ? 0 : Math.max(0, Math.min(1, (v - a) / (b - a))));
     }
   }
+
+  private onNativeDrag = (e: DragEvent): void => {
+    e.preventDefault();
+  };
 
   private onDown = (e: PointerEvent): void => {
     if (this.o.disabled?.() || this.pointerId !== null) return;
@@ -209,6 +216,8 @@ export class DragSurfaceController {
         /* synthetic */
       }
       this.state('dragging');
+      // No text selection while dragging a surface with the mouse.
+      this.host.style.userSelect = 'none';
     }
     e.preventDefault();
     const d = this.o.axis === 'y' ? e.clientY - this.start.y : e.clientX - this.start.x;
@@ -280,6 +289,7 @@ export class DragSurfaceController {
   }
 
   private untrack(): void {
+    if (this.active) this.host.style.userSelect = '';
     this.pointerId = null;
     this.active = false;
     this.downPath = [];

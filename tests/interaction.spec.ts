@@ -300,14 +300,154 @@ test.describe('RotaryController', () => {
     await k.focus();
     await page.keyboard.press('ArrowUp');
     await expect(k).toHaveAttribute('aria-valuenow', '1');
+    // A grab starts from where the knob visibly is, so let the keyboard glide land first.
+    await expect(k).toHaveAttribute('data-tr-state', 'idle');
     const box = (await k.boundingBox())!;
     await page.mouse.move(box.x + 24, box.y + 24);
     await page.mouse.down();
     // 220 px is the full range: 70 px up is ~1.27 steps, which must settle on a notch.
     await page.mouse.move(box.x + 24, box.y + 24 - 70, { steps: 8 });
     await page.mouse.up();
-    await page.waitForTimeout(400);
+    await expect(k).toHaveAttribute('data-tr-state', 'idle');
     await expect(k).toHaveAttribute('aria-valuenow', '2');
     expect(await page.evaluate(() => document.getElementById('k')!.style.getPropertyValue('--tr-angle'))).toBe('0.00deg');
+  });
+});
+
+test.describe('regressions from review', () => {
+  test('manual-activation menu: Enter and Space activate native button items', async ({ page }) => {
+    await setup(
+      page,
+      `<div id="m" role="menu"><button role="menuitem">One</button><button role="menuitem">Two</button></div>`,
+      `const m = document.getElementById('m');
+       const items = () => [...m.querySelectorAll('button')];
+       new ti.ChoiceController(m, { items, selected: () => -1, select: () => {}, orientation: 'vertical', activation: 'manual', slide: false });
+       items().forEach((b) => b.addEventListener('click', () => log.push('click:' + b.textContent)));`,
+    );
+    await page.getByRole('menuitem', { name: 'One' }).focus();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press(' ');
+    expect(await log(page)).toEqual(['click:Two', 'click:One']);
+  });
+
+  test('keyboard works when items live in a shadow root', async ({ page }) => {
+    await setup(
+      page,
+      `<div id="host"></div>`,
+      `const host = document.getElementById('host');
+       const root = host.attachShadow({ mode: 'open' });
+       root.innerHTML = '<button role="tab">A</button><button role="tab">B</button>';
+       let sel = 0;
+       const items = () => [...root.querySelectorAll('button')];
+       new ti.ChoiceController(host, { items, selected: () => sel, select: (i) => { sel = i; log.push('select:' + i); } });`,
+    );
+    await page.waitForTimeout(30);
+    await page.getByRole('tab', { name: 'A' }).focus();
+    await page.keyboard.press('ArrowRight');
+    expect(await log(page)).toEqual(['select:1']);
+  });
+
+  test('typing in a field inside an item types instead of navigating', async ({ page }) => {
+    await setup(
+      page,
+      `<div id="g" role="radiogroup"><div role="radio" aria-checked="true">Standard</div><div role="radio" aria-checked="false">Other <input id="i"></div></div>`,
+      `const g = document.getElementById('g');
+       let sel = 0;
+       new ti.ChoiceController(g, { items: () => [...g.querySelectorAll('[role=radio]')], selected: () => sel, select: (i) => { sel = i; log.push('select:' + i); } });`,
+    );
+    await page.locator('#i').focus();
+    await page.keyboard.type('sam');
+    await page.keyboard.press('Home');
+    await expect(page.locator('#i')).toHaveValue('sam');
+    await expect(page.locator('#i')).toBeFocused();
+    expect(await log(page)).toEqual([]);
+  });
+
+  test('clicking the selected item still fires its click; sliding does not', async ({ page }) => {
+    await setup(
+      page,
+      `<div id="g" style="display:flex;width:300px"><button style="flex:1">A</button><button style="flex:1">B</button><button style="flex:1">C</button></div>`,
+      `const g = document.getElementById('g');
+       let sel = 0;
+       const items = () => [...g.querySelectorAll('button')];
+       new ti.ChoiceController(g, { items, selected: () => sel, select: (i) => { sel = i; log.push('select:' + i); } });
+       items().forEach((b) => b.addEventListener('click', () => log.push('click:' + b.textContent)));`,
+    );
+    await page.getByRole('button', { name: 'A' }).click();
+    expect(await log(page)).toEqual(['click:A']);
+    const a = (await page.getByRole('button', { name: 'A' }).boundingBox())!;
+    await page.mouse.move(a.x + 20, a.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(a.x + 230, a.y + 10, { steps: 6 });
+    await page.mouse.up();
+    expect(await log(page)).toEqual(['click:A', 'select:2']);
+  });
+
+  test('indicator is right inside a scrolled tab bar', async ({ page }) => {
+    await setup(
+      page,
+      `<div id="g" style="position:relative;display:flex;width:200px;overflow-x:auto;white-space:nowrap"><span id="ind" style="position:absolute;left:0;top:0"></span>${'<button style="flex:none;width:120px">T</button>'.repeat(5)}</div>`,
+      `const g = document.getElementById('g');
+       let sel = 0;
+       const items = () => [...g.querySelectorAll('button')];
+       window.c = new ti.ChoiceController(g, { items, selected: () => sel, indicator: () => document.getElementById('ind'), select: (i) => { sel = i; } });`,
+    );
+    await page.evaluate(() => {
+      document.getElementById('g')!.scrollLeft = 150;
+    });
+    await page.evaluate(() => {
+      (window as any).c.measured = false;
+      (window as any).c.update(false);
+    });
+    expect(await page.evaluate(() => document.getElementById('ind')!.style.translate)).toMatch(/^0(\.00)?px/);
+  });
+
+  test('dialog open() without a trigger grows from the focused trigger, and reopening mid-close keeps it open', async ({ page }) => {
+    await setup(
+      page,
+      `<button id="open" style="margin-left:300px">Open</button><dialog id="d"><button>OK</button></dialog>`,
+      `window.m = ti.dialogMotion(document.getElementById('d'));
+       document.getElementById('open').addEventListener('click', () => window.m.open());`,
+    );
+    await page.locator('#open').click();
+    const origin = await page.evaluate(() => {
+      const d = document.getElementById('d')!;
+      const o = document.getElementById('open')!.getBoundingClientRect();
+      const r = d.getBoundingClientRect();
+      return { x: parseFloat(d.style.transformOrigin), expected: Math.max(0, Math.min(r.width, o.left + o.width / 2 - r.left)) };
+    });
+    expect(origin.x).toBeCloseTo(origin.expected, 0);
+    await page.evaluate(() => {
+      void (window as any).m.close();
+      void (window as any).m.open(document.getElementById('open'));
+    });
+    await page.waitForTimeout(500);
+    await expect(page.locator('#d')).toBeVisible();
+  });
+
+  test('removing a slider mid-drag leaves no dragging state and commits', async ({ page }) => {
+    await setup(
+      page,
+      `<div id="wrap"><div id="s" aria-label="V" style="width:200px;height:20px"></div></div><div id="other"></div>`,
+      `const s = document.getElementById('s');
+       window.c = new ti.LinearController(s, { value: 0 });
+       s.addEventListener('change', () => log.push('change:' + window.c.value));`,
+    );
+    const b = (await page.locator('#s').boundingBox())!;
+    await page.mouse.move(b.x + 2, b.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(b.x + 100, b.y + 10, { steps: 4 });
+    await page.evaluate(() => {
+      const s = document.getElementById('s')!;
+      (window as any).c.hostDisconnected();
+      document.getElementById('other')!.append(s);
+      (window as any).c.hostConnected();
+    });
+    await page.mouse.up();
+    await expect(page.locator('#s')).toHaveAttribute('data-tr-state', 'idle');
+    await expect(page.locator('#s')).not.toHaveAttribute('data-dragging', '');
+    expect((await log(page)).length).toBe(1);
   });
 });

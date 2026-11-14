@@ -55,6 +55,8 @@ export class ToggleController {
     this.connected = true;
     this.host.addEventListener('pointerdown', this.onDown);
     this.host.addEventListener('change', this.onChange);
+    // Let a touch slide along the throw reach us; the cross axis still scrolls the page.
+    if (!this.host.style.touchAction) this.host.style.touchAction = this.o.orientation === 'vertical' ? 'pan-x' : 'pan-y';
   }
 
   hostDisconnected(): void {

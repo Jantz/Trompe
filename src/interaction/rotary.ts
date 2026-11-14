@@ -67,7 +67,7 @@ export class RotaryController extends ValueController {
     const angle = this.isEndless
       ? ((display - this.range.min) / this.revolution) * 360
       : -this.sweep / 2 + ratio * this.sweep;
-    this.host.style.setProperty('--tr-angle', `${angle.toFixed(2)}deg`);
+    this.host.style.setProperty("--tr-angle", `${(Math.abs(angle) < 0.005 ? 0 : angle).toFixed(2)}deg`);
   }
 
   protected beginDrag(e: PointerEvent): boolean {
