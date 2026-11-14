@@ -738,6 +738,8 @@ export function mountBar(o) {
     dial.setAttribute("aria-valuenow", angle);
     dial.setAttribute("aria-valuetext", `${angle} degrees`);
     store.set("light", angle);
+    // Pages that bake light into something static (an SVG lighting filter) listen for this.
+    document.dispatchEvent(new CustomEvent("tr-lightchange", { detail: { angle } }));
   };
   setA(angle);
   dial.addEventListener("pointerdown", (e) => {
