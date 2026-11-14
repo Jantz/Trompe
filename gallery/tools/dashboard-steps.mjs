@@ -5,6 +5,8 @@ export default async (pg, { out, name }) => {
   const ok = (c, msg) => { console.log(`${c ? "PASS" : "FAIL"} ${msg}`); if (!c) process.exitCode = 1; };
   const S = () => pg.evaluate(() => ({ ...meridian.S, sel: [...meridian.S.sel], tot: meridian.M.tot, util: meridian.M.util }));
   const shot = (n, o = {}) => pg.screenshot({ path: `${out}/${name}-${n}.png`, ...o });
+  // element box in page coordinates, for full-page clipped shots that don't depend on scroll position
+  const pbox = (sel) => pg.$eval(sel, (e) => { const r = e.getBoundingClientRect(); return { x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height }; });
   const W = (ms) => pg.waitForTimeout(ms);
   await pg.evaluate(() => document.fonts.ready);
 
@@ -56,7 +58,7 @@ export default async (pg, { out, name }) => {
   await pg.click("#range-btn"); await pg.click("#o-today"); await W(3000);
   const t1 = (await S()).tot; await W(1600);
   ok((await S()).tot > t1, "live keeps ticking in Today view");
-  await shot("live-today", { clip: await (await pg.$(".grid")).boundingBox().then((b) => ({ x: b.x, y: b.y, width: b.width, height: 560 })) });
+  await shot("live-today", { fullPage: true, clip: await pbox(".grid").then((b) => ({ x: b.x, y: b.y, width: b.width, height: 560 })) });
   await pg.click("#range-btn"); await pg.click("#o-d7"); await W(600);
   await shot("live", { clip: { x: 0, y: 0, width: 1440, height: 900 } });
   await pg.focus("#live"); await pg.keyboard.press("Space"); await W(300);
@@ -68,7 +70,7 @@ export default async (pg, { out, name }) => {
   ok((await pg.$$eval("#rows tr .ck[aria-disabled='false']", (e) => e.length)) === 1, "search 'ridge' -> 1 row");
   await pg.fill("#search", "zzz"); await W(100);
   ok(await pg.getAttribute("#search", "aria-invalid") === "true", "no match -> invalid state");
-  await shot("search-empty", { clip: await (await pg.$(".m-tbl")).boundingBox().then((b) => ({ x: 0, y: b.y - 10, width: 1440, height: b.height + 20 })) });
+  await shot("search-empty", { fullPage: true, clip: await pbox(".m-tbl").then((b) => ({ x: 0, y: b.y - 10, width: 1440, height: b.height + 20 })) });
   await pg.focus("#search"); await pg.keyboard.press("Escape"); await W(100);
   ok((await pg.inputValue("#search")) === "" && await pg.getAttribute("#search", "aria-invalid") === "false", "Escape clears search");
 
@@ -78,7 +80,7 @@ export default async (pg, { out, name }) => {
   await keys[0].click(); await keys[2].click(); await W(300);
   s = await S(); ok(s.sel.length === 2 && await pg.getAttribute("#ck-all", "aria-checked") === "mixed", "2 rows selected, header mixed");
   ok(await pg.$eval("#rows tr", (e) => e.classList.contains("sel")), "selected row inverted on e-paper");
-  await shot("selected", { clip: await (await pg.$(".m-tbl")).boundingBox().then((b) => ({ x: 0, y: b.y - 10, width: 1440, height: b.height + 20 })) });
+  await shot("selected", { fullPage: true, clip: await pbox(".m-tbl").then((b) => ({ x: 0, y: b.y - 10, width: 1440, height: b.height + 20 })) });
   ok(await pg.getAttribute("#hold", "aria-disabled") === "false", "bulk enabled");
   await pg.click("#hold"); await W(500);
   s = await S(); ok(s.sel.length === 0 && Object.values(s.flags).filter((v) => v === "Held").length === 2, "Hold flags 2 routes, clears selection");
