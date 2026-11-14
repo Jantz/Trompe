@@ -3,6 +3,7 @@ import { property, query } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { live } from 'lit/directives/live.js';
 import { FormControl } from '../../internal/form-control.js';
+import { SizeTransition, crossfadeText } from '../../interaction/smooth.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
 
@@ -91,6 +92,9 @@ export class TrTextarea extends FormControl {
         display: flex;
         border-radius: var(--tr-textarea-radius, min(var(--tr-radius-md, 10px), 1em));
         cursor: text;
+        transition:
+          border-color var(--tr-motion-duration-release, 160ms),
+          border-width var(--tr-motion-duration-release, 160ms);
         --_layer: linear-gradient(
           calc(var(--tr-light-angle, 330deg) + 180deg),
           color-mix(in oklch, var(--_sh) calc(var(--_r) * 10%), transparent),
@@ -101,6 +105,7 @@ export class TrTextarea extends FormControl {
       }
       .field:has(textarea:focus-visible) {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 2px;
       }
       textarea {
@@ -140,18 +145,53 @@ export class TrTextarea extends FormControl {
         min-height: calc(var(--_rows, 3) * 1.45em + 1.2em);
         max-height: var(--tr-textarea-max-height, 20em);
       }
+      /* The foot (hint, error, counter) animates its height (SizeTransition) and its notes fade in
+         and out, so content below the field glides instead of jumping. */
+      .messages {
+        margin-top: -0.35em;
+      }
       .foot {
         display: flex;
         align-items: flex-start;
         gap: 0.75em;
       }
-      .foot[hidden] {
+      .msg {
+        /* the host's 0.35em gap, in the message's smaller (0.8125em) type */
+        margin-top: calc(0.35em / 0.8125);
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
+          translate var(--tr-motion-duration-travel, 220ms) cubic-bezier(0.2, 0.7, 0.2, 1),
+          display var(--tr-motion-duration-release, 160ms) allow-discrete;
+      }
+      .msg[hidden] {
         display: none;
+        opacity: 0;
+        translate: 0 -0.3em;
+        transition-timing-function: ease-in;
+      }
+      @starting-style {
+        .msg {
+          opacity: 0;
+          translate: 0 -0.3em;
+        }
+      }
+      .grow {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+      }
+      /* Autosize: the textarea takes its content height and the wrapper animates to it. */
+      :host([autosize]) .grow {
+        display: block;
+        align-self: flex-start;
       }
       .notes {
         flex: 1;
         display: grid;
-        gap: 0.2em;
+        gap: 0;
+      }
+      .notes .msg + .msg {
+        margin-top: calc(0.2em / 0.8125);
       }
       .hint,
       .error,
@@ -267,6 +307,18 @@ export class TrTextarea extends FormControl {
   @property({ reflect: true }) error = '';
 
   /** Accessible name forwarded to the inner textarea when there is no visible label. */
+  /** The foot glides to its new height when notes come and go. */
+  protected readonly footSize = new SizeTransition(this, () => ({
+    outer: this.renderRoot?.querySelector<HTMLElement>('.messages'),
+    inner: this.renderRoot?.querySelector<HTMLElement>('.foot'),
+  }));
+  /** With `autosize`, the field grows and shrinks smoothly as lines are added. */
+  protected readonly fieldSize = new SizeTransition(this, () => ({
+    outer: this.autosize ? this.renderRoot?.querySelector<HTMLElement>('.grow') : null,
+    inner: this.autosize ? this.textarea : null,
+  }));
+  private shownError = '';
+
   @property({ attribute: 'aria-label', reflect: false }) accessibleLabel: string | null = null;
 
   @query('textarea') private textarea!: HTMLTextAreaElement;
@@ -322,7 +374,7 @@ export class TrTextarea extends FormControl {
     return html`
       <label part="label" class="label" for="textarea" ?hidden=${!this.label}>${this.label}</label>
       <div part="field" class="field surface" style="--_rows:${this.rows}" @click=${this.onFieldClick}>
-        <textarea
+        <div class="grow"><textarea
           part="textarea"
           id="textarea"
           .value=${live(this.value)}
@@ -340,20 +392,20 @@ export class TrTextarea extends FormControl {
           @input=${this.onInput}
           @change=${this.onChange}
           @blur=${this.onBlur}
-        ></textarea>
+        ></textarea></div>
       </div>
-      <div class="foot" ?hidden=${!(hasHint || this.counter || (showError && errorText))}>
+      <div class="messages"><div class="foot">
         <div class="notes">
-          <div part="hint" id="hint" class="hint" ?hidden=${!hasHint}><slot name="hint" @slotchange=${this.onSlotChange}>${this.hint}</slot></div>
-          <div part="error" id="error" class="error" ?hidden=${!(showError && errorText)}>
+          <div part="hint" id="hint" class="msg hint" ?hidden=${!hasHint}><slot name="hint" @slotchange=${this.onSlotChange}>${this.hint}</slot></div>
+          <div part="error" id="error" class="msg error" ?hidden=${!(showError && errorText)}>
             <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor" /><path d="M8 4.2v4.6M8 10.9v.9" stroke="var(--_err-ink, #fff)" stroke-width="1.8" stroke-linecap="round" /></svg>
-            <span>${errorText}</span>
+            <span class="error-text">${errorText || this.shownError}</span>
           </div>
         </div>
-        <span part="counter" id="counter" class="counter ${max !== undefined && len >= max ? 'full' : ''}" ?hidden=${!this.counter}
+        <span part="counter" id="counter" class="msg counter ${max !== undefined && len >= max ? 'full' : ''}" ?hidden=${!this.counter}
           >${max !== undefined ? `${len} / ${max}` : len}</span
         >
-      </div>
+      </div></div>
     `;
   }
 
@@ -361,6 +413,10 @@ export class TrTextarea extends FormControl {
     super.updated(changed);
     this.internals.setFormValue(this.value);
     this.syncValidity();
+    const text = this.renderRoot.querySelector<HTMLElement>('.error-text');
+    const now = text && !text.parentElement?.hidden ? (text.textContent ?? '') : '';
+    if (now && this.shownError && now !== this.shownError) crossfadeText(text, this.shownError);
+    if (now) this.shownError = now;
     if (changed.has('error')) {
       if (this.error) this.setAttribute('data-user-invalid', '');
       else if (changed.get('error') && this.textarea?.validity.valid) this.removeAttribute('data-user-invalid');

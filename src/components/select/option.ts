@@ -164,6 +164,7 @@ export class TrOption extends TrompeElement {
       }
       :host([data-mode='segment']:focus-visible) .row {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: 2px;
         z-index: 1;
       }

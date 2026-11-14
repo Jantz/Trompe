@@ -38,3 +38,7 @@ export { TrDialog } from './components/dialog/dialog.js';
 export { TrMenu } from './components/menu/menu.js';
 export { TrMenuItem } from './components/menu/menu-item.js';
 export { TrTooltip } from './components/tooltip/tooltip.js';
+
+// Motion: smooth size changes, enter/exit, text cross-fades and page-wide View Transitions.
+export { SizeTransition, enter, exit, removeAnimated, insertAnimated, crossfadeText, viewTransition, autoViewTransitions } from './interaction/smooth.js';
+export { reducedMotion } from './interaction/motion.js';

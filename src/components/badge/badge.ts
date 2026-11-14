@@ -1,3 +1,4 @@
+import { SizeTransition, crossfadeText } from '../../interaction/smooth.js';
 import { css, html, unsafeCSS } from 'lit';
 import { property } from 'lit/decorators.js';
 import { materialDefaults } from '../../generated/tokens.js';
@@ -55,6 +56,27 @@ export class TrBadge extends TrompeElement {
         vertical-align: middle;
         font-size: 0.75em;
         line-height: 1;
+        /* --_tone and --_tone-ink are registered: a tone change fades the enamel */
+        /* enamel colours: the tone, or the material itself for neutral */
+        --_eb: var(--_tone);
+        --_ei: var(--_tone-ink);
+        --_ee: color-mix(in oklch, var(--_tone), var(--tr-color-shadow, #000) 30%);
+        transition:
+          --_tone var(--tr-motion-duration-travel, 220ms) ease-out,
+          --_tone-ink var(--tr-motion-duration-travel, 220ms) ease-out,
+          --_eb var(--tr-motion-duration-travel, 220ms) ease-out,
+          --_ei var(--tr-motion-duration-travel, 220ms) ease-out,
+          --_ee var(--tr-motion-duration-travel, 220ms) ease-out;
+      }
+      :host([tone='neutral']),
+      :host(:not([tone])) {
+        --_eb: var(--_m-base);
+        --_ei: var(--_m-ink);
+        --_ee: var(--tr-color-edge);
+      }
+      /* The text box glides to a new width (a count going from 9 to 10) instead of jumping. */
+      .text-box {
+        display: inline-flex;
       }
       :host([size='md']) {
         font-size: 0.875em;
@@ -92,17 +114,12 @@ export class TrBadge extends TrompeElement {
       /* enamel: glossy colored pill */
       :host([variant='enamel']) .badge {
         --_tr-z: 1;
-        --_base: var(--_tone);
-        --_ink: var(--_tone-ink);
-        --_edge: color-mix(in oklch, var(--_tone), var(--_sh) 30%);
+        --_base: var(--_eb);
+        --_ink: var(--_ei);
+        --_edge: var(--_ee);
         /* read the gloss upstream, as surface.ts resolves it: var(--_gloss) here would be a cycle */
         --_gloss: max(var(--tr-f-gloss, var(--tr-m-gloss, ${unsafeCSS((materialDefaults as Record<string, string>).gloss)})), 0.55);
         --_curve: 0.5;
-      }
-      :host([variant='enamel'][tone='neutral']) .badge {
-        --_base: var(--_m-base);
-        --_ink: var(--_m-ink);
-        --_edge: var(--tr-color-edge);
       }
       /* plate: engraved lettering on the surrounding material, a colored inlay stripe */
       :host([variant='plate']) .badge {
@@ -201,12 +218,40 @@ export class TrBadge extends TrompeElement {
   @property() label = '';
 
   private hasText = true;
+  private shownText: string | null = null;
+  private textObserver: MutationObserver | null = null;
+  protected readonly textSize = new SizeTransition(
+    this,
+    () => ({ outer: this.renderRoot?.querySelector<HTMLElement>('.text-box'), inner: this.renderRoot?.querySelector<HTMLElement>('.text') }),
+    { axis: 'inline' },
+  );
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    // New text (a changing count) cross-fades over the old.
+    this.textObserver ??= new MutationObserver(() => this.onTextChange());
+    this.textObserver.observe(this, { childList: true, characterData: true, subtree: true });
+    this.shownText = this.textContent ?? '';
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.textObserver?.disconnect();
+  }
+
+  private onTextChange(): void {
+    const now = this.textContent ?? '';
+    const before = this.shownText;
+    this.shownText = now;
+    if (before === null || before === now || !this.hasUpdated) return;
+    crossfadeText(this.renderRoot.querySelector<HTMLElement>('.text'), before.trim(), { duration: 160 });
+  }
 
   protected override render() {
     return html`<span part="badge" class="badge surface">
       <span part="dot" class="dot" ?hidden=${!this.dot} aria-hidden="true"></span>
       <slot name="start"></slot>
-      <span class="text ${this.hasText ? 'has' : ''}"><slot @slotchange=${this.onSlot}></slot></span>
+      <span class="text-box"><span class="text ${this.hasText ? 'has' : ''}"><slot @slotchange=${this.onSlot}></slot></span></span>
       ${this.label ? html`<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">${this.label}</span>` : ''}
     </span>`;
   }

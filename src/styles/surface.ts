@@ -277,6 +277,14 @@ export const focusStyles = css`
   :host(:focus-visible) .focus-ring {
     outline: 2px solid var(--tr-color-focus);
     outline-offset: 3px;
+    animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  /* The ring closes in on the control instead of popping on. Any focus ring may use it. */
+  @keyframes tr-focus-in {
+    from {
+      outline-color: transparent;
+      outline-offset: 7px;
+    }
   }
   @media (forced-colors: active) {
     :host(:focus-visible) .focus-ring {

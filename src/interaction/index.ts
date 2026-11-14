@@ -20,7 +20,7 @@
  */
 export { Spring, springs, springEasing, stepSpring, resolveSpring } from './spring.js';
 export type { SpringParams, SpringName, SpringEasing } from './spring.js';
-export { loop, activeTickers } from './loop.js';
+export { loop, activeTickers, setTimeScale } from './loop.js';
 export type { Ticker } from './loop.js';
 export { reducedMotion } from './motion.js';
 export { feedback, soundProfiles, soundFor } from './feedback.js';
@@ -43,3 +43,5 @@ export { RotaryController } from './rotary.js';
 export type { RotaryOptions, RotaryDrag } from './rotary.js';
 export { applyDetents, detentIndex, restingPoint } from './detents.js';
 export type { DetentSpec } from './detents.js';
+export { SizeTransition, enter, exit, removeAnimated, insertAnimated, crossfadeText, viewTransition, autoViewTransitions, LOOK_ATTRIBUTES } from './smooth.js';
+export type { SizeTransitionOptions, PartMotion } from './smooth.js';

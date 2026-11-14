@@ -14,7 +14,7 @@ test.describe('tr-meter', () => {
 
   test('value lights whole segments without re-rendering', async ({ page }) => {
     await mount(page, `<tr-meter id="m" label="Level" segments="10" value="0.5"></tr-meter>`);
-    const v = () => page.locator('#m').evaluate((el) => (el.shadowRoot!.querySelector('.band') as HTMLElement).style.getPropertyValue('--_v'));
+    const v = () => page.locator('#m').evaluate((el) => (el.shadowRoot!.querySelector('.band') as HTMLElement).style.getPropertyValue('--_mv'));
     expect(await v()).toBe('0.5');
     await page.evaluate(() => ((document.getElementById('m') as any).value = 0.83));
     expect(await v()).toBe('0.8');
@@ -35,7 +35,7 @@ test.describe('tr-meter', () => {
       s.values = [0, 0.2, 0.4, 0.6, 0.8, 1, 0.5, 0.3];
     });
     const vs = await page.locator('#s').evaluate((el) =>
-      [...el.shadowRoot!.querySelectorAll<HTMLElement>('.band')].map((b) => b.style.getPropertyValue('--_v')),
+      [...el.shadowRoot!.querySelectorAll<HTMLElement>('.band')].map((b) => b.style.getPropertyValue('--_mv')),
     );
     expect(vs).toEqual(['0', '0.2', '0.4', '0.6', '0.8', '1', '0.5', '0.3']);
   });

@@ -93,7 +93,7 @@ export class TrMenuItem extends TrompeElement {
           translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out);
       }
       /* at rest the item is only a legend on the plate: no cap, no rim, no shadow */
-      :host(:not(:focus):not([data-expanded])) .key,
+      :host(:not(:focus):not([data-expanded]):not([data-tr-lit])) .key,
       :host([disabled]) .key {
         background: none;
         border-color: transparent;
@@ -101,12 +101,13 @@ export class TrMenuItem extends TrompeElement {
         text-shadow: none;
         backdrop-filter: none;
       }
-      :host(:not(:focus):not([data-expanded])) .key::before,
+      :host(:not(:focus):not([data-expanded]):not([data-tr-lit])) .key::before,
       :host([disabled]) .key::before {
         display: none;
       }
       /* highlighted: the key rises and lights from inside */
       :host(:focus:not([disabled])) .key,
+      :host([data-tr-lit]:not([disabled])) .key,
       :host([data-expanded]:not([disabled])) .key {
         --_tr-z: 1;
         --_base: var(--_hi);
@@ -121,6 +122,7 @@ export class TrMenuItem extends TrompeElement {
         translate: 0 calc(var(--_sy) * -0.5px);
       }
       :host(:focus:not([disabled])) .glow,
+      :host([data-tr-lit]:not([disabled])) .glow,
       :host([data-expanded]:not([disabled])) .glow {
         opacity: calc(var(--_r) * 0.55);
       }
@@ -219,6 +221,7 @@ export class TrMenuItem extends TrompeElement {
       }
       @media (forced-colors: active) {
         :host(:focus) .key,
+        :host([data-tr-lit]) .key,
         :host([data-expanded]) .key {
           background: Highlight;
           color: HighlightText;
