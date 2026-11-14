@@ -184,7 +184,8 @@ button { cursor: pointer; }
 .th-who { min-width: 0; flex: 1; }
 .th-who h2 { margin: 0; font: 720 1.24em/1.15 var(--disp); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: .35em; }
 .th-who h2 .ico { width: .85em; height: .85em; color: var(--ink-3); }
-.th-who p { margin: .15em 0 0; font-size: .82em; color: var(--ink-2); display: flex; align-items: center; gap: .45em; white-space: nowrap; overflow: hidden; }
+.th-who p { margin: .15em 0 0; font-size: .82em; color: var(--ink-2); display: flex; align-items: center; gap: .45em; white-space: nowrap; }
+.th-who p span { overflow: hidden; text-overflow: ellipsis; }
 .th-who p i { flex: none; width: .55em; height: .55em; border-radius: 50%; background: radial-gradient(circle at 38% 34%, oklch(0.98 0.04 160), oklch(0.72 0.18 156)); box-shadow: 0 0 .4em oklch(0.82 0.19 156 / .9); }
 .th-who p i.off { background: oklch(0.72 0.015 70); box-shadow: none; }
 .th-tools { display: flex; gap: .85em; }
@@ -256,7 +257,7 @@ button { cursor: pointer; }
 .photo { position: relative; border-radius: .95em; overflow: hidden; aspect-ratio: 16 / 10; box-shadow: inset 0 0 0 1px oklch(var(--shc) / .2); }
 .photo svg { display: block; width: 100%; height: 100%; }
 .photo::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(calc(var(--tr-light-angle) + 135deg), oklch(1 0 0 / .3), oklch(1 0 0 / .06) 34%, transparent 35%, transparent 70%, oklch(1 0 0 / .08));
+  background: linear-gradient(calc(var(--tr-light-angle) + 135deg), oklch(1 0 0 / .26), oklch(1 0 0 / .05) 40%, transparent 60%);
   box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 1px oklch(1 0 0 / .55), inset calc(var(--sx) * -.2em) calc(var(--sy) * -.3em) .5em oklch(0.2 0.03 230 / .3); }
 .file { display: flex; align-items: center; gap: .65em; padding: .55em .25em .15em .45em; font-size: .86em; position: relative; z-index: 2; }
 .file b { font-weight: 650; display: block; }
@@ -750,7 +751,7 @@ function renderThread() {
   if (!c) return;
   $("#thBead").outerHTML = bead(c).replace('class="bead', 'id="thBead" class="bead');
   $("#thName").innerHTML = esc(c.name) + (c.muted ? ico("mute") : "");
-  $("#thStatus").innerHTML = c.grp ? `<i class="off"></i>${c.sub}` : c.on ? `<i></i>Online · ${c.local ?? "active now"}` : `<i class="off"></i>Last seen recently`;
+  $("#thStatus").innerHTML = c.grp ? `<i class="off"></i><span>${c.sub}</span>` : c.on ? `<i></i><span>Online · ${c.local ?? "active now"}</span>` : `<i class="off"></i><span>Last seen recently</span>`;
   log.innerHTML = c.msgs.map((m, i) => msgHTML(m, c, i)).join("") + (c.typing ? typingHTML(c) : "");
   wireLog();
   log.scrollTop = log.scrollHeight;

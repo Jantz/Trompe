@@ -180,6 +180,23 @@ export default async (pg, { out, name }) => {
     await pg.keyboard.press("Escape"); await wait(200);
   });
 
+  // Status bar: slide switch + slider
+  await step("Switch and slider", async () => {
+    await pg.click("#ff"); await wait(500);
+    ok(await pg.getAttribute("#ff", "aria-checked") === "false", "Folders first switch turns off");
+    s = await st(); ok(!(await pg.evaluate((id) => __archive.I.get(id).dir, s.list[0])) || s.list.length < 2, "cards interleave with folders when off");
+    await pg.focus("#ff"); await pg.keyboard.press("Space"); await wait(400);
+    ok(await pg.getAttribute("#ff", "aria-checked") === "true", "Space turns the switch back on");
+    await pg.focus("#zoom"); await pg.keyboard.press("ArrowRight"); await pg.keyboard.press("ArrowRight"); await wait(400);
+    ok(await pg.getAttribute("#zoom", "aria-valuenow") === "4", "slider arrows step to Largest");
+    await shot("zoom", { clip: { x: 0, y: 0, width: 1440, height: 900 } });
+    const t = await (await pg.$(".ztrack")).boundingBox();
+    await pg.mouse.click(t.x + 4, t.y + t.height / 2); await wait(400);
+    ok(await pg.getAttribute("#zoom", "aria-valuenow") === "0", "clicking the slot start jumps to Smallest");
+    await pg.keyboard.press("End"); await pg.keyboard.press("ArrowLeft"); await pg.keyboard.press("ArrowLeft"); await wait(300);
+    ok(await pg.getAttribute("#zoom", "aria-valuetext") === "Medium cards", "valueText describes size");
+  });
+
   // Drawer navigation
   await step('Drawer navigation', async () => {
     await pg.click('.drawer[data-loc="projects"]'); await wait(700);

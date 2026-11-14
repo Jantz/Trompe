@@ -13,104 +13,107 @@
 /* Kurogane: black urushi lacquer, gold hairline inlay (maki-e), raw silk wells, brushed brass hardware.
    Every surface reads the scene light: --sx/--sy point away from the light, so -sx/-sy point at it. */
 :root {
-  color-scheme: dark;
-  --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --len: var(--tr-shadow-len);
-  --la: var(--tr-light-angle); --away: calc(var(--tr-light-angle) + 180deg);
-  --o1: calc(var(--sx) * 1px) calc(var(--sy) * 1px); --on1: calc(var(--sx) * -1px) calc(var(--sy) * -1px);
-  --gold-hi: oklch(0.93 0.075 92);
-  --gold: oklch(0.81 0.115 84);
-  --gold-mid: oklch(0.68 0.11 76);
-  --gold-lo: oklch(0.52 0.09 66);
-  --gold-deep: oklch(0.36 0.065 58);
-  --ink: oklch(0.94 0.012 85);
-  --ink-2: oklch(0.82 0.018 80);
-  --ink-3: oklch(0.66 0.016 75);
-  --shu: oklch(0.64 0.2 33);
-  --shu-ink: oklch(0.78 0.13 40);
-  --serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
-  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
-  --tr-focus: var(--gold-hi);
-  /* gold leaf: lit end toward the light */
-  --gold-leaf: linear-gradient(var(--away), var(--gold-hi), var(--gold) 28%, var(--gold-deep) 62%, var(--gold-mid));
-  /* raw silk: slubs (long horizontal noise) + plain weave */
-  --tex-slub: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='140'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.018 .38' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .94 0 0 0 0 .8 0 0 0 2 -1.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
-  --tex-weave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='3'%3E%3Cpath d='M0 0h6v1H0z' fill='%23fff' fill-opacity='.045'/%3E%3Cpath d='M0 2h6v1H0z' fill='%23000' fill-opacity='.2'/%3E%3Cpath d='M2 0h1v3H2z' fill='%23000' fill-opacity='.08'/%3E%3C/svg%3E");
-  /* nashiji: gold flakes sprinkled into lacquer */
-  --tex-nashiji: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='1' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .96 0 0 0 0 .8 0 0 0 0 .45 32 0 0 0 -23.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+color-scheme: dark;
+--sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --len: var(--tr-shadow-len);
+--la: var(--tr-light-angle); --away: calc(var(--tr-light-angle) + 180deg);
+--gold-dome: radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), var(--gold-hi), var(--gold) 40%, var(--gold-lo) 85%, var(--gold-deep));
+--lacquer: linear-gradient(var(--away), oklch(.24 .009 40), oklch(.12 .007 35) 55%, oklch(.08 .005 30));
+--brass: var(--tr-tex-brushed) 0 0 / 14em 3em, linear-gradient(var(--away), oklch(.88 .085 88), oklch(.71 .1 79) 43%, oklch(.51 .085 68));
+--o1: calc(var(--sx) * 1px) calc(var(--sy) * 1px); --on1: calc(var(--sx) * -1px) calc(var(--sy) * -1px);
+--gold-hi: oklch(.93 .075 92);
+--gold: oklch(.81 .115 84);
+--gold-mid: oklch(.68 .11 76);
+--gold-lo: oklch(.52 .09 66);
+--gold-deep: oklch(.36 .065 58);
+--ink: oklch(.94 .012 85);
+--ink-2: oklch(.82 .018 80);
+--ink-3: oklch(.66 .016 75);
+--shu: oklch(.64 .2 33);
+--shu-ink: oklch(.78 .13 40);
+--serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+--sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+--mono: "IBM Plex Mono", ui-monospace, monospace;
+--tr-focus: var(--gold-hi);
+
+--gold-leaf: linear-gradient(var(--away), var(--gold-hi), var(--gold) 28%, var(--gold-deep) 62%, var(--gold-mid));
+
+--tex-slub: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='140'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.018 .38' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .94 0 0 0 0 .8 0 0 0 2 -1.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+--tex-weave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='3'%3E%3Cpath d='M0 0h6v1H0z' fill='%23fff' fill-opacity='.045'/%3E%3Cpath d='M0 2h6v1H0z' fill='%23000' fill-opacity='.2'/%3E%3Cpath d='M2 0h1v3H2z' fill='%23000' fill-opacity='.08'/%3E%3C/svg%3E");
+
+--tex-nashiji: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='1' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .96 0 0 0 0 .8 0 0 0 0 .45 32 0 0 0 -23.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-html { background: oklch(0.1 0.005 50); }
-body { color: var(--ink); font: 400 15px/1.5 var(--sans); background: oklch(0.1 0.005 50); }
+html { background: oklch(.1 .005 50); }
+body { color: var(--ink); font: 400 15px/1.5 var(--sans); background: oklch(.1 .005 50); }
 h1, h2, h3, p { margin: 0; }
 button { cursor: pointer; }
 :focus-visible { outline: 1.5px solid var(--gold-hi); outline-offset: 3px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .num { font-variant-numeric: tabular-nums lining-nums; }
 
-/* ---------- Room + lacquer board ---------- */
+/* Room + lacquer board */
 .stage {
-  container: stage / inline-size;
-  padding: clamp(16px, 3.2vw, 56px) max(16px, 3vw) 64px;
-  background:
-    radial-gradient(70% 55% at calc(50% - var(--sx) * 34%) calc(28% - var(--sy) * 22%), oklch(0.29 0.014 62 / .6), transparent 72%),
-    linear-gradient(oklch(0.165 0.008 55), oklch(0.1 0.005 50));
+container: stage / inline-size;
+padding: clamp(16px, 3.2vw, 56px) max(16px, 3vw) 64px;
+background:
+radial-gradient(70% 55% at calc(50% - var(--sx) * 34%) calc(28% - var(--sy) * 22%), oklch(.29 .014 62 / .6), transparent 72%),
+linear-gradient(oklch(.165 .008 55), oklch(.1 .005 50));
 }
 .board {
-  position: relative; isolation: isolate; contain: layout paint;
-  max-width: 84em; margin: 0 auto; border-radius: 1.6em;
-  font-size: clamp(15px, 1.18cqi, 16px);
-  background:
-    radial-gradient(130% 60% at calc(50% - var(--sx) * 60%) calc(50% - var(--sy) * 75%), oklch(0.2 0.01 40 / .9), transparent 60%),
-    radial-gradient(60% 40% at calc(50% + var(--sx) * 52%) calc(50% + var(--sy) * 62%), oklch(0.4 0.06 60 / .1), transparent 70%),
-    linear-gradient(var(--away), oklch(0.15 0.008 38), oklch(0.085 0.006 32) 42%, oklch(0.055 0.004 30));
-  box-shadow:
-    inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 1px -.5px oklch(1 0 0 / .38),
-    inset calc(var(--sx) * 7px) calc(var(--sy) * 8px) 12px -7px oklch(1 0 0 / .1),
-    inset var(--on1) 1px oklch(1 0 0 / .1),
-    inset 0 0 0 1px oklch(0 0 0 / .9),
-    calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px oklch(0 0 0 / .75),
-    calc(var(--sx) * 26px * var(--len)) calc(var(--sy) * 34px * var(--len)) 70px oklch(0 0 0 / .65);
-}
-/* The softbox window reflected in the mirror-gloss lacquer; slides toward the light. */
-.board::before {
-  content: ""; position: absolute; z-index: -1; pointer-events: none;
-  width: 54em; height: 30em; max-width: 86%;
-  left: calc(50% - var(--sx) * 31%); top: clamp(12em, calc(46% - var(--sy) * 44%), calc(100% - 14em));
-  translate: -50% -50%; border-radius: 1.5em;
-  background: linear-gradient(calc(var(--la) + 165deg), oklch(1 0.005 85 / .2), oklch(1 0 0 / .07) 50%, oklch(1 0 0 / .02));
-  -webkit-mask: linear-gradient(90deg, #0000, #000 7%, #000 93%, #0000), linear-gradient(#0000, #000 6%, #000 82%, #0000),
-    linear-gradient(90deg, #000 47.5%, #0003 49.3% 50.7%, #000 52.5%);
-  -webkit-mask-composite: source-in; mask-composite: intersect;
-}
-/* Warm room bounce on the far side + nashiji gold dust in the far corner. */
-.board::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
-  background: var(--tex-nashiji);
-  -webkit-mask: radial-gradient(38em 26em at 100% 100%, #000, #0000 75%);
-  mask: radial-gradient(38em 26em at 100% 100%, #000, #0000 75%); opacity: .75;
+position: relative; isolation: isolate; contain: layout paint;
+max-width: 84em; margin: 0 auto; border-radius: 1.6em;
+font-size: clamp(15px, 1.18cqi, 16px);
+background:
+radial-gradient(130% 60% at calc(50% - var(--sx) * 60%) calc(50% - var(--sy) * 75%), oklch(.2 .01 40 / .9), transparent 60%),
+radial-gradient(60% 40% at calc(50% + var(--sx) * 52%) calc(50% + var(--sy) * 62%), oklch(.4 .06 60 / .1), transparent 70%),
+linear-gradient(var(--away), oklch(.15 .008 38), oklch(.085 .006 32) 42%, oklch(.055 .004 30));
+box-shadow:
+inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 1px -.5px #fff6,
+inset calc(var(--sx) * 7px) calc(var(--sy) * 8px) 12px -7px #fff2,
+inset var(--on1) 1px #fff2,
+inset 0 0 0 1px #000e,
+calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px #000b,
+calc(var(--sx) * 26px * var(--len)) calc(var(--sy) * 34px * var(--len)) 70px #000a;
 }
 
-/* ---------- Gold, engraving, type ---------- */
+.board::before {
+content: ""; position: absolute; z-index: -1; pointer-events: none;
+width: 54em; height: 30em; max-width: 86%;
+left: calc(50% - var(--sx) * 36%); top: clamp(12em, calc(46% - var(--sy) * 44%), calc(100% - 14em));
+translate: -50% -50%; border-radius: 1.5em;
+background: linear-gradient(calc(var(--la) + 165deg), oklch(1 .005 85 / .2), #fff1 50%, #fff0);
+-webkit-mask: linear-gradient(90deg, #0000, #000 7%, #000 93%, #0000), linear-gradient(#0000, #000 6%, #000 82%, #0000),
+linear-gradient(90deg, #000 47.5%, #0003 49.3% 50.7%, #000 52.5%);
+-webkit-mask-composite: source-in; mask-composite: intersect;
+}
+
+.board::after {
+content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
+background: var(--tex-nashiji);
+-webkit-mask: radial-gradient(38em 26em at 100% 100%, #000, #0000 75%);
+mask: radial-gradient(38em 26em at 100% 100%, #000, #0000 75%); opacity: .75;
+}
+
+/* Gold, engraving, type */
 .lbl {
-  display: block; font: 600 .7em/1.2 var(--sans); letter-spacing: .17em; text-transform: uppercase; color: var(--gold);
-  text-shadow: var(--on1) 0 #000, calc(var(--sx) * .6px) calc(var(--sy) * .6px) 0 oklch(0.95 0.05 90 / .22);
+display: block; font: 600 .7em/1.2 var(--sans); letter-spacing: .17em; text-transform: uppercase; color: var(--gold);
+text-shadow: var(--on1) 0 #000, calc(var(--sx) * .6px) calc(var(--sy) * .6px) 0 oklch(.95 .05 90 / .22);
 }
 .eyebrow { font: 500 .72em/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--gold-mid); margin-bottom: .7em; }
 h2.title { font: 500 2.05em/1.05 var(--serif); letter-spacing: .005em; color: var(--ink); }
 h3.sub { font: 600 1.28em/1.1 var(--serif); letter-spacing: .01em; }
 .lede { color: var(--ink-3); font-size: .93em; margin-top: .55em; max-width: 34ch; text-wrap: pretty; }
-.hair { /* gold hairline inlay sitting in a fine engraved groove */
-  height: 1px; border: 0; margin: 0;
-  background: linear-gradient(90deg, #0000, var(--gold-lo) 10%, var(--gold) 50%, var(--gold-lo) 90%, #0000);
-  box-shadow: 0 1px 0 oklch(0 0 0 / .8), 0 -1px 0 oklch(0 0 0 / .45); opacity: .7;
+.hair {
+height: 1px; border: 0; margin: 0;
+background: linear-gradient(90deg, #0000, var(--gold-lo) 10%, var(--gold) 50%, var(--gold-lo) 90%, #0000);
+box-shadow: 0 1px 0 #000c, 0 -1px 0 #0007; opacity: .7;
 }
 .link {
-  color: var(--gold); text-decoration: none; font: 500 .86em/1.3 var(--sans); border: 0; padding: .35em 0; background:
-  linear-gradient(90deg, var(--gold-lo), var(--gold-mid)) 0 100% / 100% 1px no-repeat;
+color: var(--gold); text-decoration: none; font: 500 .86em/1.3 var(--sans); border: 0; padding: .35em 0; background:
+linear-gradient(90deg, var(--gold-lo), var(--gold-mid)) 0 100% / 100% 1px no-repeat;
 }
 .link:hover { color: var(--gold-hi); }
 
-/* ---------- Shop header + stepper ---------- */
+/* Shop header + stepper */
 .shop { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1em; padding: 1.4em 2.25em 1.3em; }
 .brand { display: flex; align-items: center; gap: .85em; color: var(--ink); text-decoration: none; }
 .mon { width: 2.6em; height: 2.6em; flex: none; filter: drop-shadow(calc(var(--sx) * -.7px) calc(var(--sy) * -.7px) 0 #000); }
@@ -121,140 +124,140 @@ h3.sub { font: 600 1.28em/1.1 var(--serif); letter-spacing: .01em; }
 .secure svg { width: 1.1em; height: 1.1em; vertical-align: -.15em; margin-right: .35em; stroke: var(--gold-mid); }
 .bag { display: inline-flex; align-items: center; gap: .5em; color: var(--ink-2); }
 .bag i { font-style: normal; display: grid; place-items: center; min-width: 1.75em; height: 1.75em; border-radius: 1em; padding: 0 .4em;
-  color: oklch(0.2 0.03 60); font-weight: 600; font-size: .9em; background: var(--gold-leaf);
-  box-shadow: 0 0 0 1px oklch(0 0 0 / .8), calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 2px #000a; }
+color: oklch(.2 .03 60); font-weight: 600; font-size: .9em; background: var(--gold-leaf);
+box-shadow: 0 0 0 1px #000c, calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 2px #000a; }
 
 .steps ol { display: flex; list-style: none; margin: 0; padding: 0; }
 .steps li { position: relative; display: flex; align-items: center; }
-.steps li + li::before { /* inlay rail between studs; the bright fill is a scaled overlay */
-  content: ""; width: 4.5em; height: 1px; margin: 0 .2em; background: oklch(0.5 0.07 66 / .5); box-shadow: 0 1px 0 #000;
+.steps li + li::before {
+content: ""; width: 4.5em; height: 1px; margin: 0 .2em; background: oklch(.5 .07 66 / .5); box-shadow: 0 1px 0 #000;
 }
 .steps li + li::after {
-  content: ""; position: absolute; left: .2em; top: 50%; width: 4.5em; height: 1px; background: var(--gold);
-  transform-origin: 0 50%; transform: scaleX(0); transition: transform .5s var(--tr-ease-out);
+content: ""; position: absolute; left: .2em; top: 50%; width: 4.5em; height: 1px; background: var(--gold);
+transform-origin: 0 50%; transform: scaleX(0); transition: transform .5s var(--tr-ease-out);
 }
 .steps li[data-state="done"] + li::after, .steps li[data-state="current"]:not(:first-child)::after { transform: scaleX(1); }
 .steps button { display: flex; align-items: center; gap: .6em; border: 0; background: none; padding: .5em .3em; min-height: 2.75em; color: var(--ink-3); font: 500 .86em/1 var(--sans); letter-spacing: .04em; border-radius: .6em; }
 .steps li[data-state="current"] button { color: var(--ink); }
 .steps li[data-state="done"] button { color: var(--ink-2); }
 .stud { position: relative; display: grid; place-items: center; width: 2em; height: 2em; border-radius: 50%; font: 600 .88em/1 var(--sans);
-  color: var(--gold); background: radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), oklch(0.27 0.01 40), oklch(0.08 0.005 30) 70%);
-  box-shadow: inset 0 0 0 1px var(--gold-lo), 0 0 0 1px #000, calc(var(--sx) * 1px) calc(var(--sy) * 2px) 3px #000c; }
-.stud::after { /* gold leaf cap: shown for current + done */
-  content: ""; position: absolute; inset: 0; border-radius: 50%; opacity: 0; transform: scale(.6); transition: opacity .2s, transform .35s var(--tr-ease-spring);
-  background: radial-gradient(circle at calc(50% - var(--sx) * 28%) calc(50% - var(--sy) * 28%), var(--gold-hi), var(--gold) 38%, var(--gold-lo) 80%, var(--gold-deep));
-  box-shadow: inset 0 0 0 1px oklch(0.35 0.06 60 / .6);
+color: var(--gold); background: radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), oklch(.27 .01 40), oklch(.08 .005 30) 70%);
+box-shadow: inset 0 0 0 1px var(--gold-lo), 0 0 0 1px #000, calc(var(--sx) * 1px) calc(var(--sy) * 2px) 3px #000c; }
+.stud::after {
+content: ""; position: absolute; inset: 0; border-radius: 50%; opacity: 0; transform: scale(.6); transition: opacity .2s, transform .35s var(--tr-ease-spring);
+background: var(--gold-dome);
+box-shadow: inset 0 0 0 1px oklch(.35 .06 60 / .6);
 }
 .stud b { position: relative; z-index: 1; }
-.stud svg { position: absolute; z-index: 1; width: 1.05em; height: 1.05em; stroke: oklch(0.25 0.04 60); opacity: 0; }
+.stud svg { position: absolute; z-index: 1; width: 1.05em; height: 1.05em; stroke: oklch(.25 .04 60); opacity: 0; }
 li:is([data-state="current"], [data-state="done"]) .stud::after { opacity: 1; transform: none; }
-li:is([data-state="current"], [data-state="done"]) .stud { color: oklch(0.24 0.04 60); }
+li:is([data-state="current"], [data-state="done"]) .stud { color: oklch(.24 .04 60); }
 li[data-state="done"] .stud b { opacity: 0; }
 li[data-state="done"] .stud svg { opacity: 1; }
 
-/* ---------- Panes ---------- */
+/* Panes */
 .board > .hair { margin: 0 2.25em; }
 .panes { display: grid; grid-template-columns: minmax(19em, 22em) minmax(0, 1fr) minmax(21em, 25em); grid-template-areas: "acc chk sum"; }
 .pane { position: relative; padding: 2.4em 2.25em 2.6em; min-width: 0; }
-.p-acc { grid-area: acc; } .p-chk { grid-area: chk; container: chk / inline-size; } .p-sum { grid-area: sum; }
-.pane + .pane::before { /* vertical gold inlay between panes */
-  content: ""; position: absolute; left: 0; top: 2.4em; bottom: 2.4em; width: 1px; opacity: .55;
-  background: linear-gradient(#0000, var(--gold-lo) 12%, var(--gold) 45%, var(--gold-lo) 88%, #0000);
-  box-shadow: 1px 0 0 #000;
+.p-acc { grid-area: acc; } .p-chk { grid-area: chk; } .p-sum { grid-area: sum; }
+.pane + .pane::before {
+content: ""; position: absolute; left: 0; top: 2.4em; bottom: 2.4em; width: 1px; opacity: .55;
+background: linear-gradient(#0000, var(--gold-lo) 12%, var(--gold) 45%, var(--gold-lo) 88%, #0000);
+box-shadow: 1px 0 0 #000;
 }
 .stack > * + * { margin-top: 1.25em; }
 .field { display: grid; grid-template-columns: minmax(0, 1fr); gap: .55em; }
 .lbl-row { display: flex; justify-content: space-between; align-items: baseline; }
 
-/* ---------- Silk-lined lacquer well (inputs) ---------- */
+/* Silk-lined lacquer well (inputs) */
 .well { position: relative; display: flex; align-items: center; min-height: 3.15em; border-radius: .78em; }
 .well, .silk {
-  background:
-    linear-gradient(var(--away), oklch(0 0 0 / .6), #0000 38%),
-    linear-gradient(100deg, #0000 15%, oklch(0.9 0.03 80 / .07) 42%, #0000 62%, oklch(0.9 0.03 80 / .035) 82%, #0000),
-    var(--tex-slub) 0 0 / 320px 140px, var(--tex-weave),
-    linear-gradient(oklch(0.25 0.014 64), oklch(0.215 0.012 60));
-  box-shadow:
-    inset calc(var(--sx) * .32em) calc(var(--sy) * .38em) .55em oklch(0 0 0 / .72),
-    inset 0 0 0 1px oklch(0 0 0 / .85),
-    inset var(--on1) 0 1px oklch(1 0 0 / .045),
-    var(--o1) 0 oklch(1 0 0 / .17),
-    var(--on1) 0 oklch(0 0 0 / .9);
+background:
+linear-gradient(var(--away), #0009, #0000 38%),
+linear-gradient(100deg, #0000 15%, oklch(.9 .03 80 / .07) 42%, #0000 62%, oklch(.9 .03 80 / .035) 82%, #0000),
+var(--tex-slub) 0 0 / 320px 140px, var(--tex-weave),
+linear-gradient(oklch(.25 .014 64), oklch(.215 .012 60));
+box-shadow:
+inset calc(var(--sx) * .32em) calc(var(--sy) * .38em) .55em #000b,
+inset 0 0 0 1px #000d,
+inset var(--on1) 0 1px #fff1,
+var(--o1) 0 #fff3,
+var(--on1) 0 #000e;
 }
 .well::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .18s;
-  box-shadow: inset 0 0 0 1px oklch(0.86 0.11 86 / .8), inset 0 0 1.3em -.35em oklch(0.86 0.12 86 / .3);
+content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .18s;
+box-shadow: inset 0 0 0 1px oklch(.86 .11 86 / .8), inset 0 0 1.3em -.35em oklch(.86 .12 86 / .3);
 }
 .well:focus-within::after { opacity: 1; }
-.well:has(:focus-visible) { outline: 1px solid oklch(0.9 0.08 90 / .55); outline-offset: 3px; }
-.well[data-invalid]::after { opacity: 1; box-shadow: inset 0 0 0 1px var(--shu), inset 0 0 1.5em -.3em oklch(0.62 0.21 30 / .5), 0 0 1.3em -.15em oklch(0.6 0.22 30 / .55); }
+.well:has(:focus-visible) { outline: 1px solid oklch(.9 .08 90 / .55); outline-offset: 3px; }
+.well[data-invalid]::after { opacity: 1; box-shadow: inset 0 0 0 1px var(--shu), inset 0 0 1.5em -.3em oklch(.62 .21 30 / .5), 0 0 1.3em -.15em oklch(.6 .22 30 / .55); }
 .well input {
-  appearance: none; flex: 1 1 0; width: 0; min-width: 0; height: 3.15em; border: 0; background: none; padding: 0 1em; outline: none;
-  color: var(--ink); caret-color: var(--gold-hi); font: 500 max(16px, 1em)/1 var(--sans); letter-spacing: .01em;
+appearance: none; flex: 1 1 0; width: 0; min-width: 0; height: 3.15em; border: 0; background: none; padding: 0 1em; outline: none;
+color: var(--ink); caret-color: var(--gold-hi); font: 500 max(16px, 1em)/1 var(--sans); letter-spacing: .01em;
 }
-.well input::placeholder { color: oklch(0.6 0.014 75); }
+.well input::placeholder { color: oklch(.6 .014 75); }
 .well input:-webkit-autofill { -webkit-text-fill-color: var(--ink); transition: background-color 1e5s; }
 .msg { display: flex; gap: .5em; align-items: center; min-height: 1.2em; font-size: .82em; color: var(--shu-ink); }
 .msg:empty { display: none; }
 .msg::before { content: ""; width: .5em; height: .5em; flex: none; transform: rotate(45deg); background: var(--shu); box-shadow: 0 0 .5em var(--shu); }
 .msg.ok { color: var(--gold); } .msg.ok::before { background: var(--gold); box-shadow: none; }
 
-/* Brass push-latch inside a well (show / hide). */
+
 .brass { flex: none; display: grid; place-items: center; width: 2.75em; height: 2.75em; margin-right: .2em; padding: 0; border: 0; background: none; border-radius: .6em; }
 .brass .bf {
-  display: grid; place-items: center; width: 2.05em; height: 2.05em; border-radius: .5em;
-  background: var(--tr-tex-brushed) 0 0 / 14em 3em, linear-gradient(var(--away), oklch(0.88 0.085 88), oklch(0.72 0.1 80) 42%, oklch(0.52 0.085 68));
-  background-blend-mode: overlay, normal;
-  box-shadow: inset var(--o1) 0 oklch(0.98 0.05 92 / .7), inset var(--on1) 0 oklch(0.3 0.05 60 / .6),
-    0 0 0 1px oklch(0.16 0.02 50), calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 2px #000b;
-  transform: translate(calc(var(--sx) * var(--tr-press, 0) * .1em), calc(var(--sy) * var(--tr-press, 0) * .1em)) scale(calc(1 - var(--tr-press, 0) * .06));
+display: grid; place-items: center; width: 2.05em; height: 2.05em; border-radius: .5em;
+background: var(--brass);
+background-blend-mode: overlay, normal;
+box-shadow: inset var(--o1) 0 oklch(.98 .05 92 / .7), inset var(--on1) 0 oklch(.3 .05 60 / .6),
+0 0 0 1px oklch(.16 .02 50), calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 2px #000b;
+transform: translate(calc(var(--sx) * var(--tr-press, 0) * .1em), calc(var(--sy) * var(--tr-press, 0) * .1em)) scale(calc(1 - var(--tr-press, 0) * .06));
 }
-.brass svg { width: 1.2em; height: 1.2em; fill: none; stroke: oklch(0.27 0.04 58); stroke-width: 1.7; stroke-linecap: round;
-  filter: drop-shadow(calc(var(--sx) * .7px) calc(var(--sy) * .7px) 0 oklch(0.97 0.06 92 / .55)); }
+.brass svg { width: 1.2em; height: 1.2em; fill: none; stroke: oklch(.27 .04 58); stroke-width: 1.7; stroke-linecap: round;
+filter: drop-shadow(calc(var(--sx) * .7px) calc(var(--sy) * .7px) 0 oklch(.97 .06 92 / .55)); }
 .brass .off, .brass[aria-pressed="true"] .on { display: none; }
 .brass[aria-pressed="true"] .off { display: block; }
 
-/* ---------- Checkbox: lacquered square, gold check inlay ---------- */
+/* Checkbox: lacquered square, gold check inlay */
 .check { position: relative; display: flex; align-items: center; gap: .8em; min-height: 2.75em; color: var(--ink-2); font-size: .93em; cursor: pointer; width: fit-content; }
 .check input { position: absolute; opacity: 0; width: 1.5em; height: 1.5em; margin: 0; }
 .box {
-  position: relative; flex: none; width: 1.45em; height: 1.45em; border-radius: .34em;
-  background: radial-gradient(140% 140% at calc(50% - var(--sx) * 55%) calc(50% - var(--sy) * 55%), oklch(0.36 0.01 40), oklch(0.12 0.006 35) 52%, oklch(0.05 0 0));
-  box-shadow: inset var(--o1) 0 oklch(1 0 0 / .28), 0 0 0 1px #000, 0 0 0 2px oklch(0.55 0.08 70 / .35),
-    calc(var(--sx) * 2px) calc(var(--sy) * 2.5px) 3px #000d;
+position: relative; flex: none; width: 1.45em; height: 1.45em; border-radius: .34em;
+background: radial-gradient(140% 140% at calc(50% - var(--sx) * 55%) calc(50% - var(--sy) * 55%), oklch(.36 .01 40), oklch(.12 .006 35) 52%, oklch(.05 0 0));
+box-shadow: inset var(--o1) 0 #fff4, 0 0 0 1px #000, 0 0 0 2px oklch(.55 .08 70 / .35),
+calc(var(--sx) * 2px) calc(var(--sy) * 2.5px) 3px #000d;
 }
 .box svg { position: absolute; inset: .14em; opacity: 0; transform: scale(.4) rotate(-12deg); transition: opacity .1s, transform .32s var(--tr-ease-spring); }
 .check input:checked + .box svg { opacity: 1; transform: none; }
 .check input:focus-visible + .box { outline: 1.5px solid var(--gold-hi); outline-offset: 3px; }
 .check:hover .box { filter: brightness(1.18); }
 
-/* ---------- Pebble (primary) + plaque (secondary) buttons ---------- */
+/* Pebble (primary) + plaque (secondary) buttons */
 .pebble, .plq { position: relative; display: flex; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; -webkit-user-select: none; user-select: none; }
 .pebble { min-height: 3.4em; border-radius: 3em; }
-.pebble::before, .plq::before { /* cast shadow lives under the face and fades as the face goes down */
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  box-shadow: calc(var(--sx) * 3px) calc(var(--sy) * 4px) 4px -1px #000e, calc(var(--sx) * 11px * var(--len)) calc(var(--sy) * 15px * var(--len)) 22px -5px #000c;
-  opacity: calc(1 - var(--tr-press, 0) * .85);
+.pebble::before, .plq::before {
+content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+box-shadow: calc(var(--sx) * 3px) calc(var(--sy) * 4px) 4px -1px #000e, calc(var(--sx) * 11px * var(--len)) calc(var(--sy) * 15px * var(--len)) 22px -5px #000c;
+opacity: calc(1 - var(--tr-press, 0) * .85);
 }
 .pf {
-  position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: .7em; overflow: hidden;
-  min-height: inherit; border-radius: inherit; padding: 0 1.6em; border: .13em solid #0000;
-  color: var(--gold-hi); font: 600 .95em/1 var(--sans); letter-spacing: .1em; text-transform: uppercase;
-  text-shadow: var(--on1) 0 #000;
-  background:
-    radial-gradient(90% 150% at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 90%), oklch(0.26 0.012 40), oklch(0.1 0.007 35) 50%, oklch(0.045 0.004 30)) padding-box,
-    var(--gold-leaf) border-box;
-  box-shadow: inset 0 0 0 1px oklch(0 0 0 / .65), inset calc(var(--sx) * -.45em) calc(var(--sy) * -.55em) .7em -.35em oklch(0.75 0.11 80 / .3), inset 0 0 1em oklch(0 0 0 / .6);
-  transform: translate(calc(var(--sx) * var(--tr-press, 0) * .14em), calc(var(--sy) * var(--tr-press, 0) * .14em)) scale(calc(1 - var(--tr-press, 0) * .014));
+position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: .7em; overflow: hidden;
+min-height: inherit; border-radius: inherit; padding: 0 1.6em; border: .13em solid #0000;
+color: var(--gold-hi); font: 600 .95em/1 var(--sans); letter-spacing: .1em; text-transform: uppercase;
+text-shadow: var(--on1) 0 #000;
+background:
+radial-gradient(90% 150% at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 90%), oklch(.26 .012 40), oklch(.1 .007 35) 50%, oklch(.045 .004 30)) padding-box,
+var(--gold-leaf) border-box;
+box-shadow: inset 0 0 0 1px #000a, inset calc(var(--sx) * -.45em) calc(var(--sy) * -.55em) .7em -.35em oklch(.75 .11 80 / .3), inset 0 0 1em #0009;
+transform: translate(calc(var(--sx) * var(--tr-press, 0) * .14em), calc(var(--sy) * var(--tr-press, 0) * .14em)) scale(calc(1 - var(--tr-press, 0) * .014));
 }
-.pf::before { /* the softbox, reflected in the dome; drifts on hover */
-  content: ""; position: absolute; left: 4%; right: 4%; top: 4%; height: 58%; pointer-events: none; border-radius: 3em 3em 45% 45% / 100% 100% 60% 60%;
-  background: radial-gradient(6% 13% at 22% 30%, oklch(1 0 0 / .6) 40%, #0000), radial-gradient(48% 90% at 50% 0%, oklch(1 0 0 / .42), oklch(1 0 0 / .14) 45%, oklch(1 0 0 / .03) 80%, #0000);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / .22);
-  translate: calc(var(--sx) * -6%) calc((var(--sy) - .7) * -70%);
-  transition: transform .45s var(--tr-ease-out), opacity .25s; opacity: .8;
+.pf::before {
+content: ""; position: absolute; left: 4%; right: 4%; top: 4%; height: 58%; pointer-events: none; border-radius: 3em 3em 45% 45% / 100% 100% 60% 60%;
+background: radial-gradient(48% 90% at 50% 0%, #fff6, #fff2 45%, #fff0 80%, #0000);
+box-shadow: inset 0 1px 0 #fff3;
+translate: calc(var(--sx) * -6%) calc((var(--sy) - .7) * -70%);
+transition: transform .45s var(--tr-ease-out), opacity .25s; opacity: .8;
 }
-.pf::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: oklch(0 0 0 / .35); opacity: calc(var(--tr-press, 0) * .8); }
+.pf::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: #0005; opacity: calc(var(--tr-press, 0) * .8); }
 .pebble:hover .pf::before, .plq:hover .pf::before { transform: translateX(calc(var(--sx) * 5% + 3%)); opacity: 1; }
 .pf > * { position: relative; z-index: 1; }
 .pebble.big { min-height: 3.9em; }
@@ -262,12 +265,12 @@ li[data-state="done"] .stud svg { opacity: 1; }
 .plq { min-height: 3em; border-radius: .8em; }
 .plq::before { box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px -1px #000e, calc(var(--sx) * 6px * var(--len)) calc(var(--sy) * 8px * var(--len)) 12px -4px #000a; }
 .plq .pf {
-  border: 0; padding: 0 1em; gap: .55em; color: var(--ink); text-shadow: none; text-transform: none; letter-spacing: .02em; font-weight: 500;
-  background: linear-gradient(var(--away), oklch(0.25 0.009 40), oklch(0.13 0.007 35) 55%, oklch(0.085 0.005 30));
-  box-shadow: inset var(--o1) 0 oklch(1 0 0 / .24), inset var(--on1) 0 oklch(0 0 0 / .6),
-    0 0 0 1px #000, inset 0 0 0 1px oklch(0.6 0.07 70 / .16);
+border: 0; padding: 0 1em; gap: .55em; color: var(--ink); text-shadow: none; text-transform: none; letter-spacing: .02em; font-weight: 500;
+background: var(--lacquer);
+box-shadow: inset var(--o1) 0 #fff4, inset var(--on1) 0 #0009,
+0 0 0 1px #000, inset 0 0 0 1px oklch(.6 .07 70 / .16);
 }
-.plq .pf::before, .ship .sf::before { inset: 0; height: auto; border-radius: inherit; translate: none; background: linear-gradient(var(--away), oklch(1 0 0 / .12), #0000 45%); }
+.plq .pf::before, .ship .sf::before { inset: 0; height: auto; border-radius: inherit; translate: none; background: linear-gradient(var(--away), #fff2, #0000 45%); }
 .plq svg { width: 1.15em; height: 1.15em; fill: none; stroke: var(--gold); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .plq[aria-disabled="true"], .pebble[aria-disabled="true"] { cursor: not-allowed; }
 .plq[aria-disabled="true"] .pf, .pebble[aria-disabled="true"] .pf { color: var(--ink-3); opacity: .55; }
@@ -277,11 +280,11 @@ li[data-state="done"] .stud svg { opacity: 1; }
 .or::before, .or::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #0000, var(--gold-lo)); box-shadow: 0 1px 0 #000; opacity: .6; }
 .or::after { transform: scaleX(-1); }
 
-/* ---------- Account (signed in) + maker plaque ---------- */
+/* Account (signed in) + maker plaque */
 .acct { display: grid; grid-template-columns: auto 1fr; gap: .9em 1em; align-items: center; padding: 1.1em; border-radius: 1em;
-  background: oklch(0.06 0.004 30 / .6); box-shadow: inset 0 0 0 1px oklch(0.6 0.08 70 / .3), inset var(--o1) 0 oklch(1 0 0 / .06); }
-.acct .avatar { width: 2.8em; height: 2.8em; border-radius: 50%; display: grid; place-items: center; font: 600 1.1em/1 var(--serif); color: oklch(0.25 0.04 60);
-  background: radial-gradient(circle at calc(50% - var(--sx) * 28%) calc(50% - var(--sy) * 28%), var(--gold-hi), var(--gold) 40%, var(--gold-lo) 85%); box-shadow: 0 0 0 1px #000, calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 3px #000c; }
+background: oklch(.06 .004 30 / .6); box-shadow: inset 0 0 0 1px oklch(.6 .08 70 / .3), inset var(--o1) 0 #fff1; }
+.acct .avatar { width: 2.8em; height: 2.8em; border-radius: 50%; display: grid; place-items: center; font: 600 1.1em/1 var(--serif); color: oklch(.25 .04 60);
+background: var(--gold-dome); box-shadow: 0 0 0 1px #000, calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 3px #000c; }
 .acct b { display: block; font-weight: 600; } .acct span { color: var(--ink-3); font-size: .88em; }
 .acct .link { grid-column: 1 / -1; justify-self: start; min-height: 44px; }
 [hidden] { display: none !important; }
@@ -290,9 +293,9 @@ li[data-state="done"] .stud svg { opacity: 1; }
 .maker p { font: italic 500 1.2em/1.4 var(--serif); color: var(--ink-2); }
 .maker small { display: block; margin-top: .6em; letter-spacing: .12em; text-transform: uppercase; font-size: .78em; color: var(--gold-mid); }
 
-/* ---------- Delivery ---------- */
+/* Delivery */
 .addr { display: flex; gap: 1em; align-items: flex-start; padding: 1em 1.1em; border-radius: .9em; color: var(--ink-2); font-size: .92em; line-height: 1.45;
-  background: oklch(0.06 0.004 30 / .5); box-shadow: inset 0 0 0 1px oklch(1 0 0 / .06); }
+background: oklch(.06 .004 30 / .5); box-shadow: inset 0 0 0 1px #fff1; }
 .addr svg { width: 1.3em; height: 1.3em; flex: none; stroke: var(--gold); fill: none; stroke-width: 1.4; margin-top: .1em; }
 .addr b { color: var(--ink); font-weight: 600; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
@@ -300,191 +303,191 @@ legend { padding: 0; margin-bottom: .6em; }
 .ships { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
 .ship { position: relative; display: block; cursor: pointer; border-radius: 1em; min-height: 6.2em; }
 .ship input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.ship::before { /* raised: cast shadow, fades when sunk */
-  content: ""; position: absolute; inset: 0; border-radius: inherit; transition: opacity .25s;
-  box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px -1px #000e, calc(var(--sx) * 9px * var(--len)) calc(var(--sy) * 12px * var(--len)) 18px -4px #000b;
+.ship::before {
+content: ""; position: absolute; inset: 0; border-radius: inherit; transition: opacity .25s;
+box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px -1px #000e, calc(var(--sx) * 9px * var(--len)) calc(var(--sy) * 12px * var(--len)) 18px -4px #000b;
 }
 .ship .sf {
-  position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: .2em .8em; align-items: center; height: 100%; padding: 1.05em 1.1em; border-radius: inherit; overflow: hidden;
-  background: linear-gradient(var(--away), oklch(0.23 0.009 40), oklch(0.12 0.007 35) 55%, oklch(0.08 0.005 30));
-  box-shadow: inset var(--o1) 0 oklch(1 0 0 / .26), inset var(--on1) 0 oklch(0 0 0 / .6), 0 0 0 1px #000;
-  transition: transform .32s var(--tr-ease-spring);
+position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: .2em .8em; align-items: center; height: 100%; padding: 1.05em 1.1em; border-radius: inherit; overflow: hidden;
+background: var(--lacquer);
+box-shadow: inset var(--o1) 0 #fff4, inset var(--on1) 0 #0009, 0 0 0 1px #000;
+transition: transform .32s var(--tr-ease-spring);
 }
 .ship .sf::before { content: ""; position: absolute; pointer-events: none; transition: transform .45s var(--tr-ease-out), opacity .25s; opacity: .8; }
 .ship:hover .sf::before { transform: translateX(4%); opacity: 1; }
-.ship .sf::after { /* sunk: recess shading + gold border */
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .2s;
-  box-shadow: inset 0 0 0 1.5px var(--gold), inset calc(var(--sx) * .35em) calc(var(--sy) * .45em) .7em oklch(0 0 0 / .8), inset 0 0 1.2em -.2em oklch(0.8 0.12 84 / .22);
-  background: linear-gradient(var(--away), oklch(0 0 0 / .45), #0000 60%);
+.ship .sf::after {
+content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .2s;
+box-shadow: inset 0 0 0 1.5px var(--gold), inset calc(var(--sx) * .35em) calc(var(--sy) * .45em) .7em #000c, inset 0 0 1.2em -.2em oklch(.8 .12 84 / .22);
+background: linear-gradient(var(--away), #0007, #0000 60%);
 }
 .ship input:checked + .sf { transform: translate(calc(var(--sx) * .12em), calc(var(--sy) * .14em)) scale(.985); }
 .ship input:checked + .sf::after { opacity: 1; }
 .ship:has(input:checked)::before { opacity: 0; }
 .ship input:focus-visible + .sf { outline: 1.5px solid var(--gold-hi); outline-offset: 4px; }
 .radio { grid-row: 1 / span 2; width: 1.25em; height: 1.25em; border-radius: 50%; position: relative; z-index: 1;
-  background: radial-gradient(circle at calc(50% + var(--sx) * 25%) calc(50% + var(--sy) * 25%), oklch(0.22 0.01 40), oklch(0.04 0 0) 70%);
-  box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 1.5px #000, 0 0 0 1px oklch(0.55 0.08 70 / .55), calc(var(--sx) * .6px) calc(var(--sy) * .6px) 0 1px oklch(1 0 0 / .1); }
+background: radial-gradient(circle at calc(50% + var(--sx) * 25%) calc(50% + var(--sy) * 25%), oklch(.22 .01 40), oklch(.04 0 0) 70%);
+box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 1.5px #000, 0 0 0 1px oklch(.55 .08 70 / .55), calc(var(--sx) * .6px) calc(var(--sy) * .6px) 0 1px #fff2; }
 .radio::after { content: ""; position: absolute; inset: .27em; border-radius: 50%; opacity: 0; transform: scale(.3); transition: opacity .12s, transform .3s var(--tr-ease-spring);
-  background: radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), var(--gold-hi), var(--gold) 45%, var(--gold-lo)); box-shadow: 0 0 .5em oklch(0.85 0.12 86 / .35); }
+background: var(--gold-dome); box-shadow: 0 0 .5em oklch(.85 .12 86 / .35); }
 .ship input:checked + .sf .radio::after { opacity: 1; transform: none; }
 .ship .t { position: relative; z-index: 1; font-weight: 600; }
 .ship .p { position: relative; z-index: 1; text-align: right; color: var(--gold); font-weight: 600; }
 .ship .e { position: relative; z-index: 1; grid-column: 2 / -1; color: var(--ink-3); font-size: .86em; }
-.gift-f { padding-top: 1.1em; border-top: 1px solid oklch(0.6 0.09 72 / .2); }
+.gift-f { padding-top: 1.1em; border-top: 1px solid oklch(.6 .09 72 / .2); }
 
-/* Select: lacquer listbox with gold hairline separators. */
+
 .sel { position: relative; }
 .sel-btn { width: 100%; border: 0; padding: 0 .3em 0 1em; color: var(--ink); font: 500 1em/1 var(--sans); text-align: left; justify-content: space-between; }
 .sel-btn:focus-visible { outline: none; }
 .sel-btn .chev { width: 2.1em; height: 2.1em; display: grid; place-items: center; border-radius: .5em;
-  background: var(--tr-tex-brushed) 0 0 / 14em 3em, linear-gradient(var(--away), oklch(0.86 0.085 88), oklch(0.68 0.1 78) 45%, oklch(0.5 0.08 68));
-  background-blend-mode: overlay, normal; box-shadow: inset var(--o1) 0 oklch(0.98 0.05 92 / .6), 0 0 0 1px oklch(0.16 0.02 50), calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 2px #000b; }
-.sel-btn .chev svg { width: .9em; height: .9em; stroke: oklch(0.28 0.04 58); stroke-width: 2; fill: none; transition: transform .3s var(--tr-ease-spring); }
+background: var(--brass);
+background-blend-mode: overlay, normal; box-shadow: inset var(--o1) 0 oklch(.98 .05 92 / .6), 0 0 0 1px oklch(.16 .02 50), calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 2px #000b; }
+.sel-btn .chev svg { width: .9em; height: .9em; stroke: oklch(.28 .04 58); stroke-width: 2; fill: none; transition: transform .3s var(--tr-ease-spring); }
 .sel-btn[aria-expanded="true"] .chev svg { transform: rotate(180deg); }
 .lb {
-  position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + .5em); margin: 0; padding: .35em; list-style: none; max-height: 17.5em; overflow: auto; overscroll-behavior: contain;
-  border-radius: .9em; scrollbar-width: thin; scrollbar-color: var(--gold-lo) #0000;
-  background: linear-gradient(var(--away), oklch(0.2 0.009 40), oklch(0.1 0.006 35) 45%, oklch(0.07 0.004 30));
-  box-shadow: inset var(--o1) 0 oklch(1 0 0 / .26), inset 0 0 0 1px oklch(0.6 0.08 70 / .3), 0 0 0 1px #000,
-    calc(var(--sx) * 12px * var(--len)) calc(var(--sy) * 18px * var(--len)) 30px #000d;
-  transform-origin: 50% 0; animation: lb-in .2s var(--tr-ease-out);
+position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + .5em); margin: 0; padding: .35em; list-style: none; max-height: 17.5em; overflow: auto; overscroll-behavior: contain;
+border-radius: .9em; scrollbar-width: thin; scrollbar-color: var(--gold-lo) #0000;
+background: linear-gradient(var(--away), oklch(.2 .009 40), oklch(.1 .006 35) 45%, oklch(.07 .004 30));
+box-shadow: inset var(--o1) 0 #fff4, inset 0 0 0 1px oklch(.6 .08 70 / .3), 0 0 0 1px #000,
+calc(var(--sx) * 12px * var(--len)) calc(var(--sy) * 18px * var(--len)) 30px #000d;
+transform-origin: 50% 0; animation: lb-in .2s var(--tr-ease-out);
 }
 @keyframes lb-in { from { opacity: 0; transform: translateY(-.4em) scale(.98); } }
 .lb li { position: relative; display: flex; justify-content: space-between; align-items: center; min-height: 2.75em; padding: 0 .9em 0 1.4em; border-radius: .55em; color: var(--ink-2); cursor: pointer; }
-.lb li + li::before { content: ""; position: absolute; left: .9em; right: .9em; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(0.62 0.09 72 / .45), #0000); }
+.lb li + li::before { content: ""; position: absolute; left: .9em; right: .9em; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(.62 .09 72 / .45), #0000); }
 .lb li small { color: var(--ink-3); font-size: .8em; }
 .lb li[aria-selected="true"] { color: var(--gold-hi); }
 .lb li[aria-selected="true"]::after { content: ""; position: absolute; left: .55em; top: 50%; width: .35em; height: .35em; margin-top: -.175em; transform: rotate(45deg); background: var(--gold); }
-.lb li.active { color: var(--ink); background: linear-gradient(90deg, oklch(0.8 0.11 84 / .16), oklch(0.8 0.11 84 / .04)); box-shadow: inset 0 0 0 1px oklch(0.8 0.11 84 / .35); }
+.lb li.active { color: var(--ink); background: linear-gradient(90deg, oklch(.8 .11 84 / .16), oklch(.8 .11 84 / .04)); box-shadow: inset 0 0 0 1px oklch(.8 .11 84 / .35); }
 .lb li.active + li::before, .lb li:has(+ li.active)::before { opacity: 0; }
 
-/* Gift wrap: brass slide in a lacquer channel (ToggleController). */
+
 .gift { display: flex; align-items: center; justify-content: space-between; gap: 1em; min-height: 3.15em; }
 .gift .txt { cursor: pointer; } .gift .txt b { display: block; font-weight: 600; } .gift .txt span { color: var(--ink-3); font-size: .85em; }
 .sw { position: relative; flex: none; width: 4.6em; height: 2.75em; border-radius: 2em; }
 .sw .ch { position: absolute; inset: .4em 0; border-radius: 2em;
-  background: linear-gradient(var(--away), oklch(0 0 0 / .7), #0000 60%), oklch(0.1 0.006 35);
-  box-shadow: inset calc(var(--sx) * .2em) calc(var(--sy) * .25em) .35em #000, inset 0 0 0 1px #000, var(--o1) 0 oklch(1 0 0 / .16); overflow: hidden; }
-.sw .ch::before { /* gold inlay revealed as the slide moves across */
-  content: ""; position: absolute; inset: .62em 1em .62em .9em; border-radius: 1em; background: var(--gold-leaf); box-shadow: 0 0 .6em oklch(0.85 0.12 86 / .5);
-  transform-origin: 0 50%; transform: scaleX(var(--tr-value-ratio, 0)); opacity: calc(.25 + var(--tr-value-ratio, 0) * .75);
+background: linear-gradient(var(--away), #000a, #0000 60%), oklch(.1 .006 35);
+box-shadow: inset calc(var(--sx) * .2em) calc(var(--sy) * .25em) .35em #000, inset 0 0 0 1px #000, var(--o1) 0 #fff2; overflow: hidden; }
+.sw .ch::before {
+content: ""; position: absolute; inset: .62em 1em .62em .9em; border-radius: 1em; background: var(--gold-leaf); box-shadow: 0 0 .6em oklch(.85 .12 86 / .5);
+transform-origin: 0 50%; transform: scaleX(var(--tr-value-ratio, 0)); opacity: calc(.25 + var(--tr-value-ratio, 0) * .75);
 }
 .sw .th {
-  position: absolute; top: .2em; left: 0; width: 2.35em; height: 2.35em; border-radius: 50%;
-  transform: translateX(calc(var(--tr-value-ratio, 0) * 2.25em));
-  background:
-    repeating-linear-gradient(90deg, oklch(0 0 0 / .22) 0 1px, #0000 1px 3px) 50% 50% / 1em .9em no-repeat,
-    var(--tr-tex-brushed) 0 0 / 12em 3em,
-    radial-gradient(circle at calc(50% - var(--sx) * 32%) calc(50% - var(--sy) * 32%), oklch(0.93 0.07 90), oklch(0.75 0.105 80) 42%, oklch(0.5 0.085 66) 85%);
-  background-blend-mode: normal, overlay, normal;
-  box-shadow: 0 0 0 1px oklch(0.18 0.02 50), inset var(--o1) 0 oklch(0.98 0.05 92 / .75),
-    calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px #000d, calc(var(--sx) * 5px * var(--len)) calc(var(--sy) * 7px * var(--len)) 9px #0008;
+position: absolute; top: .2em; left: 0; width: 2.35em; height: 2.35em; border-radius: 50%;
+transform: translateX(calc(var(--tr-value-ratio, 0) * 2.25em));
+background:
+repeating-linear-gradient(90deg, #0003 0 1px, #0000 1px 3px) 50% 50% / 1em .9em no-repeat,
+var(--tr-tex-brushed) 0 0 / 12em 3em,
+radial-gradient(circle at calc(50% - var(--sx) * 32%) calc(50% - var(--sy) * 32%), oklch(.93 .07 90), oklch(.75 .105 80) 42%, oklch(.5 .085 66) 85%);
+background-blend-mode: normal, overlay, normal;
+box-shadow: 0 0 0 1px oklch(.18 .02 50), inset var(--o1) 0 oklch(.98 .05 92 / .75),
+calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px #000d, calc(var(--sx) * 5px * var(--len)) calc(var(--sy) * 7px * var(--len)) 9px #0008;
 }
 .sw:focus-visible { outline-offset: 2px; border-radius: 2em; }
 .sw-state { font: 600 .7em/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); width: 3.2em; text-align: right; }
 .sw[aria-checked="true"] + .sw-state { color: var(--gold); }
 
-/* ---------- Payment: shibuichi brushed card that flips ---------- */
+/* Payment: shibuichi brushed card that flips */
 .pay { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.4em; }
 .scene { container: card / inline-size; perspective: 900px; width: 100%; max-width: 21em; margin-inline: auto; }
 .card3d { position: relative; aspect-ratio: 1.586; font-size: 4.7cqi; transform-style: preserve-3d; }
 .cf {
-  position: absolute; inset: 0; border-radius: .95em; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  color: oklch(0.3 0.012 60); font-family: var(--mono);
-  background:
-    linear-gradient(calc(var(--la) + 205deg), #0000 14%, oklch(1 0 0 / .3) 27%, #0000 40%, oklch(0.1 0.01 60 / .22) 66%, #0000 84%),
-    var(--tr-tex-brushed) 0 0 / 30em 6em, var(--tr-tex-brushed) 7em 0 / 11em 2.5em,
-    linear-gradient(var(--away), oklch(0.76 0.013 76), oklch(0.62 0.014 70) 45%, oklch(0.5 0.013 64) 85%, oklch(0.56 0.013 66));
-  background-blend-mode: normal, overlay, overlay, normal;
-  box-shadow: inset var(--o1) 0 oklch(1 0 0 / .65), inset var(--on1) 0 oklch(0.2 0.01 60 / .5), inset 0 0 0 1px oklch(0.3 0.01 60 / .5);
+position: absolute; inset: 0; border-radius: .95em; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+color: oklch(.3 .012 60); font-family: var(--mono);
+background:
+linear-gradient(calc(var(--la) + 205deg), #0000 14%, #fff4 27%, #0000 40%, oklch(.1 .01 60 / .22) 66%, #0000 84%),
+var(--tr-tex-brushed) 0 0 / 30em 6em, var(--tr-tex-brushed) 7em 0 / 11em 2.5em,
+linear-gradient(var(--away), oklch(.76 .013 76), oklch(.62 .014 70) 45%, oklch(.5 .013 64) 85%, oklch(.56 .013 66));
+background-blend-mode: normal, overlay, overlay, normal;
+box-shadow: inset var(--o1) 0 #fffa, inset var(--on1) 0 oklch(.2 .01 60 / .5), inset 0 0 0 1px oklch(.3 .01 60 / .5);
 }
-.cf::after { /* anisotropic sheen of the brushing: a vertical band that slides as the card turns */
-  content: ""; position: absolute; top: -10%; bottom: -10%; left: 30%; width: 40%; pointer-events: none;
-  background: linear-gradient(90deg, #0000, oklch(1 0 0 / .32) 50%, #0000); mix-blend-mode: soft-light;
-  transform: translateX(calc(var(--sheen, 0) * 100% + var(--sx) * -60%));
+.cf::after {
+content: ""; position: absolute; top: -10%; bottom: -10%; left: 30%; width: 40%; pointer-events: none;
+background: linear-gradient(90deg, #0000, #fff5 50%, #0000); mix-blend-mode: soft-light;
+transform: translateX(calc(var(--sheen, 0) * 100% + var(--sx) * -60%));
 }
 .back { transform: rotateY(180deg); }
-.cf::before { content: ""; position: absolute; inset: .5em; border-radius: .6em; pointer-events: none; box-shadow: inset 0 0 0 1px oklch(0.78 0.11 82 / .7), inset var(--o1) 0 1px oklch(0.25 0.03 60 / .35); }
+.cf::before { content: ""; position: absolute; inset: .5em; border-radius: .6em; pointer-events: none; box-shadow: inset 0 0 0 1px oklch(.78 .11 82 / .7), inset var(--o1) 0 1px oklch(.25 .03 60 / .35); }
 .back::before { inset: auto .5em .5em; height: 0; box-shadow: none; }
 .card-shadow { position: absolute; inset: 4% 3% -2%; border-radius: 1em; z-index: -1;
-  box-shadow: calc(var(--sx) * 4px) calc(var(--sy) * 5px) 5px #000c, calc(var(--sx) * 18px * var(--len)) calc(var(--sy) * 24px * var(--len)) 34px #000b; }
-.engr { text-shadow: calc(var(--sx) * .8px) calc(var(--sy) * .8px) 0 oklch(1 0 0 / .5), calc(var(--sx) * -.6px) calc(var(--sy) * -.6px) 0 oklch(0.15 0.01 60 / .45); }
+box-shadow: calc(var(--sx) * 4px) calc(var(--sy) * 5px) 5px #000c, calc(var(--sx) * 18px * var(--len)) calc(var(--sy) * 24px * var(--len)) 34px #000b; }
+.engr { text-shadow: calc(var(--sx) * .8px) calc(var(--sy) * .8px) 0 #fff8, calc(var(--sx) * -.6px) calc(var(--sy) * -.6px) 0 oklch(.15 .01 60 / .45); }
 .cf .issuer { position: absolute; left: 2em; top: 1.85em; font: 600 .74em/1 var(--sans); letter-spacing: .3em; }
 .cf .mark { position: absolute; right: 1.35em; top: 1.1em; width: 2.4em; height: 1.4em; }
 .chip { position: absolute; left: 1.5em; top: 2.95em; width: 2.55em; height: 1.95em; border-radius: .38em; overflow: hidden;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 51 39' fill='none' stroke='%23704f1c' stroke-opacity='.75' stroke-width='1'%3E%3Cpath d='M0 13h16M0 26h16M35 13h16M35 26h16M16 0v39M35 0v39M16 19.5h19'/%3E%3Crect x='20' y='9' width='11' height='21' rx='3'/%3E%3C/svg%3E") 0 0 / 100% 100%,
-    radial-gradient(circle at calc(50% - var(--sx) * 40%) calc(50% - var(--sy) * 40%), var(--gold-hi), var(--gold) 40%, var(--gold-lo) 90%);
-  box-shadow: 0 0 0 1px oklch(0.35 0.05 60 / .6), inset var(--o1) 0 oklch(1 .05 90 / .7); }
+background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 51 39' fill='none' stroke='%23704f1c' stroke-opacity='.75' stroke-width='1'%3E%3Cpath d='M0 13h16M0 26h16M35 13h16M35 26h16M16 0v39M35 0v39M16 19.5h19'/%3E%3Crect x='20' y='9' width='11' height='21' rx='3'/%3E%3C/svg%3E") 0 0 / 100% 100%,
+var(--gold-dome);
+box-shadow: 0 0 0 1px oklch(.35 .05 60 / .6), inset var(--o1) 0 oklch(1 .05 90 / .7); }
 .cnum { position: absolute; left: 1.35em; right: 1em; top: 5.25em; display: flex; gap: .75em; font: 500 1.08em/1 var(--mono); letter-spacing: .07em; white-space: nowrap; }
 .cmeta { position: absolute; left: 2em; right: 2em; bottom: 1.6em; display: flex; justify-content: space-between; align-items: end; font: 500 .74em/1.25 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
 .cmeta small { display: block; font: 500 .62em/1 var(--sans); letter-spacing: .2em; opacity: .7; margin-bottom: .35em; }
 .stripe { position: absolute; left: 0; right: 0; top: 1.25em; height: 2.6em;
-  background: linear-gradient(oklch(0.17 0.006 40), oklch(0.09 0.004 35) 45%, oklch(0.14 0.006 40)); box-shadow: 0 1px 0 oklch(1 0 0 / .3); }
+background: linear-gradient(oklch(.17 .006 40), oklch(.09 .004 35) 45%, oklch(.14 .006 40)); box-shadow: 0 1px 0 #fff4; }
 .sig { position: absolute; left: 1.3em; right: 5.4em; top: 5.1em; height: 2.2em; border-radius: .2em;
-  background: repeating-linear-gradient(-30deg, oklch(0.9 0.02 85) 0 .3em, oklch(0.84 0.03 80) .3em .6em); box-shadow: inset 0 1px 2px #0005; }
+background: repeating-linear-gradient(-30deg, oklch(.9 .02 85) 0 .3em, oklch(.84 .03 80) .3em .6em); box-shadow: inset 0 1px 2px #0005; }
 .cvc-box { position: absolute; right: 1.3em; top: 5.1em; width: 3.7em; height: 2.2em; display: grid; place-items: center; border-radius: .25em;
-  background: oklch(0.95 0.01 85); color: oklch(0.2 0.01 60); font: 500 .95em/1 var(--mono); letter-spacing: .12em;
-  box-shadow: inset 0 1px 2px #0006, 0 0 0 1.5px oklch(0.85 0.12 84 / calc(var(--cvc-hl, 0))); }
-.back .fine { position: absolute; left: 2.6em; right: 2.6em; bottom: 2em; font: 500 .6em/1.5 var(--sans); letter-spacing: .05em; color: oklch(0.26 0.01 60); }
+background: oklch(.95 .01 85); color: oklch(.2 .01 60); font: 500 .95em/1 var(--mono); letter-spacing: .12em;
+box-shadow: inset 0 1px 2px #0006, 0 0 0 1.5px oklch(.85 .12 84 / calc(var(--cvc-hl, 0))); }
+.back .fine { position: absolute; left: 2.6em; right: 2.6em; bottom: 2em; font: 500 .6em/1.5 var(--sans); letter-spacing: .05em; color: oklch(.26 .01 60); }
 .pay-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
 .pay-fields .wide { grid-column: 1 / -1; }
 .pay-fields input { font-family: var(--mono); letter-spacing: .06em; }
 .demo { display: flex; gap: .7em; align-items: center; padding: .8em 1em; border-radius: .7em; font-size: .86em; color: var(--ink-2);
-  background: repeating-linear-gradient(-45deg, oklch(0.8 0.11 84 / .06) 0 .5em, #0000 .5em 1em); box-shadow: inset 0 0 0 1px oklch(0.75 0.1 80 / .35); }
+background: repeating-linear-gradient(-45deg, oklch(.8 .11 84 / .06) 0 .5em, #0000 .5em 1em); box-shadow: inset 0 0 0 1px oklch(.75 .1 80 / .35); }
 .demo svg { width: 1.2em; height: 1.2em; flex: none; stroke: var(--gold); fill: none; stroke-width: 1.5; }
 
-/* ---------- Order summary: raised lacquer lid ---------- */
-.lid {
-  position: relative; padding: 1.6em 1.5em 1.5em; border-radius: 1.3em;
-  background:
-    radial-gradient(90% 50% at calc(50% - var(--sx) * 50%) calc(50% - var(--sy) * 80%), oklch(0.22 0.01 40 / .9), #0000 70%),
-    linear-gradient(var(--away), oklch(0.15 0.008 38), oklch(0.08 0.005 32) 50%, oklch(0.055 0.004 30));
-  box-shadow:
-    inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 1px -.5px oklch(1 0 0 / .4), inset calc(var(--sx) * 5px) calc(var(--sy) * 6px) 10px -6px oklch(1 0 0 / .12),
-    inset 0 0 0 1px #000, inset 0 0 0 .45em oklch(0 0 0 / .0), 0 0 0 1px oklch(0.6 0.08 70 / .25),
-    calc(var(--sx) * 3px) calc(var(--sy) * 4px) 4px #000e, calc(var(--sx) * 18px * var(--len)) calc(var(--sy) * 24px * var(--len)) 40px #000c;
+/* Order summary: raised lacquer lid */
+.lid { position: sticky; top: 76px;
+padding: 1.6em 1.5em 1.5em; border-radius: 1.3em;
+background:
+radial-gradient(90% 50% at calc(50% - var(--sx) * 50%) calc(50% - var(--sy) * 80%), oklch(.22 .01 40 / .9), #0000 70%),
+linear-gradient(var(--away), oklch(.15 .008 38), oklch(.08 .005 32) 50%, oklch(.055 .004 30));
+box-shadow:
+inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 1px -.5px #fff6, inset calc(var(--sx) * 5px) calc(var(--sy) * 6px) 10px -6px #fff2,
+inset 0 0 0 1px #000, inset 0 0 0 .45em #0000, 0 0 0 1px oklch(.6 .08 70 / .25),
+calc(var(--sx) * 3px) calc(var(--sy) * 4px) 4px #000e, calc(var(--sx) * 18px * var(--len)) calc(var(--sy) * 24px * var(--len)) 40px #000c;
 }
-.lid::before { /* inner gold hairline border, maki-e style */
-  content: ""; position: absolute; inset: .55em; border-radius: .95em; pointer-events: none; box-shadow: inset 0 0 0 1px oklch(0.72 0.1 78 / .35);
+.lid::before {
+content: ""; position: absolute; inset: .55em; border-radius: .95em; pointer-events: none; box-shadow: inset 0 0 0 1px oklch(.72 .1 78 / .35);
 }
 .lid-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1em; }
 .lid-h span { color: var(--ink-3); font-size: .85em; }
 .items { list-style: none; margin: 0; padding: 0; }
 .item { display: grid; grid-template-columns: 3.7em 1fr auto; grid-template-areas: "th nm tot" "th qt rm"; gap: .35em .9em; align-items: center; padding: 1em 0; position: relative; }
-.item + .item::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(0.6 0.09 72 / .45) 20%, oklch(0.6 0.09 72 / .45) 80%, #0000); box-shadow: 0 1px 0 #000; }
+.item + .item::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(.6 .09 72 / .45) 20%, oklch(.6 .09 72 / .45) 80%, #0000); box-shadow: 0 1px 0 #000; }
 .item.out { animation: out .32s var(--tr-ease-out) forwards; }
 @keyframes out { to { opacity: 0; transform: translateX(1.5em); } }
 .thumb { grid-area: th; position: relative; width: 3.7em; height: 3.7em; border-radius: .7em; overflow: hidden; }
 .nm { grid-area: nm; min-width: 0; } .nm b { display: block; font: 600 1.08em/1.15 var(--serif); letter-spacing: .01em; } .nm span { display: block; color: var(--ink-3); font-size: .78em; margin-top: .2em; }
 .tot { grid-area: tot; align-self: start; font-weight: 600; text-align: right; display: inline-block; }
-.rm { grid-area: rm; justify-self: end; border: 0; background: none; padding: 0; min-height: 44px; min-width: 44px; color: oklch(0.72 0.1 38); font: 500 .8em/1 var(--sans); }
+.rm { grid-area: rm; justify-self: end; border: 0; background: none; padding: 0; min-height: 44px; min-width: 44px; color: oklch(.72 .1 38); font: 500 .8em/1 var(--sans); }
 .rm:hover { color: var(--shu-ink); text-decoration: underline; text-underline-offset: .25em; }
-/* Mini objects drawn in CSS: bowl, chopsticks, tea caddy */
+
 .t-bowl::before { content: ""; position: absolute; left: .55em; right: .55em; top: 1.55em; height: 1.45em; border-radius: 0 0 1.4em 1.4em / 0 0 1.45em 1.45em;
-  background: radial-gradient(60% 70% at calc(50% - var(--sx) * 35%) 30%, oklch(0.42 0.01 40), oklch(0.1 0.005 30) 60%); box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 2px) 3px #000c; }
+background: radial-gradient(60% 70% at calc(50% - var(--sx) * 35%) 30%, oklch(.42 .01 40), oklch(.1 .005 30) 60%); box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 2px) 3px #000c; }
 .t-bowl::after { content: ""; position: absolute; left: .55em; right: .55em; top: 1.25em; height: .62em; border-radius: 50%;
-  background: radial-gradient(70% 90% at 50% 70%, oklch(0.5 0.17 32), oklch(0.36 0.13 30)); box-shadow: inset 0 1px 0 oklch(0.75 0.12 40 / .7), 0 0 0 1px oklch(0.08 0 0); }
+background: radial-gradient(70% 90% at 50% 70%, oklch(.5 .17 32), oklch(.36 .13 30)); box-shadow: inset 0 1px 0 oklch(.75 .12 40 / .7), 0 0 0 1px oklch(.08 0 0); }
 .t-hashi::before, .t-hashi::after { content: ""; position: absolute; left: 1.35em; top: .35em; width: .26em; height: 3em; clip-path: polygon(0 0, 100% 0, 72% 100%, 28% 100%);
-  background: linear-gradient(90deg, #0000 0, oklch(1 0 0 / .25) 35%, #0000 60%), linear-gradient(var(--gold-hi), var(--gold-lo) .45em, oklch(0.5 0.12 42) .46em, oklch(0.33 0.09 38)); transform: rotate(30deg); }
+background: linear-gradient(90deg, #0000 0, #fff4 35%, #0000 60%), linear-gradient(var(--gold-hi), var(--gold-lo) .45em, oklch(.5 .12 42) .46em, oklch(.33 .09 38)); transform: rotate(30deg); }
 .t-hashi::after { left: 1.95em; top: .45em; }
 .t-caddy::before { content: ""; position: absolute; left: 1.05em; width: 1.6em; top: .85em; height: 2.2em; border-radius: .2em .2em .25em .25em / .12em .12em .2em .2em;
-  background: linear-gradient(#0000 26%, oklch(0.3 0.05 60) 26% 29%, #0000 29%), linear-gradient(90deg, oklch(0.45 0.07 66), oklch(0.88 0.08 88) 32%, oklch(0.7 0.1 78) 55%, oklch(0.4 0.06 62));
-  box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 2px) 3px #000c; }
-.t-caddy::after { content: ""; position: absolute; left: 1.05em; width: 1.6em; top: .72em; height: .3em; border-radius: 50%; background: linear-gradient(90deg, oklch(0.6 0.08 70), oklch(0.92 0.06 90), oklch(0.6 0.08 70)); }
+background: linear-gradient(#0000 26%, oklch(.3 .05 60) 26% 29%, #0000 29%), linear-gradient(90deg, oklch(.45 .07 66), oklch(.88 .08 88) 32%, oklch(.7 .1 78) 55%, oklch(.4 .06 62));
+box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 2px) 3px #000c; }
+.t-caddy::after { content: ""; position: absolute; left: 1.05em; width: 1.6em; top: .72em; height: .3em; border-radius: 50%; background: linear-gradient(90deg, oklch(.6 .08 70), oklch(.92 .06 90), oklch(.6 .08 70)); }
 
-/* Quantity: brass knurled buttons around a small silk slot. */
+
 .qty { grid-area: qt; display: flex; align-items: center; gap: .1em; justify-self: start; }
 .kn { position: relative; display: grid; place-items: center; width: 2.4em; height: 2.4em; padding: 0; border: 0; background: none; border-radius: 50%; }
 .kn .kf {
-  position: relative; display: grid; place-items: center; width: 1.65em; height: 1.65em; border-radius: 50%; padding: .15em;
-  background:
-    radial-gradient(circle at calc(50% - var(--sx) * 26%) calc(50% - var(--sy) * 26%), oklch(0.94 0.065 92), oklch(0.76 0.1 80) 45%, oklch(0.56 0.085 68) 90%) content-box,
-    linear-gradient(var(--away), oklch(1 0 0 / .45), #0000 45%, oklch(0 0 0 / .45)) border-box,
-    repeating-conic-gradient(oklch(0.8 0.09 84) 0 4deg, oklch(0.5 0.07 64) 4deg 8deg) border-box;
-  box-shadow: 0 0 0 1px oklch(0.15 0.02 50), calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 2px #000d;
-  transform: translate(calc(var(--sx) * var(--tr-press, 0) * .08em), calc(var(--sy) * var(--tr-press, 0) * .08em)) scale(calc(1 - var(--tr-press, 0) * .07));
+position: relative; display: grid; place-items: center; width: 1.65em; height: 1.65em; border-radius: 50%; padding: .15em;
+background:
+radial-gradient(circle at calc(50% - var(--sx) * 26%) calc(50% - var(--sy) * 26%), oklch(.94 .065 92), oklch(.76 .1 80) 45%, oklch(.56 .085 68) 90%) content-box,
+linear-gradient(var(--away), #fff7, #0000 45%, #0007) border-box,
+repeating-conic-gradient(oklch(.8 .09 84) 0 4deg, oklch(.5 .07 64) 4deg 8deg) border-box;
+box-shadow: 0 0 0 1px oklch(.15 .02 50), calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 2px #000d;
+transform: translate(calc(var(--sx) * var(--tr-press, 0) * .08em), calc(var(--sy) * var(--tr-press, 0) * .08em)) scale(calc(1 - var(--tr-press, 0) * .07));
 }
-.kn svg { width: .75em; height: .75em; stroke: oklch(0.28 0.045 58); stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(calc(var(--sx) * .5px) calc(var(--sy) * .5px) 0 oklch(1 0.05 90 / .6)); }
+.kn svg { width: .75em; height: .75em; stroke: oklch(.28 .045 58); stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(calc(var(--sx) * .5px) calc(var(--sy) * .5px) 0 oklch(1 .05 90 / .6)); }
 .kn[aria-disabled="true"] { cursor: not-allowed; } .kn[aria-disabled="true"] .kf { filter: saturate(.3) brightness(.6); }
 .qv { position: relative; width: 2em; height: 1.9em; overflow: hidden; display: grid; place-items: center; border-radius: .45em; font-weight: 600; font-size: .95em; min-height: 0; }
 .qv span { grid-area: 1 / 1; }
@@ -499,273 +502,272 @@ legend { padding: 0; margin-bottom: .6em; }
 .fine { color: var(--ink-3); font-size: .8em; text-align: center; }
 .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5em 2em; padding: 1.2em 2.25em 1.5em; color: var(--ink-3); font-size: .8em; }
 
-/* ---------- Dialog: sealed with a gold-stamped mark ---------- */
+/* Dialog: sealed with a gold-stamped mark */
 dialog { padding: 0; border: 0; background: none; color: var(--ink); width: min(28em, calc(100vw - 32px)); overflow: visible; font-size: 16px; }
-dialog::backdrop { background: oklch(0.04 0.004 40 / .72); backdrop-filter: blur(5px); }
+dialog::backdrop { background: oklch(.04 .004 40 / .72); backdrop-filter: blur(5px); }
 .dlg { position: relative; padding: 4.2em 2em 2em; text-align: center; border-radius: 1.5em;
-  background: radial-gradient(90% 50% at calc(50% - var(--sx) * 50%) calc(50% - var(--sy) * 90%), oklch(0.24 0.01 40), #0000 70%),
-    linear-gradient(var(--away), oklch(0.15 0.008 38), oklch(0.07 0.005 32) 55%, oklch(0.05 0.004 30));
-  box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 1px -.5px oklch(1 0 0 / .42), inset 0 0 0 1px #000, 0 0 0 1px oklch(0.6 0.08 70 / .3),
-    calc(var(--sx) * 24px) calc(var(--sy) * 32px) 60px #000e; }
-.dlg::before { content: ""; position: absolute; inset: .6em; border-radius: 1.1em; pointer-events: none; box-shadow: inset 0 0 0 1px oklch(0.72 0.1 78 / .35); }
+background: radial-gradient(90% 50% at calc(50% - var(--sx) * 50%) calc(50% - var(--sy) * 90%), oklch(.24 .01 40), #0000 70%),
+linear-gradient(var(--away), oklch(.15 .008 38), oklch(.07 .005 32) 55%, oklch(.05 .004 30));
+box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 1px -.5px #fff6, inset 0 0 0 1px #000, 0 0 0 1px oklch(.6 .08 70 / .3),
+calc(var(--sx) * 24px) calc(var(--sy) * 32px) 60px #000e; }
+.dlg::before { content: ""; position: absolute; inset: .6em; border-radius: 1.1em; pointer-events: none; box-shadow: inset 0 0 0 1px oklch(.72 .1 78 / .35); }
 dialog[open] .dlg { animation: rise .5s var(--tr-ease-out); }
 @keyframes rise { from { opacity: 0; transform: translateY(1.5em) scale(.97); } }
 .seal { position: absolute; left: 50%; top: -3.4em; width: 6.8em; height: 6.8em; margin-left: -3.4em; border-radius: 50%; display: grid; place-items: center;
-  background: radial-gradient(circle at calc(50% - var(--sx) * 34%) calc(50% - var(--sy) * 34%), oklch(0.97 0.06 94), var(--gold) 34%, var(--gold-lo) 72%, var(--gold-deep));
-  box-shadow: inset 0 0 0 .3em oklch(0.78 0.11 82), inset 0 0 0 .38em oklch(0.45 0.07 62), inset calc(var(--sx) * 2px) calc(var(--sy) * 2px) 2px oklch(1 0.05 90 / .7),
-    0 0 0 1px #000, calc(var(--sx) * 4px) calc(var(--sy) * 6px) 8px #000d; animation: stamp .62s .18s both cubic-bezier(.3, 1.4, .5, 1); }
-.seal::before { content: ""; position: absolute; inset: .62em; border-radius: 50%; border: 1px dotted oklch(0.4 0.07 60 / .8); }
-.seal span { font: 700 1.55em/1 "Shippori Mincho B1", serif; writing-mode: vertical-rl; letter-spacing: .08em; color: oklch(0.56 0.1 70);
-  text-shadow: var(--on1) 0 oklch(0.33 0.06 58), var(--o1) 0 oklch(0.98 0.05 94 / .85); }
+background: radial-gradient(circle at calc(50% - var(--sx) * 34%) calc(50% - var(--sy) * 34%), oklch(.97 .06 94), var(--gold) 34%, var(--gold-lo) 72%, var(--gold-deep));
+box-shadow: inset 0 0 0 .3em oklch(.78 .11 82), inset 0 0 0 .38em oklch(.45 .07 62), inset calc(var(--sx) * 2px) calc(var(--sy) * 2px) 2px oklch(1 .05 90 / .7),
+0 0 0 1px #000, calc(var(--sx) * 4px) calc(var(--sy) * 6px) 8px #000d; animation: stamp .62s .18s both cubic-bezier(.3, 1.4, .5, 1); }
+.seal::before { content: ""; position: absolute; inset: .62em; border-radius: 50%; border: 1px dotted oklch(.4 .07 60 / .8); }
+.seal span { font: 700 1.55em/1 "Shippori Mincho B1", serif; writing-mode: vertical-rl; letter-spacing: .08em; color: oklch(.56 .1 70);
+text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85); }
 @keyframes stamp { 0% { opacity: 0; transform: scale(1.7) rotate(-8deg); } 55% { opacity: 1; transform: scale(.94) rotate(0); } 100% { transform: none; } }
 .dlg h2 { font: 500 2em/1.1 var(--serif); }
 .dlg p { color: var(--ink-2); margin-top: .6em; text-wrap: pretty; }
-.dlg dl { display: grid; grid-template-columns: 1fr auto; gap: .45em 1em; margin: 1.4em 0; padding: 1em 0; text-align: left; font-size: .92em; border-block: 1px solid oklch(0.6 0.09 72 / .3); }
+.dlg dl { display: grid; grid-template-columns: 1fr auto; gap: .45em 1em; margin: 1.4em 0; padding: 1em 0; text-align: left; font-size: .92em; border-block: 1px solid oklch(.6 .09 72 / .3); }
 .dlg dt { color: var(--ink-3); } .dlg dd { margin: 0; text-align: right; }
 .dlg .demo { margin-bottom: 1.4em; text-align: left; }
 
-/* ---------- Responsive re-flow ---------- */
+/* Responsive re-flow */
 @container stage (max-width: 1180px) {
-  .panes { grid-template-columns: minmax(0, 23em) minmax(0, 1fr); grid-template-areas: "acc chk" "sum chk"; }
-  .p-sum { padding-top: 0; } .p-sum::before { display: none; }
-  .p-chk { grid-row: 1 / span 2; }
-  .maker { display: none; }
+.panes { grid-template-columns: minmax(0, 23em) minmax(0, 1fr); grid-template-areas: "acc chk" "sum chk"; }
+.p-sum { padding-top: 0; } .p-sum::before { display: none; }
+.p-chk { grid-row: 1 / span 2; }
+.maker { display: none; }
 }
 @container stage (max-width: 760px) {
-  .board { border-radius: 1.2em; }
-  .shop { grid-template-columns: 1fr auto; padding: 1.1em 1.2em 1em; }
-  .shop .steps { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; }
-  .steps ol { justify-content: space-between; }
-  .steps li { flex: 1; } .steps li:first-child { flex: none; }
-  .steps li + li::before { width: auto; flex: 1; min-width: .8em; }
-  .steps li + li::after { display: none; }
-  .steps button { flex-direction: column; gap: .35em; font-size: .78em; padding: .3em .2em; }
-  .secure .lock-t { display: none; }
-  .board > .hair { margin: 0 1.2em; }
-  .panes { grid-template-columns: minmax(0, 1fr); grid-template-areas: "acc" "chk" "sum"; }
-  .p-chk { grid-row: auto; }
-  .pane { padding: 1.8em 1.2em 2em; }
-  .pane + .pane::before { display: block; left: 1.2em; right: 1.2em; top: 0; bottom: auto; width: auto; height: 1px; background: linear-gradient(90deg, #0000, var(--gold-lo) 12%, var(--gold) 50%, var(--gold-lo) 88%, #0000); box-shadow: 0 1px 0 #000; }
-  .p-sum { padding: 1.8em .6em 1.4em; }
-  .lid { padding: 1.4em 1.1em 1.2em; }
-  .ships { gap: .75em; }
-  .ship .sf { grid-template-columns: auto 1fr; padding: .95em; }
-  .ship .p { grid-column: 2; text-align: left; }
-  .kn { width: 3em; height: 3em; } .kn .kf { width: 1.85em; height: 1.85em; }
-  .sw { height: 3em; } .sw .ch { inset: .5em 0; } .sw .th { top: .32em; }
-  .foot { padding: 1em 1.2em 1.4em; }
+.board { border-radius: 1.2em; }
+.shop { grid-template-columns: 1fr auto; padding: 1.1em 1.2em 1em; }
+.shop .steps { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; }
+.steps ol { justify-content: space-between; }
+.steps li { flex: 1; } .steps li:first-child { flex: none; }
+.steps li + li::before { width: auto; flex: 1; min-width: .8em; }
+.steps li + li::after { display: none; }
+.steps button { flex-direction: column; gap: .35em; font-size: .78em; padding: .3em .2em; }
+.secure .lock-t { display: none; }
+.board > .hair { margin: 0 1.2em; }
+.panes { grid-template-columns: minmax(0, 1fr); grid-template-areas: "acc" "chk" "sum"; }
+.p-chk { grid-row: auto; }
+.pane { padding: 1.8em 1.2em 2em; } .lid { position: relative; top: 0; }
+.pane + .pane::before { display: block; left: 1.2em; right: 1.2em; top: 0; bottom: auto; width: auto; height: 1px; background: linear-gradient(90deg, #0000, var(--gold-lo) 12%, var(--gold) 50%, var(--gold-lo) 88%, #0000); box-shadow: 0 1px 0 #000; }
+.p-sum { padding: 1.8em .6em 1.4em; }
+.lid { padding: 1.4em 1.1em 1.2em; }
+.ships { gap: .75em; }
+.ship .sf { grid-template-columns: auto 1fr; padding: .95em; }
+.ship .p { grid-column: 2; text-align: left; }
+.kn { width: 3em; height: 3em; } .kn .kf { width: 1.85em; height: 1.85em; }
+.sw { height: 3em; } .sw .ch { inset: .5em 0; } .sw .th { top: .32em; }
+.foot { padding: 1em 1.2em 1.4em; }
 }
 @media (prefers-reduced-motion: reduce) { .seal, dialog[open] .dlg, .lb { animation: none; } }
 @media (forced-colors: active) { .well, .ship .sf, .box, .sw .ch { border: 1px solid CanvasText; } }
 
-/* Caption */
+
 .tg-caption { padding-top: 8px; color: var(--ink-2); }
 .tg-caption ul { margin: 0; padding-left: 1.2em; opacity: .82; }
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-  <defs>
-    <pattern id="nashi" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="3" r=".55" fill="#f6e7b4"/><circle cx="7" cy="7" r=".4" fill="#f6e7b4"/><circle cx="6" cy="1.5" r=".3" fill="#c9a45a"/></pattern>
-    <linearGradient id="g-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e7b4"/><stop offset=".35" stop-color="#d9b56a"/><stop offset=".7" stop-color="#9a7534"/><stop offset="1" stop-color="#c9a45a"/></linearGradient>
-  </defs>
+<defs>
+<linearGradient id="g-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e7b4"/><stop offset=".35" stop-color="#d9b56a"/><stop offset=".7" stop-color="#9a7534"/><stop offset="1" stop-color="#c9a45a"/></linearGradient>
+</defs>
 </svg>
 
 <main class="stage" id="top">
-  <div class="board">
-    <header class="shop">
-      <a class="brand" href="#top" aria-label="Kurogane, home">
-        <svg class="mon" viewBox="0 0 40 40" fill="none" stroke="url(#g-gold)" stroke-width="1.1" aria-hidden="true">
-          <circle cx="20" cy="20" r="18.4"/><circle cx="20" cy="20" r="16.2" stroke-width=".5"/>
-          <path d="M9 25.5c4-1.6 7.6-1.6 11 0s7 1.6 11 0M11 21c3-1.2 6-1.2 9 0s6 1.2 9 0" stroke-linecap="round"/>
-          <path d="M20 8.5l4.6 8.2h-9.2z" stroke-linejoin="round"/>
-        </svg>
-        <span class="wm"><b>KUROGANE</b><small>Objects made by hand</small></span>
-      </a>
-      <nav class="steps" aria-label="Checkout progress">
-        <ol>
-          <li data-state="current"><button type="button" data-go="account" aria-current="step"><span class="stud"><b>1</b><svg viewBox="0 0 16 16" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span>Account</button></li>
-          <li data-state="todo"><button type="button" data-go="delivery"><span class="stud"><b>2</b><svg viewBox="0 0 16 16" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span>Delivery</button></li>
-          <li data-state="todo"><button type="button" data-go="payment"><span class="stud"><b>3</b><svg viewBox="0 0 16 16" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span>Payment</button></li>
-        </ol>
-      </nav>
-      <div class="secure">
-        <span class="lock-t"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.5" aria-hidden="true"><rect x="4" y="9" width="12" height="8.5" rx="2"/><path d="M6.8 9V6.6a3.2 3.2 0 0 1 6.4 0V9"/></svg>Secure checkout</span>
-        <span class="bag">Bag <i class="num" id="bag-n" aria-label="4 pieces">4</i></span>
-      </div>
-    </header>
-    <hr class="hair">
+<div class="board">
+<header class="shop">
+<a class="brand" href="#top" aria-label="Kurogane, home">
+<svg class="mon" viewBox="0 0 40 40" fill="none" stroke="url(#g-gold)" stroke-width="1.1" aria-hidden="true">
+<circle cx="20" cy="20" r="18.4"/><circle cx="20" cy="20" r="16.2" stroke-width=".5"/>
+<path d="M9 25.5c4-1.6 7.6-1.6 11 0s7 1.6 11 0M11 21c3-1.2 6-1.2 9 0s6 1.2 9 0" stroke-linecap="round"/>
+<path d="M20 8.5l4.6 8.2h-9.2z" stroke-linejoin="round"/>
+</svg>
+<span class="wm"><b>KUROGANE</b><small>Objects made by hand</small></span>
+</a>
+<nav class="steps" aria-label="Checkout progress">
+<ol>
+<li data-state="current"><button type="button" data-go="account" aria-current="step"><span class="stud"><b>1</b></span>Account</button></li>
+<li data-state="todo"><button type="button" data-go="delivery"><span class="stud"><b>2</b></span>Delivery</button></li>
+<li data-state="todo"><button type="button" data-go="payment"><span class="stud"><b>3</b></span>Payment</button></li>
+</ol>
+</nav>
+<div class="secure">
+<span class="lock-t"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.5" aria-hidden="true"><rect x="4" y="9" width="12" height="8.5" rx="2"/><path d="M6.8 9V6.6a3.2 3.2 0 0 1 6.4 0V9"/></svg>Secure checkout</span>
+<span class="bag">Bag <i class="num" id="bag-n" aria-label="4 pieces">4</i></span>
+</div>
+</header>
+<hr class="hair">
 
-    <div class="panes">
-      <!-- 1. Account -->
-      <section class="pane p-acc" id="account" aria-labelledby="h-acc">
-        <p class="eyebrow">Step 1</p>
-        <h2 class="title" id="h-acc" tabindex="-1">Sign in</h2>
-        <p class="lede" id="acc-lede">Check out faster with your saved address and order history.</p>
-        <form class="stack" id="signin" novalidate style="margin-top:1.6em">
-          <div class="field">
-            <label class="lbl" for="email">Email</label>
-            <div class="well" id="email-well"><input id="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com" aria-describedby="email-msg"></div>
-            <p class="msg" id="email-msg" role="alert"></p>
-          </div>
-          <div class="field">
-            <div class="lbl-row"><label class="lbl" for="pw">Password</label><a class="link" href="#account" id="forgot">Forgot password?</a></div>
-            <div class="well" id="pw-well">
-              <input id="pw" type="password" autocomplete="current-password" placeholder="Your password" aria-describedby="pw-msg">
-              <button class="brass" type="button" id="pw-tog" aria-label="Show password" aria-controls="pw"><span class="bf">
-                <svg class="on" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><circle cx="10" cy="10" r="2.4"/></svg>
-                <svg class="off" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><path d="M3.5 16.5l13-13"/></svg>
-              </span></button>
-            </div>
-            <p class="msg" id="pw-msg" role="alert"></p>
-          </div>
-          <label class="check"><input type="checkbox" id="remember"><span class="box"><svg viewBox="0 0 20 20" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.8l3.6 3.4 7.4-8.6" stroke="#000" stroke-opacity=".7" stroke-width="3.6"/><path d="M4.5 10.4l3.6 3.4 7.4-8.6" stroke="url(#g-gold)" stroke-width="2.2"/></svg></span>Remember me on this device</label>
-          <button class="pebble" type="button" id="signin-btn"><span class="pf"><span id="signin-l">Sign in</span></span></button>
-          <p class="or">or</p>
-          <div class="duo">
-            <button class="plq" type="button" data-alt="Passkey"><span class="pf"><svg viewBox="0 0 20 20"><circle cx="7" cy="8" r="3.5"/><path d="M9.8 10.2L17 17.4M14.4 14.8l1.7-1.7M12.6 13l1.4-1.4"/></svg><span>Passkey</span></span></button>
-            <button class="plq" type="button" data-alt="Phone code"><span class="pf"><svg viewBox="0 0 20 20"><rect x="5.5" y="2.5" width="9" height="15" rx="2"/><path d="M9 14.6h2"/></svg><span>Phone</span></span></button>
-          </div>
-          <p class="msg ok" id="alt-msg" role="status"></p>
-        </form>
-        <div class="acct" id="acct" hidden>
-          <span class="avatar" aria-hidden="true">A</span>
-          <div><b>Aya Kosaka</b><span id="acct-mail">aya@example.com</span></div>
-          <button class="link" type="button" id="signout">Sign out</button>
-        </div>
-        <div class="maker" aria-label="A note from the workshop">
-          <hr class="hair" style="position:absolute;left:0;right:0;top:0">
-          <svg viewBox="0 0 300 116" fill="none" stroke="url(#g-gold)" stroke-linecap="round" aria-hidden="true">
-            <circle cx="214" cy="44" r="27" fill="url(#g-gold)" fill-opacity=".42" stroke-width=".7"/><circle cx="214" cy="44" r="27" fill="url(#nashi)" stroke="none"/>
-            <g stroke-width=".9"><path d="M22 116C52 84 92 56 150 40"/><path d="M58 116c22-30 52-52 96-62"/><path d="M104 116c10-22 30-40 58-50"/><path d="M8 116c26-14 52-20 84-16"/><path d="M70 116c-6-20-22-36-46-44"/></g>
-            <g stroke-width=".6"><path d="M150 40l9 7M144 42l8 8M138 44l7 9M154 54l8 6M148 56l7 7M162 66l7 5M157 68l6 6"/></g>
-            <g fill="#d9b56a" stroke="none" opacity=".75"><circle cx="252" cy="88" r="1"/><circle cx="268" cy="70" r=".7"/><circle cx="236" cy="98" r=".6"/><circle cx="182" cy="24" r=".7"/></g>
-          </svg>
-          <p>Each bowl takes thirty coats and a season to cure. We finish every piece by hand and pack it the same day it is ordered.</p>
-          <small>Returns within 30 days · Repairs for life</small>
-        </div>
-      </section>
+<div class="panes">
+<!-- 1. Account -->
+<section class="pane p-acc" id="account" aria-labelledby="h-acc">
+<p class="eyebrow">Step 1</p>
+<h2 class="title" id="h-acc" tabindex="-1">Sign in</h2>
+<p class="lede" id="acc-lede">Check out faster with your saved address and order history.</p>
+<form class="stack" id="signin" novalidate style="margin-top:1.6em">
+<div class="field">
+<label class="lbl" for="email">Email</label>
+<div class="well" id="email-well"><input id="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com" aria-describedby="email-msg"></div>
+<p class="msg" id="email-msg" role="alert"></p>
+</div>
+<div class="field">
+<div class="lbl-row"><label class="lbl" for="pw">Password</label><a class="link" href="#account" id="forgot">Forgot password?</a></div>
+<div class="well" id="pw-well">
+<input id="pw" type="password" autocomplete="current-password" placeholder="Your password" aria-describedby="pw-msg">
+<button class="brass" type="button" id="pw-tog" aria-label="Show password" aria-controls="pw"><span class="bf">
+<svg class="on" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><circle cx="10" cy="10" r="2.4"/></svg>
+<svg class="off" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><path d="M3.5 16.5l13-13"/></svg>
+</span></button>
+</div>
+<p class="msg" id="pw-msg" role="alert"></p>
+</div>
+<label class="check"><input type="checkbox" id="remember"><span class="box"><svg viewBox="0 0 20 20" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.8l3.6 3.4 7.4-8.6" stroke="#000" stroke-opacity=".7" stroke-width="3.6"/><path d="M4.5 10.4l3.6 3.4 7.4-8.6" stroke="url(#g-gold)" stroke-width="2.2"/></svg></span>Remember me on this device</label>
+<button class="pebble" type="button" id="signin-btn"><span class="pf"><span id="signin-l">Sign in</span></span></button>
+<p class="or">or</p>
+<div class="duo">
+<button class="plq" type="button" data-alt="Passkey"><span class="pf"><svg viewBox="0 0 20 20"><circle cx="7" cy="8" r="3.5"/><path d="M9.8 10.2L17 17.4M14.4 14.8l1.7-1.7M12.6 13l1.4-1.4"/></svg><span>Passkey</span></span></button>
+<button class="plq" type="button" data-alt="Phone code"><span class="pf"><svg viewBox="0 0 20 20"><rect x="5.5" y="2.5" width="9" height="15" rx="2"/><path d="M9 14.6h2"/></svg><span>Phone</span></span></button>
+</div>
+<p class="msg ok" id="alt-msg" role="status"></p>
+</form>
+<div class="acct" id="acct" hidden>
+<span class="avatar" aria-hidden="true">A</span>
+<div><b>Aya Kosaka</b><span id="acct-mail">aya@example.com</span></div>
+<button class="link" type="button" id="signout">Sign out</button>
+</div>
+<div class="maker" aria-label="A note from the workshop">
+<hr class="hair" style="position:absolute;left:0;right:0;top:0">
+<svg viewBox="0 0 300 116" fill="none" stroke="url(#g-gold)" stroke-linecap="round" aria-hidden="true">
+<circle cx="222" cy="42" r="26" fill="url(#g-gold)" fill-opacity=".3" stroke-width=".7"/>
+<g stroke-width=".9"><path d="M40 116C66 80 106 54 160 42"/><path d="M54 116c26-28 60-46 112-52"/><path d="M68 116c22-20 52-32 98-34"/><path d="M30 116c14-18 38-28 70-30"/><path d="M80 116c10-12 26-18 48-17"/></g>
+<g stroke-width=".55"><path d="M136 48l8 9M144 46l8 8M152 44l7 7M160 42l6 5M146 62l7 8M154 61l7 6M162 60l5 5M144 83l6 7M152 82l6 6M160 81l5 5"/></g>
+<g fill="#d9b56a" stroke="none" opacity=".7"><circle cx="262" cy="86" r="1"/><circle cx="276" cy="66" r=".7"/><circle cx="244" cy="98" r=".6"/><circle cx="190" cy="20" r=".7"/></g>
+</svg>
+<p>Each bowl takes thirty coats and a season to cure. We finish every piece by hand and pack it the same day it is ordered.</p>
+<small>Returns within 30 days · Repairs for life</small>
+</div>
+</section>
 
-      <!-- 2 + 3. Delivery and payment -->
-      <section class="pane p-chk" id="delivery" aria-labelledby="h-del">
-        <p class="eyebrow">Step 2</p>
-        <h2 class="title" id="h-del" tabindex="-1">Delivery</h2>
-        <div class="stack" style="margin-top:1.4em">
-          <div class="addr" id="addr">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 18s6-5.2 6-10a6 6 0 0 0-12 0c0 4.8 6 10 6 10z"/><circle cx="10" cy="8" r="2.2"/></svg>
-            <div id="addr-t">Sign in to ship to a saved address, or add a new one on the next screen.</div>
-          </div>
-          <div class="field sel">
-              <span class="lbl" id="country-l">Country / region</span>
-              <button class="well sel-btn" type="button" id="country" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="country-lb" aria-labelledby="country-l country-v"><span id="country-v">Japan</span><span class="chev" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg></span></button>
-              <ul class="lb" id="country-lb" role="listbox" aria-labelledby="country-l" tabindex="-1" hidden></ul>
-            </div>
-          <fieldset>
-            <legend class="lbl">Shipping method</legend>
-            <div class="ships">
-              <label class="ship"><input type="radio" name="ship" value="std" checked><span class="sf"><span class="radio"></span><span class="t">Standard</span><span class="p num" id="p-std">Free</span><span class="e" id="e-std">2–3 days · tracked</span></span></label>
-              <label class="ship"><input type="radio" name="ship" value="exp"><span class="sf"><span class="radio"></span><span class="t">Express</span><span class="p num" id="p-exp">¥1,200</span><span class="e" id="e-exp">Tomorrow · signed for</span></span></label>
-            </div>
-          </fieldset>
-            <div class="field gift-f">
-              <span class="lbl" id="gift-l">Gift wrap</span>
-              <div class="gift">
-                <div class="txt" id="gift-txt"><b>Furoshiki cloth</b><span>Indigo cotton, tied by hand · <span class="num">¥800</span></span></div>
-                <div style="display:flex;align-items:center;gap:.6em"><div class="sw" id="gift" aria-labelledby="gift-l" aria-describedby="gift-txt"><span class="ch"></span><span class="th"></span></div><span class="sw-state" id="gift-s" aria-hidden="true">Off</span></div>
-              </div>
-            </div>
-        </div>
+<!-- 2 + 3. Delivery and payment -->
+<section class="pane p-chk" id="delivery" aria-labelledby="h-del">
+<p class="eyebrow">Step 2</p>
+<h2 class="title" id="h-del" tabindex="-1">Delivery</h2>
+<div class="stack" style="margin-top:1.4em">
+<div class="addr" id="addr">
+<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 18s6-5.2 6-10a6 6 0 0 0-12 0c0 4.8 6 10 6 10z"/><circle cx="10" cy="8" r="2.2"/></svg>
+<div id="addr-t">Sign in to ship to a saved address, or add a new one on the next screen.</div>
+</div>
+<div class="field sel">
+<span class="lbl" id="country-l">Country / region</span>
+<button class="well sel-btn" type="button" id="country" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="country-lb" aria-labelledby="country-l country-v"><span id="country-v">Japan</span><span class="chev" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg></span></button>
+<ul class="lb" id="country-lb" role="listbox" aria-labelledby="country-l" tabindex="-1" hidden></ul>
+</div>
+<fieldset>
+<legend class="lbl">Shipping method</legend>
+<div class="ships">
+<label class="ship"><input type="radio" name="ship" value="std" checked><span class="sf"><span class="radio"></span><span class="t">Standard</span><span class="p num" id="p-std">Free</span><span class="e" id="e-std">2–3 days · tracked</span></span></label>
+<label class="ship"><input type="radio" name="ship" value="exp"><span class="sf"><span class="radio"></span><span class="t">Express</span><span class="p num" id="p-exp">¥1,200</span><span class="e" id="e-exp">Tomorrow · signed for</span></span></label>
+</div>
+</fieldset>
+<div class="field gift-f">
+<span class="lbl" id="gift-l">Gift wrap</span>
+<div class="gift">
+<div class="txt" id="gift-txt"><b>Furoshiki cloth</b><span>Indigo cotton, tied by hand · <span class="num">¥800</span></span></div>
+<div style="display:flex;align-items:center;gap:.6em"><div class="sw" id="gift" aria-labelledby="gift-l" aria-describedby="gift-txt"><span class="ch"></span><span class="th"></span></div><span class="sw-state" id="gift-s" aria-hidden="true">Off</span></div>
+</div>
+</div>
+</div>
 
-        <hr class="hair" style="margin:2.4em 0 2.2em">
-        <p class="eyebrow">Step 3</p>
-        <h2 class="title" id="payment" tabindex="-1">Payment</h2>
-        <div class="pay" style="margin-top:1.5em">
-          <div class="scene" id="scene">
-            <div class="card3d" id="card" role="img" aria-label="Card preview">
-              <div class="card-shadow"></div>
-              <div class="cf front">
-                <span class="issuer engr">DEMO · DEBIT</span>
-                <svg class="mark" viewBox="0 0 48 28" fill="none" stroke="oklch(0.36 0.02 60)" stroke-width="1.4" aria-hidden="true"><circle cx="17" cy="14" r="10"/><circle cx="31" cy="14" r="10" stroke-dasharray="2 2.4"/></svg>
-                <span class="chip"></span>
-                <div class="cnum engr" id="c-num"><span>••••</span><span>••••</span><span>••••</span><span>••••</span></div>
-                <div class="cmeta engr"><span><small>Card holder</small><span id="c-name">Your name</span></span><span><small>Valid thru</small><span id="c-exp">MM/YY</span></span></div>
-              </div>
-              <div class="cf back">
-                <div class="stripe"></div>
-                <div class="sig"></div>
-                <div class="cvc-box" id="c-cvc">•••</div>
-                <p class="fine engr">Demo card for a demo store. It is not a payment instrument and no data leaves this page.</p>
-              </div>
-            </div>
-          </div>
-          <div class="stack">
-            <div class="pay-fields">
-              <div class="field wide"><label class="lbl" for="cc">Card number</label><div class="well"><input id="cc" inputmode="numeric" autocomplete="off" placeholder="1234 5678 9012 3456" maxlength="19" aria-describedby="cc-msg"></div><p class="msg" id="cc-msg"></p></div>
-              <div class="field"><label class="lbl" for="exp">Expiry</label><div class="well"><input id="exp" inputmode="numeric" autocomplete="off" placeholder="MM / YY" maxlength="7"></div></div>
-              <div class="field"><label class="lbl" for="cvc">CVC</label><div class="well"><input id="cvc" inputmode="numeric" autocomplete="off" placeholder="123" maxlength="4"></div></div>
-            </div>
-            <p class="demo"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v5M10 13.6v.2" stroke-linecap="round"/></svg>Demo store, no payment is taken.</p>
-          </div>
-        </div>
-      </section>
+<hr class="hair" style="margin:2.4em 0 2.2em">
+<p class="eyebrow">Step 3</p>
+<h2 class="title" id="payment" tabindex="-1">Payment</h2>
+<div class="pay" style="margin-top:1.5em">
+<div class="scene" id="scene">
+<div class="card3d" id="card" role="img" aria-label="Card preview">
+<div class="card-shadow"></div>
+<div class="cf front">
+<span class="issuer engr">DEMO · DEBIT</span>
+<svg class="mark" viewBox="0 0 48 28" fill="none" stroke="oklch(0.36 0.02 60)" stroke-width="1.4" aria-hidden="true"><circle cx="17" cy="14" r="10"/><circle cx="31" cy="14" r="10" stroke-dasharray="2 2.4"/></svg>
+<span class="chip"></span>
+<div class="cnum engr" id="c-num"><span>••••</span><span>••••</span><span>••••</span><span>••••</span></div>
+<div class="cmeta engr"><span><small>Card holder</small><span id="c-name">Your name</span></span><span><small>Valid thru</small><span id="c-exp">MM/YY</span></span></div>
+</div>
+<div class="cf back">
+<div class="stripe"></div>
+<div class="sig"></div>
+<div class="cvc-box" id="c-cvc">•••</div>
+<p class="fine engr">Demo card for a demo store. It is not a payment instrument and no data leaves this page.</p>
+</div>
+</div>
+</div>
+<div class="stack">
+<div class="pay-fields">
+<div class="field wide"><label class="lbl" for="cc">Card number</label><div class="well"><input id="cc" inputmode="numeric" autocomplete="off" placeholder="1234 5678 9012 3456" maxlength="19" aria-describedby="cc-msg"></div><p class="msg" id="cc-msg"></p></div>
+<div class="field"><label class="lbl" for="exp">Expiry</label><div class="well"><input id="exp" inputmode="numeric" autocomplete="off" placeholder="MM / YY" maxlength="7"></div></div>
+<div class="field"><label class="lbl" for="cvc">CVC</label><div class="well"><input id="cvc" inputmode="numeric" autocomplete="off" placeholder="123" maxlength="4"></div></div>
+</div>
+<p class="demo"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v5M10 13.6v.2" stroke-linecap="round"/></svg>Demo store, no payment is taken.</p>
+</div>
+</div>
+</section>
 
-      <!-- Summary -->
-      <aside class="pane p-sum" aria-labelledby="h-sum">
-        <div class="lid">
-          <div class="lid-h"><h3 class="sub" id="h-sum">Your order</h3><span id="pieces">4 pieces</span></div>
-          <hr class="hair">
-          <ul class="items" id="items"></ul>
-          <hr class="hair" style="margin-bottom:1.2em">
-          <div class="field">
-            <label class="lbl" for="promo">Promo code</label>
-            <div class="promo">
-              <div class="well"><input id="promo" autocomplete="off" placeholder="e.g. AKI10" aria-describedby="promo-msg" style="text-transform:uppercase"></div>
-              <button class="plq" type="button" id="apply" aria-disabled="true"><span class="pf">Apply</span></button>
-            </div>
-            <p class="msg" id="promo-msg" role="status"></p>
-          </div>
-          <dl class="totals num" style="margin-top:1.3em">
-            <dt>Subtotal</dt><dd id="t-sub"></dd>
-            <dt>Shipping</dt><dd id="t-ship"></dd>
-            <dt id="t-gift-l" hidden>Gift wrap</dt><dd id="t-gift" hidden></dd>
-            <dt id="t-disc-l" hidden>Promo AKI10</dt><dd id="t-disc" class="disc" hidden></dd>
-            <hr class="hair" style="grid-column:1/-1;margin:.5em 0 .2em">
-            <dt class="grand">Total</dt><dd class="grand" id="t-total"></dd>
-          </dl>
-          <p class="fine" id="tax-note" style="text-align:right;margin-top:.4em">Includes consumption tax</p>
-          <div style="margin-top:1.4em"><button class="pebble big" type="button" id="place"><span class="pf"><span>Place order</span><span class="num" id="place-t"></span></span></button></div>
-          <p class="msg" id="place-msg" role="alert" style="margin-top:.8em"></p>
-          <p class="fine" style="margin-top:.9em">Demo store, no payment is taken.</p>
-        </div>
-      </aside>
-    </div>
-    <hr class="hair">
-    <footer class="foot"><span>Kurogane Workshop · a demo shop</span><span>Shipping &amp; returns · Care for lacquer · Help</span></footer>
-  </div>
+<!-- Summary -->
+<aside class="pane p-sum" aria-labelledby="h-sum">
+<div class="lid">
+<div class="lid-h"><h3 class="sub" id="h-sum">Your order</h3><span id="pieces">4 pieces</span></div>
+<hr class="hair">
+<ul class="items" id="items"></ul>
+<hr class="hair" style="margin-bottom:1.2em">
+<div class="field">
+<label class="lbl" for="promo">Promo code</label>
+<div class="promo">
+<div class="well"><input id="promo" autocomplete="off" placeholder="e.g. AKI10" aria-describedby="promo-msg" style="text-transform:uppercase"></div>
+<button class="plq" type="button" id="apply" aria-disabled="true"><span class="pf">Apply</span></button>
+</div>
+<p class="msg" id="promo-msg" role="status"></p>
+</div>
+<dl class="totals num" style="margin-top:1.3em">
+<dt>Subtotal</dt><dd id="t-sub"></dd>
+<dt>Shipping</dt><dd id="t-ship"></dd>
+<dt id="t-gift-l" hidden>Gift wrap</dt><dd id="t-gift" hidden></dd>
+<dt id="t-disc-l" hidden>Promo AKI10</dt><dd id="t-disc" class="disc" hidden></dd>
+<hr class="hair" style="grid-column:1/-1;margin:.5em 0 .2em">
+<dt class="grand">Total</dt><dd class="grand" id="t-total"></dd>
+</dl>
+<p class="fine" id="tax-note" style="text-align:right;margin-top:.4em">Includes consumption tax</p>
+<div style="margin-top:1.4em"><button class="pebble big" type="button" id="place"><span class="pf"><span>Place order</span><span class="num" id="place-t"></span></span></button></div>
+<p class="msg" id="place-msg" role="alert" style="margin-top:.8em"></p>
+<p class="fine" style="margin-top:.9em">Demo store, no payment is taken.</p>
+</div>
+</aside>
+</div>
+<hr class="hair">
+<footer class="foot"><span>Kurogane Workshop · a demo shop</span><span>Shipping &amp; returns · Care for lacquer · Help</span></footer>
+</div>
 </main>
 
 <dialog id="done" aria-labelledby="done-h">
-  <div class="dlg">
-    <div class="seal" aria-hidden="true"><span>黒鉄</span></div>
-    <h2 id="done-h">Your order is sealed</h2>
-    <p id="done-p">Thank you, Aya. The workshop has your order and will pack it by hand.</p>
-    <dl class="num" id="done-dl"></dl>
-    <p class="demo"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v5M10 13.6v.2" stroke-linecap="round"/></svg>Demo store: no payment was taken and nothing will ship.</p>
-    <button class="pebble" type="button" id="done-btn"><span class="pf"><span>Done</span></span></button>
-  </div>
+<div class="dlg">
+<div class="seal" aria-hidden="true"><span>黒鉄</span></div>
+<h2 id="done-h">Your order is sealed</h2>
+<p id="done-p">Thank you, Aya. The workshop has your order and will pack it by hand.</p>
+<dl class="num" id="done-dl"></dl>
+<p class="demo"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v5M10 13.6v.2" stroke-linecap="round"/></svg>Demo store: no payment was taken and nothing will ship.</p>
+<button class="pebble" type="button" id="done-btn"><span class="pf"><span>Done</span></span></button>
+</div>
 </dialog>
 
 <section class="tg-caption">
-  <h2>Kurogane</h2>
-  <p>An everyday sign-in and checkout for an invented shop of hand-made goods, built as if every control were made by the same lacquer workshop. The board is black urushi with a mirror gloss: the softbox you see reflected in it slides toward the light as you turn the light dial. Inputs are recessed wells lined with raw silk, labels are engraved and gilded, and the hardware (the show-password latch, quantity buttons, the gift-wrap slide) is brushed brass. The card preview is brushed shibuichi; it turns over when you reach the security code.</p>
-  <p>No images: every surface is gradients, shadows and procedural SVG noise (silk slubs, brushing, nashiji gold dust). Shadows, rims, gloss and reflections all read the scene light.</p>
-  <ul>
-    <li>Email and password wells with validation, a brass push-latch to show the password, a lacquer checkbox with a gold check inlay</li>
-    <li>Lacquer pebble buttons with press travel, plaque buttons, a text link, a remove (destructive) action</li>
-    <li>Knurled brass quantity buttons with detents and rolling numerals, shipping radio cards that sink when chosen</li>
-    <li>Country listbox: <kbd>Enter</kbd>/<kbd>Space</kbd> opens, arrows, <kbd>Home</kbd>/<kbd>End</kbd>, type-ahead, <kbd>Esc</kbd> closes</li>
-    <li>Gift-wrap slide switch, promo code, a turning card preview, a confirmation dialog sealed with a gold stamp</li>
-  </ul>
+<h2>Kurogane</h2>
+<p>Sign-in and checkout for an invented shop of hand-made goods, as if every control came from one lacquer workshop. The board is black urushi with a mirror gloss; the softbox reflected in it slides toward the light as you turn the light dial. Inputs are recessed wells lined with raw silk, labels are gilded, the hardware is brushed brass, and the card preview is brushed shibuichi with a gold inlay line. It turns over when you reach the security code.</p>
+<p>No images: every surface is gradients, shadows and procedural SVG noise (silk slubs, brushing, nashiji gold dust), and every shadow, rim and gloss reads the scene light.</p>
+<ul>
+<li>Email and password wells with validation, a brass latch to show the password, a lacquer checkbox with a gold check</li>
+<li>Pebble and plaque buttons with press travel, a text link, a destructive remove</li>
+<li>Knurled brass quantity buttons with detents and rolling numerals; shipping cards that sink when chosen</li>
+<li>Country listbox: <kbd>Enter</kbd>/<kbd>Space</kbd> opens, arrows, <kbd>Home</kbd>/<kbd>End</kbd>, type-ahead, <kbd>Esc</kbd></li>
+<li>Gift-wrap slide switch, promo code, a turning card, a dialog sealed with a gold stamp</li>
+</ul>
 </section>
 
 <script type="module">
@@ -865,6 +867,7 @@ function total(dir = 1) {
 }
 
 /* ---------- Stepper ---------- */
+document.querySelectorAll(".stud").forEach((e) => e.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 16 16" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>'));
 function steps() {
   const done = [S.signedIn || S.ordered, (S.signedIn && S.payTouched) || S.ordered, S.paid || S.ordered];
   const cur = done.indexOf(false);

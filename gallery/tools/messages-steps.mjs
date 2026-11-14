@@ -167,6 +167,12 @@ export default async (page, { out, name }) => {
   const small = await ph.evaluate(() => [...document.querySelectorAll("#thread button, .composer .field")].filter((b) => b.offsetParent && !b.closest(".msg")).map((b) => [b.id || b.className, b.getBoundingClientRect()]).filter(([, r]) => r.width < 44 || r.height < 44).map(([n, r]) => `${n} ${r.width.toFixed(0)}x${r.height.toFixed(0)}`));
   ok(small.length === 0, "phone: thread targets >= 44px " + small.join(", "));
   await ph.screenshot({ path: `${out}/${name}-phone-thread.png` });
+  const pb = ph.locator(".msg.them .bubble").filter({ hasText: "Fog lifted" });
+  await pb.tap(); await ph.waitForTimeout(200);
+  ok(await ph.evaluate(() => getComputedStyle(document.querySelector(".msg.sel .react")).opacity) === "1", "phone: tapping a bubble reveals its react key");
+  await ph.locator(".msg.sel .react").tap(); await ph.waitForTimeout(300);
+  await ph.tap('#reactMenu [data-act="fire"]'); await ph.waitForTimeout(500);
+  ok(await ph.locator(".msg.them").filter({ hasText: "Fog lifted" }).locator('.pin use[href="#g-fire"]').count() === 1, "phone: reaction by touch replaces the heart with fire");
   await ph.tap("#ta"); await ph.keyboard.type("On my way 👍"); await ph.waitForTimeout(150);
   await ph.screenshot({ path: `${out}/${name}-phone-compose.png` });
   await ph.tap("#infoBtn"); await ph.waitForTimeout(500);

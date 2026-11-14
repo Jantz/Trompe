@@ -553,6 +553,7 @@ export class PressController {
     else finish();
   }
   _activate(fromPointer) {
+    if (this.host.getAttribute("aria-disabled") === "true" || this.host.disabled) return;
     if (this.o.mode === "latching") {
       if (this.o.group) {
         if (this.pressed && this.o.groupRequired !== false) { /* radio: stays down */ }
@@ -590,8 +591,14 @@ export class PressController {
     };
     h.addEventListener("pointermove", move); h.addEventListener("pointerup", up); h.addEventListener("pointercancel", up);
   }
+  /** Run a full press programmatically: travel down, activate, spring back. */
+  press() {
+    if (!this._begin()) return;
+    setTimeout(() => this._end(false), this.o.minPressMs);
+  }
   _key(e, down) {
     if (e.key !== " " && e.key !== "Enter") return;
+    if (this.host.getAttribute("aria-disabled") === "true") return;
     e.preventDefault();
     if (down) { if (!e.repeat && !this._keyActive) { this._keyActive = true; this._begin(); } }
     else if (this._keyActive) { this._keyActive = false; this._end(false); }
@@ -761,4 +768,4 @@ export function mountBar(o) {
   return bar;
 }
 
-export { clamp, store, reduceMotion };
+export { clamp, store, reduceMotion, springStep };

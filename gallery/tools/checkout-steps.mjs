@@ -147,7 +147,7 @@ export default async (page, { out, name }) => {
   // 10. Light angles.
   for (const a of [45, 180]) {
     await page.evaluate((a) => document.documentElement.style.setProperty("--tr-light-angle", a + "deg"), a);
-    await page.waitForTimeout(200);
+    await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(250);
     await shot(`light-${a}`, { fullPage: false });
     await shot(`light-${a}-sum`, { clip: await clipOf(".p-sum", 0), fullPage: true });
   }

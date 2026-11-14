@@ -403,7 +403,7 @@ box-shadow:calc(var(--lx) * .35em) calc(var(--ly) * .35em) .3em oklch(0.12 0.04 
 
 /* ---------- phone:one page at a time ---------- */
 @container (max-width: 640px) {
-.scene {font-size:calc((100cqi - 32px) / 15.6);grid-template-columns:1fr;padding:.4em 0 1em;justify-items:center;}
+.scene {font-size:calc((100cqi - 32px) / 16.4);grid-template-columns:1fr;padding:.4em .7em 1em;justify-items:center;}
 .journal {--layout:phone;width:15em;height:auto;margin-top:2.2em;}
 .book {grid-template:auto minmax(21em,auto) / 15em;}
 .journal[data-state] .book {--shift:0em;}
@@ -414,8 +414,9 @@ box-shadow:calc(var(--lx) * .35em) calc(var(--ly) * .35em) .3em oklch(0.12 0.04 
 .label .nm {font-size:1.3em;} .label .rw {display:none;}
 .pocket {left:7.9em;right:.8em;bottom:.7em;height:7em;}
 .ticket {left:.3em;right:.3em;} .tx {font-size:.4em;padding-left:4.4em;}
-.lining[data-pocket="open"] .ticket {--ty:-2.6em;}
-.stud {width:1.9em;height:1.9em;margin-left:-.95em;bottom:.4em;}
+.lining[data-pocket="open"] .ticket {--ty:-1.9em;}
+.stud {width:2.1em;height:2.1em;margin-left:-1.05em;bottom:.3em;}
+.tools {font-size:1.15em;}
 .sheet {position:relative;min-height:20.4em;}
 .sheet > .inner {position:relative;min-height:20.4em;padding-bottom:1.6em;}
 .tabs {top:-1.95em;right:.5em;flex-direction:row;}
