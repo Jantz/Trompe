@@ -28,22 +28,23 @@ body {
 #app {
  --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --sl: var(--tr-shadow-len); --la: var(--tr-light-angle);
  --a0: oklch(0.99 0.002 250); --a1: oklch(0.915 0.004 250); --a2: oklch(0.85 0.005 250); --a3: oklch(0.755 0.007 252); --a4: oklch(0.6 0.01 255);
- --floor: oklch(0.74 0.007 252); --floor2: oklch(0.82 0.005 250);
+ --floor: oklch(0.8 0.006 252); --floor2: oklch(0.875 0.004 250);
  --edge: oklch(0.3 0.012 255 / .7); --ink: oklch(0.27 0.014 258); --ink2: oklch(0.43 0.012 256);
  --hi: oklch(1 0 0 / .8); --lo: oklch(0.2 0.02 255 / .32);
- --tex: .5; --brush: .55; --sheen: .3; --wall: oklch(0.55 0.01 255);
+ --brush: .55; --sheen: .3; --wall: oklch(0.55 0.01 255);
  --ch-hi: oklch(0.995 0 0); --ch-mid: oklch(0.86 0.004 250); --ch-lo: oklch(0.52 0.01 255); --ch-dk: oklch(0.38 0.012 255);
  --glass0: oklch(0.3 0.014 248); --glass1: oklch(0.19 0.014 252); --gink: oklch(0.95 0.008 240); --gink2: oklch(0.8 0.012 240);
  --acc: oklch(0.52 0.17 256); --led: oklch(0.8 0.15 236); --amber: oklch(0.82 0.15 72); --red: oklch(0.58 0.2 27); --green: oklch(0.8 0.17 150);
  --lcd0: oklch(0.36 0.11 256); --lcd1: oklch(0.2 0.08 262); --lcd-ink: oklch(0.95 0.06 220);
  --cast: oklch(0.12 0.02 255);
+ --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='g' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='2.2 0 0 0 -.6 2.2 0 0 0 -.6 2.2 0 0 0 -.6 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 #app[data-theme="dark"] {
- --a0: oklch(0.6 0.007 262); --a1: oklch(0.43 0.007 262); --a2: oklch(0.35 0.007 262); --a3: oklch(0.285 0.007 262); --a4: oklch(0.2 0.006 262);
+ --grain-o: .2; --a0: oklch(0.6 0.007 262); --a1: oklch(0.43 0.007 262); --a2: oklch(0.35 0.007 262); --a3: oklch(0.285 0.007 262); --a4: oklch(0.2 0.006 262);
  --floor: oklch(0.27 0.006 262); --floor2: oklch(0.33 0.006 262);
  --edge: oklch(0.06 0 0 / .9); --ink: oklch(0.93 0.006 250); --ink2: oklch(0.79 0.008 250);
  --hi: oklch(1 0 0 / .13); --lo: oklch(0 0 0 / .55);
- --tex: .38; --brush: .4; --sheen: .07; --wall: oklch(0.14 0.006 262);
+ --brush: .4; --sheen: .07; --wall: oklch(0.14 0.006 262);
  --ch-hi: oklch(0.97 0.002 250); --ch-mid: oklch(0.7 0.005 255); --ch-lo: oklch(0.38 0.008 260); --ch-dk: oklch(0.24 0.008 260);
  --glass0: oklch(0.2 0.012 255); --glass1: oklch(0.12 0.01 258); --acc: oklch(0.78 0.13 238);
 }
@@ -79,7 +80,8 @@ body {
 }
 .face::before { 
  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
- background: var(--tr-tex-noise); background-size: 180px; mix-blend-mode: overlay; opacity: var(--tex);
+ background: radial-gradient(70% 55% at calc(50% - var(--sx) * 45%) calc(50% - var(--sy) * 55%), oklch(1 0 0 / calc(var(--sheen) * .9)), transparent 70%), var(--grain) 0 0 / 128px;
+ mix-blend-mode: soft-light; opacity: var(--grain-o, .42);
 }
 .rail { grid-column: 1 / -1; display: flex; align-items: center; gap: 1em; padding: 1em 1.6em .7em; }
 .mark { display: flex; align-items: center; gap: .55em; font: 800 1.05em/1 "Archivo", sans-serif; font-stretch: 85%; letter-spacing: .2em; text-transform: uppercase; color: var(--ink2); text-shadow: var(--engr); }
@@ -120,11 +122,14 @@ body {
 .nav { list-style: none; margin: 0; padding: 0; display: grid; gap: .45em; }
 .tab {
  position: relative; isolation: isolate; width: 100%; min-height: 2.9em; display: grid; grid-template-columns: 1.3em 1fr auto; align-items: center; gap: .75em;
- padding: 0 .85em; border: 0; border-radius: .62em; cursor: pointer; text-align: left; font: 650 .95em/1 "Manrope", sans-serif; color: var(--ink2);
- background: linear-gradient(calc(var(--la) + 180deg), color-mix(in oklch, var(--floor), black 12%), var(--floor) 45%, var(--floor2));
- box-shadow: inset calc(var(--sx) * 2px) calc(var(--sy) * 3px) 4px oklch(0 0 0 / .42), inset 0 0 0 1px oklch(0 0 0 / .2), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(1 0 0 / .25), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 var(--hi);
+ padding: 0 .85em; border: 0; border-radius: .62em; cursor: pointer; text-align: left; font: 650 .95em/1 "Manrope", sans-serif; color: color-mix(in oklch, var(--ink2), var(--ink) 35%);
+ background:
+ repeating-radial-gradient(circle at -140% 50%, oklch(1 0 0 / calc(var(--sheen) * .45)) 0 .5px, transparent .5px 1.5px, oklch(0 0 0 / .035) 1.5px 2px, transparent 2px 2.6px),
+ linear-gradient(calc(var(--la) + 180deg), color-mix(in oklch, var(--floor), black 9%), var(--floor) 30%, var(--floor2));
+ box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 0 oklch(0 0 0 / .22), inset calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px oklch(0 0 0 / .3), inset 0 0 0 1px oklch(0 0 0 / .3), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(1 0 0 / calc(var(--sheen) + .1)), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 var(--hi);
  text-shadow: var(--engr);
 }
+.tab::after { content: ""; position: absolute; inset: 0; z-index: -2; border-radius: inherit; pointer-events: none; background: var(--grain) 0 0 / 128px; mix-blend-mode: soft-light; opacity: calc(var(--grain-o, .42) * .55); }
 .tab svg { width: 1.3em; height: 1.3em; filter: drop-shadow(var(--engr)); }
 .tab::before { 
  content: ""; position: absolute; inset: 2px; z-index: -1; border-radius: .5em; opacity: 0; transform: scale(.97);
@@ -160,12 +165,15 @@ body {
  background:
  linear-gradient(113deg, oklch(1 0 0 / .085) 0 26%, oklch(1 0 0 / .02) 26.1% 40%, transparent 40.1%),
  radial-gradient(90% 70% at 30% 0%, oklch(0.6 0.05 245 / .16), transparent 70%),
- var(--honey) 0 0 / 3.4em 5.89em,
+ radial-gradient(120% 90% at 50% 40%, transparent 30%, oklch(0 0 0 / .35)),
+ var(--honey-lt) calc(var(--sx) * -1.2px) calc(var(--sy) * -1.2px) / 3.4em 5.89em,
+ var(--honey-dk) calc(var(--sx) * 1px) calc(var(--sy) * 1px) / 3.4em 5.89em,
  linear-gradient(180deg, var(--glass0), var(--glass1));
  box-shadow:
  inset calc(var(--sx) * 6px) calc(var(--sy) * 8px) 16px oklch(0 0 0 / .55), inset 0 0 0 1px oklch(1 0 0 / .14), inset 0 0 0 2px oklch(0 0 0 / .5),
  0 0 0 1px oklch(0 0 0 / .45), calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 1px oklch(0 0 0 / .18), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 1.5px var(--hi);
- --honey: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='117.8'%3E%3Cfilter id='b'%3E%3CfeGaussianBlur stdDeviation='1.4'/%3E%3C/filter%3E%3Cg fill='none' stroke='%23fff' stroke-opacity='.06' stroke-width='3' filter='url(%23b)'%3E%3Cpath d='M34 2 64 19.6v35L34 72 4 54.6v-35z'/%3E%3Cpath d='M0 61v56M68 61v56'/%3E%3C/g%3E%3C/svg%3E");
+ --honey-dk: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='117.8'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.55' stroke-width='2.2'%3E%3Cpath d='M34 2 64 19.6v35L34 72 4 54.6v-35z'/%3E%3Cpath d='M0 61v56M68 61v56'/%3E%3C/g%3E%3C/svg%3E");
+ --honey-lt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='117.8'%3E%3Cg fill='none' stroke='%23fff' stroke-opacity='.16' stroke-width='1.1'%3E%3Cpath d='M34 2 64 19.6v35L34 72 4 54.6v-35z'/%3E%3Cpath d='M0 61v56M68 61v56'/%3E%3C/g%3E%3C/svg%3E");
 }
 .glass .dim { position: absolute; inset: 0; z-index: 5; border-radius: inherit; background: oklch(0.05 0.01 255); opacity: var(--dim, .12); pointer-events: none; }
 .head { display: flex; align-items: center; gap: 1.4em; margin-bottom: 1.4em; }
@@ -202,6 +210,7 @@ body {
  calc(var(--sx) * 2px) calc(var(--sy) * 2.5px) 2px oklch(0 0 0 / var(--cs, .5)), calc(var(--sx) * 12px * var(--sl)) calc(var(--sy) * 16px * var(--sl)) 26px oklch(0 0 0 / var(--cs, .5));
 }
 #app[data-theme="dark"] .card { --rim: .3; --cs: .6; }
+#app[data-theme="dark"] .tk { --sockc: oklch(0.12 0.006 262); }
 .card::before { 
  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
  background: var(--tr-tex-brushed); background-size: 480px 96px; mix-blend-mode: overlay; opacity: var(--brush);
@@ -270,7 +279,7 @@ body {
 .sg.a { top: 0; } .sg.g { top: calc(50% - .085em); } .sg.d { bottom: 0; }
 .sg.f { left: 0; } .sg.b { right: 0; } .sg.e { left: 0; top: 50%; } .sg.c { right: 0; top: 50%; }
 .lcd small { font: 500 .55em/1 "IBM Plex Mono", monospace; letter-spacing: .1em; text-shadow: 0 0 .4em oklch(0.82 0.14 225 / .8); padding-bottom: .1em; }
-.fader { --cw: 1.9em; position: relative; container-type: inline-size; height: 4.6em; margin: .1em 0 .2em; outline-offset: 4px; border-radius: .4em; }
+.fader { --cw: 1.9em; position: relative; container-type: inline-size; height: 4.35em; margin: .1em 0 .2em; outline-offset: 4px; border-radius: .4em; }
 .slot { position: absolute; left: calc(var(--cw) / 2 - .35em); right: calc(var(--cw) / 2 - .35em); top: 1.05em; height: .7em; border-radius: .35em; overflow: hidden;
  background: linear-gradient(calc(var(--la) + 180deg), oklch(0.08 0.01 255), oklch(0.22 0.01 255));
  box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 3px oklch(0 0 0 / .8), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 var(--hi), calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0 0 0 / .2); }
@@ -279,7 +288,7 @@ body {
 .ticks { position: absolute; left: calc(var(--cw) / 2); right: calc(var(--cw) / 2); top: 2.5em; height: .55em; }
 .ticks i { position: absolute; top: 0; width: 1px; height: 55%; translate: -50% 0; background: oklch(0 0 0 / .38); box-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 var(--hi); }
 .ticks i:nth-child(5n+1) { height: 100%; }
-.nums { position: absolute; left: calc(var(--cw) / 2); right: calc(var(--cw) / 2); top: 3.35em; height: 1em; font: 600 .66em/1 "IBM Plex Mono", monospace; color: var(--ink2); text-shadow: var(--engr); }
+.nums { position: absolute; left: calc(var(--cw) / 2); right: calc(var(--cw) / 2); top: 5.2em; height: 1em; font: 600 .66em/1 "IBM Plex Mono", monospace; color: var(--ink2); text-shadow: var(--engr); }
 .nums span { position: absolute; translate: -50% 0; }
 .cap { position: absolute; left: 0; top: .1em; width: var(--cw); height: 2.6em; border-radius: .32em; pointer-events: auto;
  transform: translateX(calc(var(--tr-value-ratio) * (100cqi - var(--cw)))); transition: scale .12s var(--tr-ease-out);
@@ -304,10 +313,11 @@ body {
  var(--hface);
  box-shadow: var(--hbevel), 0 0 0 1px oklch(0.25 0.012 255 / .8), calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 0 1px var(--hwall), var(--cast-s); }
 .sw[aria-disabled="true"] { cursor: not-allowed; }
-.sw[aria-disabled="true"] .act { background: repeating-linear-gradient(90deg, oklch(0 0 0 / .14) 0 1px, oklch(1 0 0 / .3) 1px 2px, transparent 2px .24em) 50% 50% / 62% 64% no-repeat, var(--face-dn); box-shadow: inset 0 0 0 1px oklch(0 0 0 / .2), 0 0 0 1px var(--edge); }
-.sw[aria-disabled="true"] + .led, .row:has([aria-disabled="true"]) .lbl b { opacity: .6; }
-.sw[aria-disabled="true"]::before { opacity: .6; }
-.sw[aria-disabled="true"] ~ .led { opacity: .5; }
+/* Disabled: the slot is blanked with a hatched guard, the actuator is a flat, gripless stub; on top of the dimmed label */
+.sw[aria-disabled="true"]::before { background: repeating-linear-gradient(-45deg, oklch(1 0 0 / .1) 0 .16em, transparent .16em .42em), linear-gradient(calc(var(--la) + 180deg), oklch(0.2 0.006 255), oklch(0.3 0.006 255)); opacity: .7; }
+.sw[aria-disabled="true"] .act { width: 1.3em; translate: .2em 0; background: var(--face-dn); box-shadow: inset 0 0 0 1px oklch(0 0 0 / .25), inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 var(--hi), 0 0 0 1px var(--edge); opacity: .75; }
+.sw[aria-disabled="true"] ~ .led { opacity: .35; }
+.row:has(.sw[aria-disabled="true"]) .lbl b { opacity: .62; }
 .sel { position: relative; isolation: isolate; display: flex; align-items: center; gap: .7em; height: 2.6em; min-width: 13.5em; padding: 0 .4em 0 .95em; border-radius: .6em; text-align: left; font: 650 .9em/1 "Manrope", sans-serif; }
 .sel span { flex: 1; white-space: nowrap; }
 .sel .chev { width: 1.9em; height: 1.9em; border-radius: .4em; display: grid; place-items: center; background: linear-gradient(calc(var(--la) + 180deg), oklch(0 0 0 / .16), oklch(1 0 0 / .25)); box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 2px oklch(0 0 0 / .3); }
@@ -347,17 +357,24 @@ body {
 .ratio { width: 2.4em; text-align: center; font: 700 calc(1.05em * var(--s)) / 1 "Manrope", sans-serif; color: var(--ink2); text-shadow: var(--engr); }
 .chk { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1em; padding: .75em .2em; cursor: pointer; }
 .chk + .chk, .chk + .row, .row + .chk { border-top: 2px solid transparent; border-image: linear-gradient(oklch(0 0 0 / .17) 50%, var(--hi) 50%) 1; }
-.tk { appearance: none; -webkit-appearance: none; margin: 0; width: 2.1em; height: 2.1em; border-radius: .42em; cursor: pointer; transition: translate .1s var(--tr-ease-out);
- --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%23000' stroke-opacity='.32' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 11l3.8 3.8L15.5 6.8' fill='none' stroke='%23fff' stroke-opacity='.5' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
- --pip: radial-gradient(circle at calc(100% - .38em) .38em, oklch(0.4 0.01 255) 0 .1em, oklch(0 0 0 / .25) .12em, transparent .15em);
- background: var(--pip), var(--glyph) 45% 55% / 68% no-repeat, radial-gradient(circle at 50% 55%, oklch(0 0 0 / .07), transparent 62%), var(--face);
- box-shadow: var(--bevel), 0 0 0 1px var(--edge), var(--thick), var(--cast-s); }
-.tk:checked { translate: calc(var(--sx) * .07em) calc(var(--sy) * .07em);
+.tk { --sock: .2em; appearance: none; -webkit-appearance: none; margin: var(--sock); width: 2.25em; height: 2.25em; border-radius: .38em; cursor: pointer; flex: none;
+ --p: 0; translate: calc(var(--sx) * var(--p) * .09em) calc(var(--sy) * var(--p) * .09em + var(--p) * .05em); transition: translate .09s var(--tr-ease-out);
+ --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%23000' stroke-opacity='.38' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 11l3.8 3.8L15.5 6.8' fill='none' stroke='%23fff' stroke-opacity='.45' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+ --pip: radial-gradient(circle at calc(100% - .4em) .4em, oklch(0.38 0.01 255) 0 .09em, oklch(0 0 0 / .3) .11em, transparent .15em);
+ background: var(--pip), var(--glyph) 50% 56% / 62% no-repeat,
+  radial-gradient(75% 75% at calc(50% + var(--sx) * 12%) calc(50% + var(--sy) * 12%), oklch(1 0 0 / calc(var(--sheen) * .8)), transparent 70%),
+  radial-gradient(circle at 50% 50%, oklch(0 0 0 / .1), transparent 66%), var(--face);
+ box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 var(--hi), inset calc(var(--sx) * -2px) calc(var(--sy) * -2.5px) 0 -.5px oklch(0 0 0 / .18), inset 0 0 0 .2em oklch(1 0 0 / calc(var(--sheen) * .25)),
+  0 0 0 1px var(--edge), calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 0 .5px var(--wall), calc(var(--sx) * 1.5px) calc(var(--sy) * 2.5px) 2px oklch(0 0 0 / .45),
+  0 0 0 var(--sock) var(--sockc, oklch(0.3 0.01 255)), 0 0 0 calc(var(--sock) + 1px) var(--hi); }
+.tk:checked { --p: 1;
  --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%233aa6ff' stroke-opacity='.45' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%2373c6ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%23f2fbff' stroke-width='.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
- --pip: radial-gradient(circle at calc(100% - .38em) .38em, #fff 0 .04em, oklch(0.8 0.15 236) .1em, oklch(0.75 0.16 240 / .4) .2em, transparent .32em);
- background: var(--pip), var(--glyph) 45% 55% / 68% no-repeat, radial-gradient(circle at 50% 55%, oklch(0.7 0.15 240 / .25), transparent 62%), var(--face-dn);
- box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 2px oklch(0 0 0 / .4), 0 0 0 1px var(--edge), calc(var(--sx) * .5px) calc(var(--sy) * .5px) .5px oklch(0 0 0 / .4); }
-.chk:active .tk { translate: calc(var(--sx) * .08em) calc(var(--sy) * .08em); }
+ --pip: radial-gradient(circle at calc(100% - .4em) .4em, #fff 0 .04em, oklch(0.8 0.15 236) .1em, oklch(0.75 0.16 240 / .4) .2em, transparent .32em);
+ background: var(--pip), var(--glyph) 50% 56% / 62% no-repeat, radial-gradient(circle at 50% 56%, oklch(0.7 0.15 240 / .3), transparent 60%), radial-gradient(circle at 50% 50%, oklch(0 0 0 / .1), transparent 66%), var(--face-dn);
+ box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 2px oklch(0 0 0 / .35), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 var(--hi), 0 0 0 1px var(--edge),
+  0 0 0 var(--sock) var(--sockc, oklch(0.3 0.01 255)), 0 0 0 calc(var(--sock) + 1px) var(--hi); }
+.chk:active .tk { --p: 1.25; }
+.tk:checked:active { --p: 1.35; }
 .field { display: grid; gap: .45em; padding: .3em .2em .9em; }
 .field label { font: var(--lab); font-size: .68em; letter-spacing: .18em; text-transform: uppercase; color: var(--ink2); text-shadow: var(--engr); }
 .field .well-glass { padding: 0 .9em; min-height: 2.8em; }
@@ -430,6 +447,7 @@ body {
  .side { padding: .2em .8em .4em; gap: .7em; }
  .nav { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: .38em; gap: .3em; overscroll-behavior-x: contain; }
  .nav::-webkit-scrollbar { display: none; }
+ .nav:not([data-end]) { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 2.6em), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 2.6em), transparent); }
  .nav li { flex: none; scroll-snap-align: start; }
  .tab { min-height: 44px; width: auto; grid-template-columns: 1.15em auto auto; gap: .5em; padding: 0 .8em; font-size: .9em; }
  .plate { display: none; }
@@ -808,11 +826,14 @@ const go = (sec) => {
   $$(".lrow", other).forEach((b) => new PressController(b, { sound: "click" }));
 };
 tabs.forEach((t) => new PressController(t, { sound: "clack", onActivate: () => { if (t.getAttribute("aria-current") !== "page") go(t.dataset.sec); } }));
+const navEl = $("#nav");
+const navEnd = () => navEl.toggleAttribute("data-end", navEl.scrollLeft + navEl.clientWidth >= navEl.scrollWidth - 2);
+navEl.addEventListener("scroll", navEnd, { passive: true }); new ResizeObserver(navEnd).observe(navEl);
 $("#q").addEventListener("input", (e) => {
   const q = e.target.value.trim().toLowerCase();
   let n = 0;
   tabs.forEach((t) => { const hit = !q || t.textContent.toLowerCase().includes(q) || (t.dataset.sec === "display" && /bright|night|resol|text|hdr|refresh|motion|dark|light/.test(q)); t.parentElement.hidden = !hit; n += hit; });
-  $("#nav .none").hidden = n > 0;
+  $("#nav .none").hidden = n > 0; navEnd();
 });
 
 setSize(st.size); dirty();

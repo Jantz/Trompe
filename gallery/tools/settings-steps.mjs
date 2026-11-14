@@ -74,11 +74,13 @@ export default async (pg, { out, name }) => {
   await pg.focus("#o-rate"); await pg.keyboard.press("Space"); ok((await st()).rate === false, "Show refresh rate unchecked by Space");
 
   // Stepper
-  await pg.click("#ts-up"); await wait(150); await pg.click("#ts-up"); await wait(150); await pg.click("#ts-dn"); await wait(150);
-  ok((await st()).size === 15, "text size 15 after +,+,-");
-  ok((await pg.textContent("#ts-txt")) === "15 point", "LCD text alternative updated");
-  await pg.focus("#ts-up"); await pg.keyboard.press("Enter"); await wait(150);
-  ok((await st()).size === 16, "stepper Enter");
+  // Wait for each press to settle (key release + LCD update) so quick clicks are not merged into a double-click.
+  const s0 = (await st()).size;
+  for (const id of ["#ts-up", "#ts-up", "#ts-dn"]) { await pg.click(id); await pg.waitForFunction((n) => window.alloy.st.size !== n, (await st()).size, { timeout: 2000 }).catch(() => {}); await wait(220); }
+  ok((await st()).size === s0 + 1, `text size ${s0 + 1} after +,+,-`);
+  ok((await pg.textContent("#ts-txt")) === `${s0 + 1} point`, "LCD text alternative updated");
+  await pg.focus("#ts-up"); await pg.keyboard.press("Enter"); await wait(250);
+  ok((await st()).size === s0 + 2, "stepper Enter");
 
   // Display name validation
   await pg.fill("#dname", ""); await wait(100);
