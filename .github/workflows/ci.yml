@@ -47,6 +47,9 @@ jobs:
       - name: trompe check on the plain HTML example
         run: node bin/trompe.mjs check examples/html
 
+      - name: trompe check on the bundled skins and the showcase markup
+        run: node bin/trompe.mjs check skins showcase/index.html
+
       - name: Framework examples (build + typecheck + smoke tests)
         run: |
           npm run examples:build

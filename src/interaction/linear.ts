@@ -41,8 +41,12 @@ export class LinearController extends ValueController {
     this.trackFn = options.track;
     this.thumbFn = options.thumb;
     this.trackClick = options.trackClick ?? 'jump';
-    this.host.style.touchAction = this.touchAction();
-    this.syncAria();
+    // No DOM writes while the host is being constructed (document.createElement forbids
+    // attributes on a new custom element); hostConnected() applies touch-action and ARIA.
+    if (this.host.isConnected) {
+      this.host.style.touchAction = this.touchAction();
+      this.syncAria();
+    }
   }
 
   /** Changes orientation at runtime (e.g. from a component attribute). */

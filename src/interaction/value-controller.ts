@@ -305,6 +305,10 @@ export abstract class ValueController {
 
   /** Writes CSS variables for the current display position. Only touches the DOM when they change. */
   protected write(force = false): void {
+    // Nothing touches the host before it connects: a custom element under construction
+    // (document.createElement, as React and Vue do) must not gain attributes. hostConnected()
+    // writes everything once.
+    if (!this.connected) return;
     const d = this.display.value;
     const { min, max } = this.range;
     const span = max - min || 1;
@@ -324,6 +328,7 @@ export abstract class ValueController {
   }
 
   protected syncAria(): void {
+    if (!this.connected) return;
     if (!this.o.aria) return;
     const h = this.host;
     const set = (n: string, v: string | null) => {
