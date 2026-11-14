@@ -98,3 +98,15 @@ test('--render: upgrades the page and finds nothing on a clean page', { timeout:
   const rendered = r.findings.filter((f) => f.id.startsWith('TR1'));
   assert.deepEqual(rendered.map((f) => `${f.id} ${f.message}`), []);
 });
+
+test('--render motion: cuts, jumps and pop-ins are found; a transition is clean', { timeout: 120_000 }, async (t) => {
+  let pw;
+  try { pw = await import('@playwright/test'); const b = await pw.chromium.launch(); await b.close(); }
+  catch { t.skip('Chromium is not available'); return; }
+  const r = await run({ inputs: [fx('motion.html')], render: true });
+  const motion = r.findings.filter((f) => /^TR12/.test(f.id)).map((f) => `${f.id} ${f.message}`);
+  assert.ok(motion.some((m) => m.startsWith('TR120') && m.includes('#cut')), motion.join('\n'));
+  assert.ok(motion.some((m) => m.startsWith('TR121') && m.includes('#jump')), motion.join('\n'));
+  assert.ok(motion.some((m) => m.startsWith('TR122') && m.includes('#jump')), motion.join('\n'));
+  assert.ok(!motion.some((m) => m.includes('#smooth')), motion.join('\n'));
+});

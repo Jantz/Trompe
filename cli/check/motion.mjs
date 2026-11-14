@@ -263,20 +263,32 @@ export const MOTION_LIMITS = {
   move: 1.5,
 };
 
-/** Turns a measurement into a list of human-readable problems (empty = smooth). */
-export function motionProblems(m, limits = {}) {
+/**
+ * Sorts a measurement's problems by kind (empty = smooth):
+ *   instant  pixels that changed with no animation (rule TR120)
+ *   shift    layout that jumped: a layout shift, or an element that moved with no animation (TR121)
+ *   pop      an element that appeared or vanished with no transition (TR122)
+ * @returns {Array<{kind: 'instant'|'shift'|'pop', message: string}>}
+ */
+export function motionIssues(m, limits = {}) {
   const l = { ...MOTION_LIMITS, ...limits };
   const out = [];
-  if (m.changedPx >= l.minPx && m.instant > l.instant) out.push(`${Math.round(m.instant * 100)}% of the change (${m.instantPx}px) appeared without animation`);
-  if (m.changedPx < l.minPx && m.instantPx >= l.minPx) out.push(`${m.instantPx}px flashed in the frozen frame`);
+  const add = (kind, message) => out.push({ kind, message });
+  if (m.changedPx >= l.minPx && m.instant > l.instant) add('instant', `${Math.round(m.instant * 100)}% of the change (${m.instantPx}px) appeared without animation`);
+  if (m.changedPx < l.minPx && m.instantPx >= l.minPx) add('instant', `${m.instantPx}px flashed in the frozen frame`);
   // Under a view transition the page is shown as animated snapshots; DOM jumps underneath are hidden.
   if (m.viewTransition) return out;
-  if (m.shift > l.shift) out.push(`layout shift ${m.shift}: ${m.shiftSources.map((s) => `${s.el} (dy ${s.dy}, dh ${s.dh})`).join('; ')}`);
+  if (m.shift > l.shift) add('shift', `layout shift ${m.shift}: ${m.shiftSources.map((s) => `${s.el} (dy ${s.dy}, dh ${s.dh})`).join('; ')}`);
   const moved = m.moved.filter((x) => Math.max(Math.abs(x.dx), Math.abs(x.dy), Math.abs(x.dw), Math.abs(x.dh)) > l.move);
-  if (moved.length) out.push(`moved without animation: ${moved.slice(0, 6).map((x) => `${x.el} (${[x.dx && `dx ${x.dx}`, x.dy && `dy ${x.dy}`, x.dw && `dw ${x.dw}`, x.dh && `dh ${x.dh}`].filter(Boolean).join(', ')})`).join('; ')}${moved.length > 6 ? ` and ${moved.length - 6} more` : ''}`);
-  if (m.appeared.length) out.push(`appeared without a transition: ${m.appeared.slice(0, 6).map((x) => x.el).join('; ')}`);
-  if (m.vanished.length) out.push(`vanished without a transition: ${m.vanished.slice(0, 6).map((x) => x.el).join('; ')}`);
+  if (moved.length) add('shift', `moved without animation: ${moved.slice(0, 6).map((x) => `${x.el} (${[x.dx && `dx ${x.dx}`, x.dy && `dy ${x.dy}`, x.dw && `dw ${x.dw}`, x.dh && `dh ${x.dh}`].filter(Boolean).join(', ')})`).join('; ')}${moved.length > 6 ? ` and ${moved.length - 6} more` : ''}`);
+  if (m.appeared.length) add('pop', `appeared without a transition: ${m.appeared.slice(0, 6).map((x) => x.el).join('; ')}`);
+  if (m.vanished.length) add('pop', `vanished without a transition: ${m.vanished.slice(0, 6).map((x) => x.el).join('; ')}`);
   return out;
+}
+
+/** Turns a measurement into a list of human-readable problems (empty = smooth). */
+export function motionProblems(m, limits = {}) {
+  return motionIssues(m, limits).map((i) => i.message);
 }
 
 /** Controls a person can click or toggle, in the light DOM. */
@@ -322,7 +334,8 @@ export async function sweepInteractions(page, opts = {}) {
         el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
         const text = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40);
         const r = el.getBoundingClientRect();
-        return { desc: `${el.localName}${el.id ? '#' + el.id : ''}${text ? ` "${text}"` : ''}`, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+        const index = [...document.querySelectorAll(el.localName)].indexOf(el);
+        return { tag: el.localName, index, desc: `${el.localName}${el.id ? '#' + el.id : ''}${text ? ` "${text}"` : ''}`, x: r.x + r.width / 2, y: r.y + r.height / 2 };
       })
       .catch(() => null);
     if (!info) continue;
@@ -338,10 +351,11 @@ export async function sweepInteractions(page, opts = {}) {
         saveFrames: opts.saveFrames ? (f) => opts.saveFrames(i, info.desc, f) : undefined,
       });
     } catch (e) {
-      out.push({ target: info.desc, error: String(e).slice(0, 200), problems: [] });
+      out.push({ target: info.desc, tag: info.tag, index: info.index, error: String(e).slice(0, 200), problems: [], issues: [] });
       continue;
     }
-    out.push({ target: info.desc, measurement: m, problems: motionProblems(m, opts.limits) });
+    const issues = motionIssues(m, opts.limits);
+    out.push({ target: info.desc, tag: info.tag, index: info.index, measurement: m, issues, problems: issues.map((i) => i.message) });
     await page.keyboard.press('Escape').catch(() => {});
     // Escape is a key press, which turns on keyboard focus rings; drop focus so the next
     // measurement does not count the ring leaving (rings leave at once by design, so only one

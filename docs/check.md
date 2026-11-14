@@ -11,6 +11,7 @@ npx trompe check [files, dirs or globs...]   # default: current directory
 npx trompe check --format json src/          # machine-readable findings
 npx trompe check --fix src/                  # apply unambiguous fixes, then re-check
 npx trompe check --render --shots shots/ index.html   # also load pages in Chromium
+npx trompe check --render --no-motion index.html      # rendered rules without the click sweep
 npx trompe check --rules                     # list rules
 ```
 
@@ -140,6 +141,22 @@ Warning. Too many backdrop-filter surfaces or shadow layers for smooth rendering
 #### TR106 runtime-error
 
 Error. The page threw an error or a Trompe element failed to upgrade.
+
+#### Motion (TR120 to TR122)
+
+With `--render`, the checker also clicks every visible control on the page once (up to 40; links that navigate are skipped, and Escape closes whatever opened) and measures the change each click makes. Every animation on the page is frozen at its first frame just before the click, so anything that already looks different in the next frame happened without animation. See [motion.md](motion.md) for how the probe works and how to fix what it finds. Turn the sweep off with `--no-motion`.
+
+#### TR120 unanimated-change
+
+Error. Clicking a control changes the page with no animation: more than 15% of the pixels that change are already in their final state on the first frame. Add a transition, or for a structural swap (a pane, a step, a re-rendered list) run the DOM update inside a view transition.
+
+#### TR121 layout-shift
+
+Error. Clicking a control makes content jump: Chromium reports a layout shift, or an element moves or resizes by more than 1.5 px with no animation. Reserve the space, animate the size (`grid-template-rows: 0fr` to `1fr`, `SizeTransition`), or glide it with a view transition.
+
+#### TR122 pop-in
+
+Warning. Clicking a control makes an element appear or vanish with no enter or exit transition. Fade it with `@starting-style` and `transition-behavior: allow-discrete`, or keep it rendered and transition its opacity.
 
 ### Skin files (*.skin.json)
 

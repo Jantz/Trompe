@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Motion</title>
+  <style>
+    body { font: 16px/1.4 system-ui, sans-serif; margin: 24px; }
+    button { min-width: 120px; min-height: 32px; margin: 4px; }
+    .box { width: 360px; height: 120px; background: #345; }
+    .box.lit { background: #e83; }
+    .soft { width: 360px; height: 120px; background: #345; transition: background-color .3s; }
+    .soft.lit { background: #e83; }
+  </style>
+</head>
+<body>
+  <button id="cut" type="button">Cut</button>
+  <button id="jump" type="button">Jump</button>
+  <button id="smooth" type="button">Smooth</button>
+  <p id="note" hidden>A note that pushes everything below it down when it appears.</p>
+  <div class="box" id="box"></div>
+  <div class="soft" id="soft"></div>
+  <script>
+    cut.onclick = () => box.classList.toggle('lit');
+    jump.onclick = () => (note.hidden = !note.hidden);
+    smooth.onclick = () => soft.classList.toggle('lit');
+  </script>
+</body>
+</html>

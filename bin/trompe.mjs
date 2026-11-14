@@ -12,7 +12,9 @@ Options:
   --format text|json   Output format (default: text; json is for agents and CI)
   --fix                Apply unambiguous fixes (typos in element, attribute and enum names)
   --render             Also load each .html page in Chromium: axe-core, contrast, target size,
-                       forced colours, paint budget, runtime errors
+                       forced colours, paint budget, runtime errors, and motion (clicks
+                       every control: changes must animate, nothing may jump or pop)
+  --no-motion          With --render, skip the motion sweep (it clicks every control)
   --shots <dir>        With --render, save a screenshot of each page to <dir>
   --chromium <path>    Chromium executable for --render
   --manifest <path>    custom-elements.json to use (default: the installed package's)
@@ -40,6 +42,7 @@ for (let i = 0; i < argv.length; i++) {
   if (a === '--format') opts.format = val();
   else if (a === '--fix') opts.fix = true;
   else if (a === '--render') opts.render = true;
+  else if (a === '--no-motion') opts.motion = false;
   else if (a === '--shots') opts.shots = val();
   else if (a === '--chromium') opts.chromium = val();
   else if (a === '--manifest') opts.manifest = val();

@@ -1,12 +1,16 @@
 // Rendered rules: load each page in Chromium over a local static server, upgrade Trompe elements
 // (injecting the package bundle if the page does not load one), then measure what only a browser
-// can: axe-core, real contrast, target size, forced-colours boundaries, paint budget, runtime errors.
+// can: axe-core, real contrast, target size, forced-colours boundaries, paint budget, runtime errors,
+// and motion: every visible control is clicked once and the change it makes is measured.
 import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync, mkdirSync } from 'node:fs';
 import { resolve, relative, extname, join, sep } from 'node:path';
 import { createRequire } from 'node:module';
 import { finding } from './rules.mjs';
 import { elements, lineCol } from './markup.mjs';
+import { sweepInteractions } from './motion.mjs';
+
+const MOTION_RULE = { instant: 'TR120', shift: 'TR121', pop: 'TR122' };
 
 const MIME = { '.html': 'text/html', '.htm': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 const INTERACTIVE = ['button', 'checkbox', 'switch', 'radio', 'slider', 'tab', 'combobox', 'menuitem', 'option'];
@@ -33,7 +37,7 @@ function serve(root, pkgRoot) {
   return new Promise((ok) => server.listen(0, '127.0.0.1', () => ok(server)));
 }
 
-export async function renderChecks(pages, data, { cwd, shots, chromium: exe } = {}) {
+export async function renderChecks(pages, data, { cwd, shots, chromium: exe, motion = true, motionLimit = 40 } = {}) {
   if (!pages.length) return [];
   const { chromium } = await loadPlaywright();
   const server = await serve(cwd, data.pkgRoot);
@@ -160,6 +164,16 @@ export async function renderChecks(pages, data, { cwd, shots, chromium: exe } = 
       if (shots) {
         mkdirSync(shots, { recursive: true });
         await page.screenshot({ path: join(shots, file.replace(/[\\/]/g, '__').replace(/\.html?$/, '.png')), fullPage: true });
+      }
+
+      // Motion: click every visible control once (links that navigate are skipped, Escape closes
+      // what opened) and report changes that cut, jump or pop instead of animating. Last, because
+      // it leaves the page in whatever state the clicks produced.
+      if (motion) {
+        const swept = await sweepInteractions(page, { limit: motionLimit });
+        for (const r of swept) for (const i of r.issues) {
+          push(MOTION_RULE[i.kind], { tag: r.tag, index: r.index, message: `Clicking ${r.target}: ${i.message}.` });
+        }
       }
       await page.close();
     }
