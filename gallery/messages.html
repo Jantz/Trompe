@@ -23,10 +23,10 @@
   --disp: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
   --p-hi: oklch(0.968 0.013 80); --p: oklch(0.93 0.019 76); --p-lo: oklch(0.885 0.025 71); --p-dk: oklch(0.83 0.03 66);
   --shc: 0.36 0.05 48;
-  --ink: oklch(0.27 0.03 45); --ink-2: oklch(0.44 0.032 50); --ink-3: oklch(0.54 0.03 56);
+  --ink: oklch(0.27 0.03 45); --ink-2: oklch(0.44 0.032 50); --ink-3: oklch(0.48 0.03 56);
   --coral: oklch(0.575 0.172 31); --coral-hi: oklch(0.7 0.155 40); --coral-lo: oklch(0.47 0.16 27);
   --teal: oklch(0.55 0.095 203); --teal-hi: oklch(0.73 0.09 195); --teal-lo: oklch(0.4 0.08 210);
-  --brick: oklch(0.49 0.165 26);
+  --brick: oklch(0.46 0.16 26);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .27 0 0 0 0 .2 1.1 0 0 0 -.5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
   --o1: calc(var(--sx) * .06em) calc(var(--sy) * .09em);
   --o2: calc(var(--sx) * .1em) calc(var(--sy) * .14em);
@@ -72,9 +72,14 @@ button { cursor: pointer; }
 .brand h1 { margin: 0; font: 760 1.6em/1 var(--disp); font-stretch: 92%; letter-spacing: -.02em; text-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(1 0 0 / .7); }
 .logo { --bs: 1.75em; --h: 31; height: .83em; border-radius: 55% 45% 50% 50% / 60% 55% 45% 40%; rotate: -14deg; }
 .brand .dome { margin-left: auto; }
-.well { border-radius: 1.6em; background: var(--face-w); box-shadow: var(--sunk); }
+.well { position: relative; border-radius: 1.6em; background: var(--face-w); box-shadow: var(--sunk); }
+/* focus: a teal light-pipe ring moulded around the well, glowing into the silicone (fades on opacity) */
+.search::after, .field::after { content: ""; position: absolute; inset: -.24em; border-radius: calc(1.6em + .24em); pointer-events: none; opacity: 0; transition: opacity .16s var(--tr-ease-out);
+  box-shadow: 0 0 0 2.5px var(--tr-focus), 0 0 .2em 2.5px oklch(0.72 0.12 200 / .45), 0 0 1.1em oklch(0.7 0.12 200 / .35), inset 0 0 .8em oklch(0.75 0.1 200 / .25); }
+.field::after { border-radius: calc(1.75em + .24em); }
+.search:focus-within::after, .field:has(textarea:focus)::after { opacity: 1; }
+.search input, .field textarea { caret-color: var(--teal-lo); }
 .search { display: flex; align-items: center; gap: .55em; height: 3em; padding: 0 .5em 0 1em; color: var(--ink-3); cursor: text; }
-.search:focus-within, .field:focus-within { outline: 2.5px solid var(--tr-focus); outline-offset: 2px; }
 .search input { flex: 1; min-width: 0; height: 100%; border: 0; padding: 0; background: none; font: 500 1em var(--ui); color: var(--ink); outline: none; appearance: none; }
 .search input::placeholder, .field textarea::placeholder { color: var(--ink-3); }
 .search input::-webkit-search-cancel-button { display: none; }
@@ -98,17 +103,23 @@ button { cursor: pointer; }
 .fkey:hover .cap { color: var(--ink); }
 
 /* conversation list */
-.convos { list-style: none; margin: 0 -.6em; padding: .5em .6em 1.2em; overflow-y: auto; display: grid; gap: .6em; align-content: start; scrollbar-width: thin; scrollbar-color: var(--p-dk) transparent; min-height: 0; overscroll-behavior: contain; }
+.convos { list-style: none; margin: 0 -.6em; padding: .4em .6em 1.2em; overflow-y: auto; display: grid; gap: .3em; align-content: start; scrollbar-width: thin; scrollbar-color: var(--p-dk) transparent; min-height: 0; overscroll-behavior: contain; }
 .row {
   position: relative; display: grid; width: 100%; border: 0; text-align: left; color: var(--ink); font: inherit;
   grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "av nm tm" "av pv mt"; column-gap: .78em; row-gap: .12em; align-items: center;
-  padding: .66em .9em .66em .66em; border-radius: 1.55em; background: var(--face); box-shadow: var(--raise);
+  padding: .7em .9em .7em .66em; border-radius: 1.45em; background: none; isolation: isolate;
   transform: translateY(calc(var(--tr-press, 0) * .08em)) scale(calc(1 + var(--tr-press, 0) * .012), calc(1 - var(--tr-press, 0) * .03));
 }
-.row::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: oklch(1 0.01 80 / .45); opacity: 0; transition: opacity .18s; pointer-events: none; }
-.row:hover::before { opacity: 1; }
-.row[aria-current="true"] { background: var(--grain), linear-gradient(var(--lit), var(--p-lo), var(--p) 60%, var(--p-hi)); box-shadow: var(--sunk); }
+/* hover: a half-raised ghost of the pad fades in under the content (opacity only, never box-shadow) */
+.row::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--face); box-shadow: var(--raise); opacity: 0; transition: opacity .18s; pointer-events: none; }
+.row:hover::before { opacity: .55; }
+.convos li { position: relative; }
+.convos li + li::before { content: ""; position: absolute; left: 4.5em; right: 1em; top: -.15em; height: 2px; background: var(--seam); opacity: .8; }
+.convos li:has(> [aria-current="true"])::before, .convos li:has(> [aria-current="true"]) + li::before { opacity: 0; }
+/* selected: the one pad that stands up out of the slab, with a lit teal lamp */
+.row[aria-current="true"] { z-index: 1; background: var(--grain), radial-gradient(140% 160% at calc(50% - var(--sx) * 45%) calc(50% - var(--sy) * 70%), oklch(0.985 0.01 82), var(--p-hi) 50%, var(--p)); box-shadow: var(--raise), var(--o3) 1.6em oklch(var(--shc) / .12); }
 .row[aria-current="true"]::before { opacity: 0; }
+.row[aria-current="true"] .nm { font-weight: 760; }
 .row[aria-current="true"]::after {
   content: ""; position: absolute; left: -.18em; top: 50%; width: .36em; height: 1.9em; margin-top: -.95em; border-radius: 1em;
   background: linear-gradient(var(--lit), var(--teal-hi), var(--teal) 50%, var(--teal-lo)); box-shadow: inset var(--o1) .03em oklch(1 0 0 / .7), 0 0 .5em oklch(0.7 0.11 200 / .55);
@@ -174,8 +185,8 @@ button { cursor: pointer; }
 /* thread tray, moulded into the slab */
 .thread {
   position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr); min-height: 0; min-width: 0; overflow: hidden; border-radius: 2em;
-  background: var(--grain), linear-gradient(var(--lit), oklch(0.875 0.026 70), oklch(0.905 0.022 74) 30%, oklch(0.925 0.018 78));
-  box-shadow: inset calc(var(--sx) * .2em) calc(var(--sy) * .28em) .4em oklch(var(--shc) / .3), inset calc(var(--sx) * .8em) calc(var(--sy) * 1.1em) 2em oklch(var(--shc) / .14),
+  background: var(--grain), linear-gradient(var(--lit), oklch(0.835 0.03 67), oklch(0.868 0.027 70) 30%, oklch(0.89 0.023 74));
+  box-shadow: inset calc(var(--sx) * .22em) calc(var(--sy) * .3em) .45em oklch(var(--shc) / .36), inset calc(var(--sx) * .9em) calc(var(--sy) * 1.2em) 2.2em oklch(var(--shc) / .17),
     inset calc(var(--sx) * -.1em) calc(var(--sy) * -.13em) .14em oklch(1 0 0 / .7), calc(var(--sx) * .07em) calc(var(--sy) * .1em) .05em oklch(1 0 0 / .85), var(--n1) .08em oklch(var(--shc) / .14);
 }
 .th-head { position: relative; z-index: 2; display: flex; align-items: center; gap: .85em; padding: .95em 1.1em .9em 1.25em; }
@@ -191,8 +202,8 @@ button { cursor: pointer; }
 .th-tools { display: flex; gap: .85em; }
 .back { display: none; }
 
-.log { position: relative; overflow-y: auto; overflow-x: hidden; padding: 1.4em 1.4em 1.6em; display: flex; flex-direction: column; gap: .3em; scrollbar-width: thin; scrollbar-color: var(--p-dk) transparent; overscroll-behavior: contain; font-size: calc(1em * var(--ts, 1));
-  mask-image: linear-gradient(transparent, #000 1.1em, #000 calc(100% - .8em), transparent); }
+.log { position: relative; overflow-y: auto; overflow-x: hidden; padding: 2.3em 1.4em 1.6em; display: flex; flex-direction: column; gap: .3em; scrollbar-width: thin; scrollbar-color: var(--p-dk) transparent; overscroll-behavior: contain; font-size: calc(1em * var(--ts, 1));
+  mask-image: linear-gradient(transparent .7em, #000 3em, #000 calc(100% - 1em), transparent); }
 .day { display: flex; align-items: center; gap: .9em; margin: 1.1em 0 .9em; font: 700 .7em/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
 .day::before, .day::after { content: ""; flex: 1; height: 2px; background: var(--seam); }
 .day span { padding: .55em 1em; border-radius: 2em; background: var(--face); box-shadow: var(--raise); }
@@ -210,7 +221,8 @@ button { cursor: pointer; }
 .me .bubble, .btn.danger {
   /* resin: deeper colour where you look through the most material, a caustic band focused on the far
      inner edge, a dark thin rim, and a coloured shadow where light passes through onto the tray */
-  --r1: oklch(0.69 0.15 43); --r2: oklch(0.6 0.165 36); --r3: oklch(0.52 0.165 31); --cau: oklch(0.82 0.14 60 / .8); --rim: oklch(0.4 0.15 27 / .7); --tx: oklch(0.6 0.17 37 / .45);
+  /* deep enough that white text holds 4.5:1 everywhere it sits; the light lives in the coat, not the body */
+  --r1: oklch(0.565 0.155 39); --r2: oklch(0.525 0.16 34); --r3: oklch(0.46 0.155 29); --cau: oklch(0.78 0.15 56 / .78); --rim: oklch(0.36 0.13 27 / .75); --tx: oklch(0.55 0.17 35 / .45);
   color: oklch(0.99 0.012 70); text-shadow: calc(var(--sx) * .5px) calc(var(--sy) * .7px) 1px oklch(0.35 0.13 27 / .45);
   background: linear-gradient(var(--lit), var(--r1), var(--r2) 40%, var(--r3) 85%);
   box-shadow: inset var(--o1) .04em oklch(1 0.03 60 / .7), inset calc(var(--sx) * -.3em) calc(var(--sy) * -.4em) .55em var(--cau), inset 0 0 0 1px var(--rim),
@@ -219,11 +231,14 @@ button { cursor: pointer; }
 .me .bubble::before, .btn.danger::before { /* clear coat: corner hotspot + crisp window reflection near the lit edge */
   content: ""; position: absolute; inset: .1em; border-radius: inherit; pointer-events: none; z-index: 1;
   background: radial-gradient(circle .55em at calc(50% + clamp(-1, var(--sx) * -1000, 1) * (50% - 1.2em) - var(--sx) * .75em) calc(50% + clamp(-1, var(--sy) * -1000, 1) * (50% - 1.2em) - var(--sy) * .75em), oklch(1 0 0 / .95), oklch(1 0 0 / .35) 40%, transparent),
-    radial-gradient(85% 62% at calc(50% - var(--sx) * 40%) calc(50% - var(--sy) * 80%), oklch(1 0 0 / .4), oklch(1 0 0 / .14) 40%, oklch(1 0 0 / .09) 46%, transparent 47.5%);
+    linear-gradient(var(--lit), oklch(1 0.02 70 / .5), oklch(1 0.02 70 / .16) .28em, oklch(1 0 0 / .05) .42em, transparent .5em);
 }
-.me.failed .bubble { opacity: .7; }
+.me.failed .bubble { /* cloudy, uncured resin: the colour drains, the coat dulls, the text stays legible */
+  --r1: oklch(0.565 0.095 38); --r2: oklch(0.525 0.1 34); --r3: oklch(0.47 0.095 30); --cau: oklch(0.72 0.07 50 / .5); --tx: oklch(0.4 0.04 40 / .25); }
+.me.failed .bubble::before { opacity: .45; }
 .meta { float: right; display: inline-flex; align-items: center; gap: .3em; margin: .42em -.25em -.1em .9em; font-size: .7em; font-weight: 550; line-height: 1; opacity: .85; font-variant-numeric: tabular-nums; position: relative; }
 .them .meta { color: var(--ink-3); opacity: 1; }
+.me .meta { opacity: 1; color: oklch(0.96 0.03 70); }
 .meta .ico { width: 1.35em; height: 1.35em; stroke-width: 2.3; }
 .meta .read { color: oklch(0.97 0.07 95); }
 .fail { display: flex; align-items: center; justify-content: flex-end; gap: .45em; font-size: .78em; color: var(--brick); font-weight: 650; margin: -.2em .3em .6em 0; }
@@ -388,6 +403,7 @@ button { cursor: pointer; }
 .menu.h .pin { font-size: 15px; pointer-events: none; }
 .menu.h [aria-checked="true"] { background: oklch(1 0 0 / .5); box-shadow: inset 0 0 0 2px oklch(0.6 0.09 200 / .7); }
 .dlg { width: min(27em, calc(100vw - 32px)); padding: 1.6em 1.6em 1.4em; border-radius: 1.7em; font: 400 15px/1.45 var(--ui); overflow: visible; }
+.dlg { background: linear-gradient(var(--lit), oklch(0.978 0.008 215 / .94), oklch(0.94 0.014 220 / .9)); } /* big panel: denser frost so colour behind never stains the copy */
 .dlg::backdrop { background: oklch(0.32 0.04 220 / .38); }
 .dlg h2 { margin: 0 0 .35em; font: 740 1.3em/1.2 var(--disp); letter-spacing: -.01em; }
 .dlg p { margin: 0 0 1em; color: var(--ink-2); }
@@ -414,6 +430,10 @@ button { cursor: pointer; }
   .th-head .bead { --bs: 2.5em; }
   .th-tools { gap: .55em; }
   .th-tools .call { display: none; }
+  .th-who p .lt { display: none; }
+  .app[data-view="list"] .row[aria-current="true"] { background: none; box-shadow: none; }
+  .app[data-view="list"] .row[aria-current="true"]::after { display: none; }
+  .app[data-view="list"] .convos li::before { opacity: .8; }
   .dome, .dome.sm { width: 2.95em; height: 2.95em; }
   .dome.react { width: 2.3em; height: 2.3em; }
   .log { padding: 1em .8em 1.4em; }
@@ -554,7 +574,7 @@ button { cursor: pointer; }
       <p id="dlgD"></p>
       <label class="chkrow"><input class="chk" type="checkbox" id="dlgMedia"> <span id="dlgMediaL"></span></label>
       <div class="acts">
-        <button class="btn" type="button" id="dlgCancel"><span>Keep chat</span></button>
+        <button class="btn" type="button" id="dlgCancel" autofocus><span>Keep chat</span></button>
         <button class="btn danger" type="button" id="dlgOk"><span>Delete</span></button>
       </div>
     </dialog>
@@ -751,7 +771,7 @@ function renderThread() {
   if (!c) return;
   $("#thBead").outerHTML = bead(c).replace('class="bead', 'id="thBead" class="bead');
   $("#thName").innerHTML = esc(c.name) + (c.muted ? ico("mute") : "");
-  $("#thStatus").innerHTML = c.grp ? `<i class="off"></i><span>${c.sub}</span>` : c.on ? `<i></i><span>Online · ${c.local ?? "active now"}</span>` : `<i class="off"></i><span>Last seen recently</span>`;
+  $("#thStatus").innerHTML = c.grp ? `<i class="off"></i><span>${c.sub}</span>` : c.on ? `<i></i><span>Online<span class="lt"> · ${c.local ?? "active now"}</span></span>` : `<i class="off"></i><span>Last seen recently</span>`;
   log.innerHTML = c.msgs.map((m, i) => msgHTML(m, c, i)).join("") + (c.typing ? typingHTML(c) : "");
   wireLog();
   log.scrollTop = log.scrollHeight;
@@ -964,6 +984,10 @@ function insertText(s) {
   ta.setRangeText(s, a, b, "end"); ta.focus(); updateComposer();
 }
 ta.addEventListener("input", updateComposer);
+// Keep the newest message in view when the composer grows or the window resizes.
+let stick = true;
+log.addEventListener("scroll", () => { stick = log.scrollHeight - log.scrollTop - log.clientHeight < 24; }, { passive: true });
+new ResizeObserver(() => { if (stick) log.scrollTop = log.scrollHeight; }).observe(log);
 let enterDown = false, enterT;
 const releaseEnter = () => { if (!enterDown) return; enterDown = false; clearTimeout(enterT); sendBtn.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", bubbles: true })); };
 ta.addEventListener("keydown", (e) => {
