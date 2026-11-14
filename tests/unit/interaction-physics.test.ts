@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { Spring, springEasing, springs, stepSpring } from './spring.js';
-import { applyDetents, detentIndex, restingPoint } from './detents.js';
-import { rubberBand } from './drag-surface.js';
-import { renderProfile, soundProfiles } from './feedback.js';
+import { Spring, springEasing, springs, stepSpring } from '../../src/interaction/spring.js';
+import { applyDetents, detentIndex, restingPoint } from '../../src/interaction/detents.js';
+import { rubberBand } from '../../src/interaction/drag-surface.js';
+import { renderProfile, soundProfiles } from '../../src/interaction/feedback.js';
 
 describe('spring', () => {
   it('is frame-rate independent (analytic)', () => {
@@ -26,11 +26,9 @@ describe('spring', () => {
 
   it('bounce 0 never overshoots, bounce > 0 does', () => {
     const c = { w: (2 * Math.PI) / 0.3, z: 1 };
-    let x = -1,
-      v = 0,
-      max = -1;
+    let max = -1;
     for (let i = 1; i < 400; i++) {
-      [x, v] = stepSpring(-1, 0, i / 1000, c);
+      const [x] = stepSpring(-1, 0, i / 1000, c);
       max = Math.max(max, x);
     }
     expect(max).toBeLessThanOrEqual(1e-9);
