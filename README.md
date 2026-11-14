@@ -50,6 +50,25 @@ Every material, finish and profile parameter is also a CSS variable (`--tr-m-*`,
 
 All tokens are authored once in [`tokens/trompe.tokens.json`](tokens/trompe.tokens.json) (W3C Design Tokens format) and built to CSS custom properties. Skins live in [`skins/`](skins/) as JSON.
 
+## Make your own skin
+
+Compose a skin in **Trompe Studio** (`npm run dev:studio`): describe a look in plain words or start
+from a skin, then tune light, colour, real-world materials (walnut, brass, leather, ceramic, felt,
+glass and two dozen more, with procedural textures lit by the skin's own light), shape, type and
+motion against live app screens. Export skin JSON, CSS or a brief for agents.
+
+Agents get the same engine without a UI:
+
+```sh
+npx trompe skin "walnut panels with brushed brass knobs, amber accent, low evening light" --name library --out skins/library.skin.json --css library.css
+```
+
+```js
+import { skinFromDescription, validateSkin, applySkin } from 'trompe/skin';
+```
+
+See [docs/skins.md](docs/skins.md) and [docs/studio.md](docs/studio.md).
+
 ## Components
 
 Core: `tr-button`, `tr-input`, `tr-textarea`, `tr-checkbox`, `tr-radio-group` + `tr-radio`, `tr-switch`, `tr-select` + `tr-option`, `tr-segmented`, `tr-slider`, `tr-tabs` + `tr-tab` + `tr-tab-panel`, `tr-panel`, `tr-dialog`, `tr-menu` + `tr-menu-item`, `tr-tooltip`, `tr-progress`, `tr-badge`, `tr-toolbar`, `tr-nav` + `tr-nav-item`, `tr-list` + `tr-list-item`.
@@ -77,10 +96,12 @@ Every interactive control follows the WAI-ARIA Authoring Practices pattern for i
 ```sh
 npm install
 npm run dev        # showcase at /showcase/
+npm run dev:studio # Trompe Studio at /studio/ (npm run build:studio for one self-contained file)
 npm test           # Playwright: behaviour, axe and visual snapshots
 npm run build      # dist/, bundle, custom-elements.json, llms.txt, framework types
 npm run test:frameworks  # React, Vue, Svelte and plain HTML smoke tests
-npm run test:check # trompe check: rules, skin validation, --fix, --render (after npm run build)
+npm run test:unit  # skin engine and interaction physics
+npm run test:check # trompe check and trompe skin (after npm run build)
 npm run check -- showcase skins  # run the checker on the repo itself
 ```
 
