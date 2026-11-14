@@ -16,6 +16,10 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' } },
+  // Snapshots are rendered in the pinned Playwright container that CI uses (text rasterizes
+  // differently on other machines). Compare them locally with TROMPE_SNAPSHOTS=1, inside
+  // mcr.microsoft.com/playwright:v1.63.0-noble. See README, Development.
+  ignoreSnapshots: !process.env.CI && !process.env.TROMPE_SNAPSHOTS,
   use: { baseURL: 'http://localhost:5179', trace: 'off' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], deviceScaleFactor: 1 } }],
   webServer: {

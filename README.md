@@ -84,6 +84,8 @@ npm run test:check # trompe check: rules, skin validation, --fix, --render (afte
 npm run check -- showcase skins  # run the checker on the repo itself
 ```
 
+Visual snapshots are rendered in the pinned `mcr.microsoft.com/playwright:v1.63.0-noble` image that CI uses, because text rasterizes differently from machine to machine. Elsewhere they are skipped; to compare or update them, run the tests inside that image with `TROMPE_SNAPSHOTS=1`.
+
 Generated files (`src/generated/`, `dist/`, `custom-elements.json`, `llms*.txt`) are not committed. Edit `tokens/trompe.tokens.json` and `skins/*.skin.json`, then `npm run tokens`.
 
 ## License
