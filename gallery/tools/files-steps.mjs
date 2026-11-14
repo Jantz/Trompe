@@ -184,7 +184,8 @@ export default async (pg, { out, name }) => {
   await step("Switch and slider", async () => {
     await pg.click("#ff"); await wait(500);
     ok(await pg.getAttribute("#ff", "aria-checked") === "false", "Folders first switch turns off");
-    s = await st(); ok(!(await pg.evaluate((id) => __archive.I.get(id).dir, s.list[0])) || s.list.length < 2, "cards interleave with folders when off");
+    ok(await pg.evaluate(() => { const d = __archive.S.list.map((id) => __archive.I.get(id).dir); return d.indexOf(false) < d.lastIndexOf(true); }), "cards interleave with folders when off");
+    await shot("ff-off", { clip: { x: 0, y: 0, width: 1440, height: 900 } });
     await pg.focus("#ff"); await pg.keyboard.press("Space"); await wait(400);
     ok(await pg.getAttribute("#ff", "aria-checked") === "true", "Space turns the switch back on");
     await pg.focus("#zoom"); await pg.keyboard.press("ArrowRight"); await pg.keyboard.press("ArrowRight"); await wait(400);
