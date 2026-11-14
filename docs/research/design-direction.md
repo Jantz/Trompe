@@ -1,220 +1,190 @@
 # Trompe design direction
 
-Status: proposal, 2026-11-14. Owner: research thread. Consumers: the core foundation package and every component author (human or agent).
+Status: proposal, revision 2 (2026-11-14). Owner: research thread. Consumers: the core foundation package, recipe authors and every component author, human or agent.
 
-This document sets the visual and technical direction for Trompe: what "modern skeuomorphism" means here, how materials, depth and light are modelled, how tokens are named, which accessibility traps we design around, and which stack we build on. A working CSS prototype of the light model lives in [`prototypes/light-model.html`](prototypes/light-model.html).
+Revision 2 raises the ceiling. Trompe is not one tasteful "modern tactile" look. It is a rendering system for physical interfaces that can reach hardware-grade realism (brushed and polished metal, glossy domes, glowing LCDs, faders with machined caps) and lets agents and people compose **their own** styles on top of it. Subtle depth is still available, as the low end of the same dial.
+
+Two working prototypes back this document:
+
+- [`prototypes/hifi-deck.html`](prototypes/hifi-deck.html): an original media-player deck rendered in pure CSS + SVG, with three recipes on one markup tree, a movable light and a realism dial. It re-flows down to phone width.
+- [`prototypes/light-model.html`](prototypes/light-model.html): the light and depth math in isolation.
+
+| Chrome | Studio | Porcelain |
+|---|---|---|
+| ![Chrome recipe](prototypes/img/deck-chrome.webp) | ![Studio recipe](prototypes/img/deck-studio.webp) | ![Porcelain recipe](prototypes/img/deck-porcelain.webp) |
+
+The three looks share every element and every line of component CSS. Only recipe tokens differ: palette, material, geometry (dome vs square keys, pill vs fader caps), typography, display type (dot-matrix LCD, amber VFD, reflective e-paper style) and texture.
 
 ## TL;DR: the decisions
 
-1. **Appearance is physics with a tiny parameter set.** Every surface is rendered from four global inputs (light angle, light elevation, depth, realism) plus one material's parameters. Components never hand-write shadows or gradients. This is what lets an agent assemble a screen that is consistent by construction.
-2. **Materials are parameter bundles, components are geometry.** `material` changes what a thing is made of, never its shape or behaviour. Core set: `paper`, `plastic`, `rubber`, `metal`, `glass`. Later: `leather`, `wood`, `fabric`, plus an `emissive` layer for LEDs and displays.
-3. **One light per scene.** `--tr-light-angle` (0deg = light from the top, clockwise, same convention as CSS gradients) and `--tr-light-elevation`. Shadow and highlight offsets are computed with CSS `sin()`/`cos()`, so every component agrees on where the light is. Overridable per subtree.
-4. **Depth is an integer from -2 to 4**, with names: well, pressed, flush, raised, lifted, floating, overlay. Shadow size grows non-linearly so each level reads distinctly.
-5. **Realism is a dial, not a theme.** `realism="flat|soft|tactile|real"` maps to `--tr-realism` 0, 0.33, 0.66, 1. It scales gradient strength, specular, grain and bevel. The same markup goes from subtle tactile depth to full material realism.
-6. **Accessibility is part of the model, not a mode.** Every interactive boundary carries a real 3:1 edge (never shadow-only), state is never shown by depth alone, and forced colors, reduced motion, reduced transparency and increased contrast each have a defined fallback.
-7. **Stack:** Lit 3 + strict TypeScript, W3C DTCG 2025.10 tokens compiled to CSS custom properties, `custom-elements.json` via the CEM analyzer, generated `llms.txt`, Playwright + axe for tests, native `input`/`change` events so React 19, Vue and Svelte need no wrappers.
+1. **Trompe is a renderer plus recipes, not a style.** Components draw a fixed stack of physical layers. A *recipe* fills those layers with values. Built-in recipes are examples; agents are expected to write new ones from a plain-language brief.
+2. **Fidelity ceiling is hardware-grade.** At `realism="real"` a surface carries up to nine layers: drop shadow, socket, outer line, bevel lip, face, texture, environment reflection, specular gloss and bounce light. Displays add segments, ghost segments, pixel grid, glow and cover-glass reflection.
+3. **One light per scene** (`--tr-light-angle`, `--tr-light-elevation`) drives every shadow, rim, gloss position, socket gradient and even SVG lighting filters, so a whole interface agrees on where the light is.
+4. **Three rendering tiers.** Tier 1 CSS (always), tier 2 SVG lighting/displacement filters (small static elements), tier 3 GPU (WebGL2/WebGPU, opt-in hero surfaces with CSS fallback). Budgets are enforced by `trompe check`.
+5. **Vector and responsive by construction.** Geometry is in `em` off a container-query scale, so a panel stays crisp at any size and pixel density; container queries re-flow it (not just shrink it) at narrow widths.
+6. **Real controls under every skin.** Sliders are `<input type="range">`, toggles are buttons with `aria-pressed` plus an LED as the second cue, displays have text alternatives. Realism never costs accessibility.
+7. **Stack and names are unchanged from revision 1** and already adopted by the foundation work: Lit 3 + strict TypeScript, DTCG 2025.10 tokens, `tr-*` elements, `--tr-*` variables, `material` / `depth` / `realism` / `tone` / `size` attributes, native `input`/`change` events.
 
 ---
 
-## 1. Prior art and what we take from it
+## 1. What "high fidelity" takes: the layer stack
 
-| Era / system | What it got right | What went wrong | Take for Trompe |
+Studying 2000s hardware-style skins (the fidelity bar we were given) and modern pro-audio and industrial products, convincing realism comes from many cheap, consistent layers, not from one expensive effect. Every Trompe surface is drawn as this ordered stack. Each layer is a named recipe slot; a recipe may leave any slot empty.
+
+| # | Layer | What it simulates | CSS technique (tier 1) |
 |---|---|---|---|
-| Classic skeuomorphism (iOS 1-6, ~2007-2013) | Affordances were obvious; materials taught people what was pressable | Bitmap-heavy, inconsistent light, ornamental textures (leather calendars) that carried no meaning | Materials must mean something (metal = precise control, paper = content, rubber = big physical action) |
-| Flat / Material Design (2013-2014 onward) | Material's elevation system with a **key light + ambient light** is the closest prior art for our light model; systematic tokens | Affordance loss; everything looks clickable or nothing does | Keep Material's key + ambient split and elevation tiers; add a movable light and real materials |
-| Neumorphism (2019-2020) | Soft, cohesive, tactile | Same-colour-as-background shapes fail WCAG 1.4.11 non-text contrast; pressed vs unpressed is invisible to many users; collapses in dark mode | Our `soft` realism level is neumorphism done right: same softness, but a real 3:1 edge and a second state cue |
-| Glassmorphism (2020-2021) and Apple Liquid Glass (2025) | Depth through translucency; context stays visible | Text contrast on glass measured far below WCAG minimums in testing; Reduce Transparency only dulls the effect; refraction needs SVG filters and costs GPU | Glass is opt-in, never under body text by default, collapses to opaque under `prefers-reduced-transparency` and `prefers-contrast: more` |
-| Hardware-inspired "new tactile" UIs (2023-2026) | Knobs, keys, LEDs, labelled panels; delight from precise detail | Often inaccessible custom controls (drag-only knobs, tiny switches) | Physical controls follow ARIA APG patterns (knob = slider), with keyboard and target-size rules |
+| 1 | **Cast shadow** | Contact + key + ambient shadow on the surface below | 2-3 `box-shadow`s, offsets from `sin()`/`cos()` of the light angle, `pow(depth, 1.6)` growth |
+| 2 | **Socket** | The hole milled into the chassis that a key sits in; lit on its far wall | Gradient border via `background: face padding-box, socket border-box` with the gradient at `light + 180deg` |
+| 3 | **Outer line** | The dark parting line between parts | `box-shadow: 0 0 0 1px` in `edge` colour (also the WCAG 3:1 boundary) |
+| 4 | **Bevel lip** | Rounded edge catching light on one side, falling off on the other | Two directional `inset` shadows, offsets from the light vector |
+| 5 | **Face** | Body colour with curvature falloff | `radial-gradient` whose centre is offset toward the light (domes) or a `linear-gradient` (flat faces) |
+| 6 | **Texture** | Brushed streaks, anodised grain, paper fibre, leather | Tiled SVG `feTurbulence` data URI on a pseudo-element with `mix-blend-mode: overlay`; anisotropy via `baseFrequency="0.003 0.85"` |
+| 7 | **Environment** | Sky and floor reflected in polished metal (what makes chrome read as chrome) | A soft bright band at about 20% height and a dark band at about 75% |
+| 8 | **Specular gloss** | Highlight cap on glossy plastic, glass and lacquer | Elliptical gradient on `::before`, translated toward the light |
+| 9 | **Bounce light** | Light reflected back up from the chassis onto the underside of a dome | Radial gradient at 50% 100% on `::after` |
+| 10 | **Glyph** | Engraved or printed legend | `text-shadow: 0 1px 0` highlight (engraved) or `drop-shadow` on SVG icons |
+| 11 | **Emissive** | LEDs, backlit legends, displays | Radial "lens" gradient plus layered glow `box-shadow`, independent of the scene light |
 
-Component library prior art:
+Displays (`tr-display`) are their own stack: recessed glass well → panel gradient → pixel grid / scanlines → ghost (unlit) segments → lit segments or dot-matrix text with glow → cover-glass reflection. Seven-segment digits are real DOM segments with `clip-path` hexagons, so unlit segments show faintly the way real LCD glass does, and the content stays accessible text via `aria-label`.
 
-- **Shoelace / Web Awesome** (Lit, now 3.x as Web Awesome): proves Lit + `::part()` + CSS custom property theming works across frameworks; ships a CEM and an `llms.txt` in its npm package. We copy the shape of that API surface.
-- **Material Web** (Lit): three-tier token naming (`ref` / `sys` / `comp`). We adopt the tiers, with simpler names.
-- **Spectrum Web Components, FAST**: show the cost of a too-large API surface. Our attribute vocabulary stays small and enumerable.
+Details that sell realism and cost nothing: grip ridges (`repeating-linear-gradient` of 1px light / 1px dark lines), tick ladders on fader slots, a centre detent line, machined cap lines on fader thumbs, a skew of 7deg on segment digits, trapezoid tabs via `clip-path`, slightly different radii per part.
 
-## 2. The rendering model
-
-```
-appearance = f(light angle, light elevation, depth, realism, material params)
-```
-
-Only the left-hand inputs are public. Everything a component draws is derived inside one shared surface recipe that the foundation package owns. Component authors pick a `material` and a `depth`; they do not write `box-shadow`.
-
-### 2.1 Light model
-
-| Token | Type (`@property`) | Default | Meaning |
-|---|---|---|---|
-| `--tr-light-angle` | `<angle>`, inherits | `315deg` (top-left) | Direction the light comes **from**. 0deg = top, clockwise, same convention as `linear-gradient()` |
-| `--tr-light-elevation` | `<angle>`, inherits | `50deg` | Height of the light above the surface. Lower = longer shadows |
-| `--tr-light-color` | `<color>` | warm white | Tints highlights (optional, `real` only) |
-
-Derived inside the surface recipe (private `--_` variables):
+### Light model (unchanged maths, wider use)
 
 ```css
 --_dx: calc(-1 * sin(var(--tr-light-angle)));   /* unit vector away from the light */
 --_dy: cos(var(--tr-light-angle));
---_len: clamp(0.3, calc(cos(var(--tr-light-elevation)) / sin(var(--tr-light-elevation))), 3); /* cot(elev) */
+--_len: clamp(0.3, calc(cos(var(--tr-light-elevation)) / sin(var(--tr-light-elevation))), 3);
 --_off: calc(pow(var(--_d), 1.6) * var(--_len) * var(--tr-depth-unit));
 ```
 
-Each raised surface gets three outer shadows (contact, key, ambient) and two inset rims (specular on the lit edge, dark rim on the far edge). Gradients run at `calc(var(--tr-light-angle) + 180deg)`. Rotating the one angle re-lights the whole page, which the prototype demonstrates.
+Revision 2 applies the same vector to gloss position, dome face centre, socket gradient, chassis sheen and SVG `feDistantLight` azimuth (`azimuth = angle - 90deg`). Turning the angle re-lights the entire deck, embossed badge included.
 
-Rules:
+![Light from the upper right](prototypes/img/deck-chrome-light-from-right.webp)
 
-- **One light per scene.** A subtree may override the angle (for example a rotated device mock), but components must never set their own.
-- **Pressed moves away from the light.** On `:active`, depth drops to -1 and the face translates 1px along (`--_dx`, `--_dy`).
-- **Dark scenes light by lift, not shadow.** The prototype showed shadows nearly vanish on dark canvases. In dark themes each depth level also lightens the face (`--tr-lift`, about 4% per level) and the lit rim carries the depth cue, as Material does with elevation overlays.
-- **Device-orientation light** (gyroscope parallax) is an opt-in enhancement, off under `prefers-reduced-motion`.
+Depth scale (-2 well, -1 pressed, 0 flush, 1 raised, 2 lifted, 3 floating, 4 overlay), the realism dial (`flat` 0, `soft` .33, `tactile` .66, `real` 1) and dark-mode lift are as in revision 1. The realism dial multiplies gloss, texture, glow and environment layers, so one recipe spans clean flat UI to full material realism.
 
-### 2.2 Depth scale
+## 2. Recipes: how anyone gets a unique look
 
-| Value | Name | Typical use | Rendering |
-|---|---|---|---|
-| -2 | `well` | Text inputs, slider tracks, meters | Deep inset shadow on the lit side |
-| -1 | `pressed` | Active button, "on" latching key | Shallow inset |
-| 0 | `flush` | Inline content, table cells, toolbars on a panel | Edge only |
-| 1 | `raised` | Buttons, cards, switches | Contact + key + ambient |
-| 2 | `lifted` | Hover, dragged item, knob | |
-| 3 | `floating` | Menus, popovers, tooltips | |
-| 4 | `overlay` | Dialogs, sheets | |
+A **recipe** is a named, validated set of tokens (DTCG JSON) that fills the layer slots, plus an optional CSS file in `@layer trompe.recipe` for the rare thing tokens cannot express. Apply it with `data-tr-recipe="name"` on any ancestor; recipes can be nested (a studio-black transport inside a chrome chassis) and can `extends` another recipe.
 
-Rules for agents and the checker: a child's depth is relative to its parent surface; interactive states move one step (`hover` +1, `active` to -1); never more than three distinct positive depths on one screen.
+### What a recipe controls
 
-### 2.3 Realism dial
-
-| `realism` | `--tr-realism` | Looks like | What is on |
-|---|---|---|---|
-| `flat` | 0 | Clean flat UI with honest borders | Edge, one soft shadow for depth ≥ 1 |
-| `soft` | 0.33 | Neumorphic softness, done accessibly | + light falloff gradient, rims |
-| `tactile` (default) | 0.66 | Modern tactile hardware | + specular, bevels, faint grain |
-| `real` | 1 | Full material realism | + full grain/anisotropy, conic metal, glass blur, tinted light |
-
-Grain opacity scales with realism squared, so it only becomes visible near `real`. `prefers-contrast: more` caps realism at `soft`. The prototype shows `flat` is still a complete, usable UI.
-
-![Prototype: light from top-left, tactile](prototypes/img/light-315-realism-066.png)
-![Prototype: light from top-right, low elevation, real](prototypes/img/light-045-low-realism-100.png)
-![Prototype: flat](prototypes/img/realism-000.png)
-![Prototype: dark, depth via lift](prototypes/img/dark-realism-080.png)
-
-## 3. Material taxonomy
-
-A material is a fixed bundle of parameters, loosely modelled on PBR:
-
-| Parameter | Token suffix | Range | Effect |
-|---|---|---|---|
-| Base colour | `-base` | colour | Face colour (theme aware) |
-| Ink | `-ink` | colour | Text/icon colour **on this material**, contrast-checked ≥ 4.5:1 against the base and both gradient extremes |
-| Roughness | `-roughness` | 0..1 | Softens and widens highlights |
-| Metalness | `-metalness` | 0..1 | Tints reflections with the base, boosts contrast bands |
-| Specular | `-specular` | 0..1 | Highlight strength |
-| Translucency | `-translucency` | 0..1 | Backdrop show-through (glass only today) |
-| Grain | `-grain`, `-grain-image`, `-grain-angle` | 0..1, image, angle | Noise strength, tile, anisotropy direction |
-| Bevel | `-bevel` | length | Rim width |
-| Edge | `-edge` | colour | The 3:1 boundary colour |
-
-| Material | Real-world cues | CSS technique | Use for | Risk |
-|---|---|---|---|---|
-| `paper` | Matte, fibrous, soft contact shadow | Fractal-noise SVG tile, no rim | Cards, sheets, notes, content | Low |
-| `plastic` | Uniform, soft falloff, crisp rim when glossy | Gradient + inset rim | Buttons, switches, panels (default) | Low |
-| `rubber` | Very matte, rounded, deep soft shadow | Wide bevel, low specular | Big keys, pads, grips | Dark base needs light ink |
-| `metal` | Brushed streaks or spun circles, sharp bands | Anisotropic noise (`baseFrequency` x ≪ y), `conic-gradient` from the light angle for knobs | Knobs, sliders, bezels, precise controls | Light ink on metal fails in dark mode, so ink is per material |
-| `glass` | Translucent, frosted, bright edge | `backdrop-filter: blur() saturate()`, inner highlight | Overlays, toolbars over imagery | Text contrast varies with what is behind; GPU cost |
-| `leather` (later) | Pebbled grain, stitching | Noise + dashed inset border | Headers, panels | Ornamental; use sparingly |
-| `wood` (later) | Directional grain | Layered `repeating-linear-gradient` + turbulence | Panels, trays | Busy under text |
-| `fabric` (later) | Woven texture | Two-axis noise | Speaker grilles, backgrounds | Busy under text |
-| `emissive` (layer) | LEDs, backlit labels, LCDs | Glow via `box-shadow` + `color-mix`; not light-dependent | State indicators, meters | Never the only state cue |
-
-Textures are generated SVG (`feTurbulence`) data URIs, a few hundred bytes each, rendered as a separate pseudo-element layer so the checker can keep grain out from under text. No bitmaps in the core.
-
-## 4. Token naming
-
-Tokens are authored once in W3C DTCG 2025.10 JSON and compiled to CSS custom properties, a typed JSON export and docs. One rule for every name:
-
-```
---tr-{category}-{concept}[-{variant}][-{state}]
-```
-
-Lowercase kebab case, nouns before modifiers, numeric scales where order matters, t-shirt sizes only for `size`.
-
-| Category | Examples |
-|---|---|
-| `light` | `--tr-light-angle`, `--tr-light-elevation`, `--tr-light-color` |
-| `realism` | `--tr-realism` |
-| `depth` | `--tr-depth` (per element), `--tr-depth-unit` |
-| `material` | `--tr-material-metal-base`, `--tr-material-metal-ink`, `--tr-material-glass-translucency` |
-| `color` | `--tr-color-canvas`, `--tr-color-ink`, `--tr-color-edge`, `--tr-color-accent`, `--tr-color-danger`, `--tr-color-focus` |
-| `space` | `--tr-space-0` … `--tr-space-12` |
-| `radius` | `--tr-radius-0` … `--tr-radius-5`, `--tr-radius-round` |
-| `font` | `--tr-font-family-ui`, `--tr-font-size-2`, `--tr-font-weight-strong` |
-| `motion` | `--tr-motion-duration-press`, `--tr-motion-easing-spring` |
-| Component | `--tr-button-radius`, `--tr-knob-size` (only for genuine per-component knobs) |
-
-Tiers (after Material Web, simplified): **reference** palette values (`--tr-ref-sand-500`) are never used by components; **system** tokens above are the public theming surface; **component** tokens default to system tokens. Private implementation variables inside shadow roots start with `--_` and are never documented.
-
-Theme-dependent colours use `light-dark()`. Theme-dependent **non-colour** values (for example `--tr-lift`) cannot, because `light-dark()` only accepts colours; they use the `prefers-color-scheme` media query plus the `data-tr-theme` attribute. Agreed with the foundation thread: `data-tr-theme="light|dark"` on any ancestor, default follows the system.
-
-Public attribute vocabulary (closed enums, so agents and the checker can validate):
-
-| Attribute | Values |
-|---|---|
-| `material` | `paper` `plastic` `rubber` `metal` `glass` |
-| `depth` | `-2` … `4` |
-| `realism` | `flat` `soft` `tactile` `real` |
-| `tone` | `neutral` `accent` `danger` |
-| `size` | `sm` `md` `lg` |
-
-## 5. Accessibility pitfalls and the rule for each
-
-| Pitfall | Where it bites | Trompe rule |
+| Group | Example tokens | Notes |
 |---|---|---|
-| Shadow-only boundaries (WCAG 1.4.11, 3:1) | Neumorphism, `flat`/`soft` | Every interactive component draws `--tr-color-edge` (≥ 3:1 vs its surroundings) or has a ≥ 3:1 fill difference. Shadows are decoration, never the boundary |
-| State shown only by depth | Toggles, latching keys | Pressed/on states add a second cue: fill, icon, label or emissive indicator. Checked by the test suite |
-| Text over gradient, grain or glass (1.4.3, 4.5:1) | `metal`, `glass`, `real` | Each material's `-ink` is checked against the base **and** both gradient extremes at `real`. Grain is excluded from text areas; glass gets a scrim token |
-| Focus hidden by glow or depth (2.4.7, 2.4.11, 2.4.13) | All | Focus is an `outline` in `--tr-color-focus` with offset, never a shadow (shadows vanish in forced colours) |
-| Forced colours (Windows High Contrast) | All | `box-shadow` and gradient backgrounds are removed by the browser, so every surface keeps a `1px solid` border (transparent normally, system colour in forced colours); states use `Highlight`, `ButtonText`, `GrayText` |
-| Motion (2.3.3, vestibular) | Press springs, parallax, gyroscope light | `prefers-reduced-motion: reduce` makes state changes instant and disables parallax and orientation light |
-| Transparency | `glass` | `prefers-reduced-transparency: reduce` (Chromium only today, not Baseline) and `prefers-contrast: more` turn glass opaque |
-| Increased contrast | All | `prefers-contrast: more` caps realism at `soft` and strengthens edges |
-| Tiny physical controls (2.5.8 target size) | Switches, knobs, keys | Minimum 24px hit area always, 44px default for `md` |
-| Drag-only controls (2.5.7) | Knobs, sliders, faders | Knob = APG slider: arrow keys, Page Up/Down, Home/End, `aria-valuetext`, plus click/tap alternatives |
-| Dark mode depth collapse | Dark themes | Depth via lift and lit rims (section 2.1) |
+| Palette | `--tr-recipe-chassis-hi/mid/lo`, `-edge`, `-ink`, `-engrave` | Ink/engrave pairs are contrast-checked |
+| Materials | per-material base, roughness, metalness, specular, texture image, texture strength, environment band | Same parameter set as revision 1 |
+| Geometry | `--tr-radius-chassis`, `--tr-key-shape` (dome / square / pebble), `--tr-cap-shape` (pill / fader / knob), cap length and width, bevel width, socket depth | This is what makes recipes look different, not just recoloured |
+| Typography | label face, label tracking, legend case, display face | Google-Fonts-safe defaults with fallbacks |
+| Display | type (`lcd`, `vfd`, `epaper`, `led-matrix`, `oled`), panel colours, ink, glow, ghost alpha, pixel-grid strength | |
+| Emissive | LED on/off colours, glow radius | |
+| Light defaults | default angle, elevation, warmth | A recipe may suggest a light; the scene still owns it |
+| Ornament | grips on/off, tick density, screw heads, seams | Optional detail layers |
 
-## 6. Recommended stack
+### Built-in starter recipes
 
-| Concern | Choice | Why |
+The prototype ships three, chosen to be far apart:
+
+- **Chrome**: polished silver with brushed streaks, glossy domes, blue dot-matrix LCD.
+- **Studio**: anodised graphite, square rubber keys, long fader caps, amber VFD.
+- **Porcelain**: glossy white ceramic, pebble keys and round caps, reflective green display, no grips.
+
+Planned additions to prove range: a walnut-and-brass hi-fi recipe, a bakelite / mid-century recipe, an aerospace panel recipe (matte grey, stencil type, toggle guards), a frosted-glass recipe, and a paper-craft recipe. All are original; built-in recipes never imitate a real product's trade dress, and the checker can't stop people from doing so, but the docs ask agents to make original looks from a description rather than copy a named product skin.
+
+### Agent workflow
+
+1. Agent reads `trompe.manifest.json` (components, parts, attribute enums, recipe token schema, built-in recipes as examples).
+2. From a brief ("a 1970s Japanese hi-fi, brushed aluminium, warm VU meters, wood cheeks") it writes `recipes/<name>.tokens.json`.
+3. `trompe check --render` validates the recipe against the schema, checks contrast of every ink/engrave pair in both themes, and screenshots a recipe sheet (every component, every state) for the agent to inspect.
+4. The agent iterates on tokens only. No component CSS is touched, so recipes can't break behaviour or accessibility.
+
+## 3. Rendering tiers and performance budgets
+
+| Tier | What | When | Cost profile |
+|---|---|---|---|
+| 1. CSS | Everything in section 1 | Always; the only tier required | Static layers are cheap; repaint cost scales with area × layer count |
+| 2. SVG filters | `feSpecularLighting` / `feDiffuseLighting` on height maps (embossed badges, stamped logos, engraved plates), `feDisplacementMap` for refraction | Small, mostly static elements | Filter re-runs on every repaint of the element; keep under ~0.1 Mpx per element |
+| 3. GPU | WebGL2 (WebGPU where available) for environment-mapped chrome, true refraction, normal-mapped leather/wood, real-time light on large heroes | Opt-in per part via the recipe; one shared context per page | GPU memory, context limits; always ships a tier-1 fallback |
+
+Measured on the deck prototype (headless Chromium, software rasteriser, so real devices with GPU raster do better):
+
+| Scenario | CPU 1× | CPU 4× (mid-range phone) |
 |---|---|---|
-| Components | Lit 3 (OpenJS Foundation), strict TypeScript | Small, standards-based, proven by Web Awesome and Material Web; reactive properties map 1:1 to attributes |
-| Styling | Shadow DOM CSS + `::part()`, `@layer` for consumer overrides, custom properties pierce the shadow boundary for theming | Encapsulated but themeable |
-| CSS features (Baseline) | `@property`, trig functions, `pow()`, `color-mix()`, `oklch()`, `light-dark()`, container size queries, `:has()`, `@layer`, popover | All Baseline across Chrome, Firefox and Safari by 2024-2025 |
-| CSS features (enhancement only) | `if()` (Chromium only), container style queries, `prefers-reduced-transparency`, `corner-shape` | Always with a plain fallback declaration first |
-| Forms | `ElementInternals` form association; fire native `input`/`change` (bubbling, composed) | React 19, Vue and Svelte bind them with no wrappers (decision taken with the foundation thread) |
-| Tokens | DTCG 2025.10 JSON → small build script → CSS, typed JSON, docs | First stable spec (Oct 2025); one source of truth |
-| Build | tsc + esbuild for the library; Vite for showcase/examples | Fast, minimal |
-| Tests | Playwright (component + visual regression across light angles, realism levels, themes, forced colours), axe-core | Visual regression is the only way to catch broken light |
+| Idle with live spectrum, marquee and clock | 60 fps | 60 fps |
+| Light angle changing every frame (whole deck repaints) | 43 fps | 24 fps |
 
-### Agent-readable surface
+Conclusions that become rules:
 
-This is the part that makes Trompe usable by a coding agent with no human tuning:
+- **Light is a scene setting, not an animation channel.** Changing it repaints every surface. Animated light (device tilt, cursor-follow) is limited to one hero element, or moves to tier 3.
+- **Animate `transform` and `opacity` only.** Press feedback is a translate plus a layer swap; never transition `box-shadow`, `filter` or gradients on many elements.
+- **Textures are tiled images, never live filters on large areas.** The SVG noise tile is rasterised once.
+- **`contain: layout paint` on each chassis** so a repaint stays inside it.
+- Budgets checked by `trompe check`: at most 6 shadows and 8 background layers per element, at most 4 `backdrop-filter` surfaces visible at once, SVG filters only on elements under the size limit, at most one tier-3 surface per viewport by default, recipe CSS under 20 KB gzipped (the whole deck prototype is 10.6 KB gzipped including markup and script).
 
-1. **`custom-elements.json`** from `@custom-elements-manifest/analyzer`, driven by JSDoc (`@summary`, `@slot`, `@csspart`, `@cssprop`, `@fires`). Every attribute's enum lands in the manifest.
-2. **`trompe.manifest.json`**: one generated file listing components, attributes with enums, materials with their parameters, depth names, tokens with types and defaults, and short usage recipes. This is the file an agent reads first.
-3. **`llms.txt` + `llms-full.txt`** generated from the same sources (Web Awesome ships one in its package; coding agents and Context7-style indexes read them even though web crawlers mostly do not).
-4. **Editor data**: `vscode.html-custom-data.json` and JetBrains `web-types.json`, plus JSX/Vue/Svelte type declarations generated from the manifest.
-5. **`trompe check`**: a deterministic linter an agent runs on its output: unknown elements/attributes, invalid enum values, contrast of `material` × `tone` × theme combinations, depth rules (section 2.2), glass over glass, grain under text, missing labels. Machine-readable output so an agent can fix and re-run.
-6. Later: an MCP server exposing the manifest and `check`.
+## 4. Responsive realism
 
-## 7. Open questions (not blocking)
+- All component geometry is in `em`. The root of a Trompe surface sets `font-size` from container query units (`clamp(8px, 2.05cqi, 15.5px)` in the prototype), so a panel scales like a vector drawing and stays crisp at any device pixel ratio. No bitmaps in the core.
+- Scaling alone fails on phones (controls get too small), so components also **re-flow** with `@container` queries: the deck hides the spectrum and badge, stacks the equaliser controls, and drops to a 5-band EQ under 560px.
+- Minimum hit area stays 24px at any scale (44px default at `md`); the scale clamp enforces it.
 
-- Whether `tone` should tint materials (an accent-coloured plastic) or only apply emissive and edge colour. Recommendation: tint plastic and rubber only; metal and glass take tone through emissive accents.
-- Refraction for `glass` at `real` (SVG displacement filters, Liquid Glass style) is possible but expensive and hurts legibility; defer until there is a performance budget.
-- SSR via Declarative Shadow DOM (Lit SSR) is worth a spike once components stabilise.
+![Phone width](prototypes/img/deck-chrome-phone.webp)
+
+## 5. Material taxonomy
+
+Materials are parameter bundles (base, ink, roughness, metalness, specular, translucency, texture, bevel, edge, environment). Revision 2 adds finishes as named presets of those parameters:
+
+| Material | Finishes | Signature layers |
+|---|---|---|
+| `metal` | `brushed`, `polished`, `spun` (conic, for knobs), `anodised`, `chrome` | Anisotropic texture, environment band, sharp specular |
+| `plastic` | `gloss`, `satin`, `matte`, `translucent` | Gloss cap, bounce light |
+| `rubber` | `soft-touch`, `silicone` | Wide bevel, no gloss, deep cast shadow |
+| `glass` | `clear`, `frosted`, `smoked` | Backdrop blur, edge highlight, tier-2 refraction at `real` |
+| `paper` | `plain`, `card`, `kraft` | Fibre texture, soft contact shadow |
+| `ceramic` | `gloss`, `bisque` | Very soft falloff, broad highlight |
+| `leather`, `wood`, `fabric` | grain variants | Texture-led; tier 3 normal maps optional |
+| Emissive layer | `led`, `lcd`, `vfd`, `epaper`, `oled` | Independent of scene light |
+
+## 6. Token naming and public API (unchanged)
+
+`--tr-{category}-{concept}[-{variant}][-{state}]`, authored in DTCG 2025.10 JSON. Categories: `light`, `realism`, `depth`, `material`, `recipe`, `color`, `space`, `radius`, `font`, `motion`. Private variables inside shadow roots start with `--_`. Theme-dependent colours use `light-dark()`; non-colour theme values use the `prefers-color-scheme` query plus `data-tr-theme`, because `light-dark()` only accepts colours.
+
+Closed attribute enums: `material`, `depth` (-2…4), `realism` (`flat|soft|tactile|real`), `tone` (`neutral|accent|danger`), `size` (`sm|md|lg`). New in revision 2: `data-tr-recipe` on any ancestor, and a `finish` attribute on surfaces.
+
+**Parts are the recipe contract.** Every component exposes the same part names where they apply, so a recipe's optional CSS can reach any layer: `chassis`, `socket`, `face`, `gloss`, `glyph`, `led`, `track`, `fill`, `cap`, `ticks`, `display`, `segment`.
+
+Components implied by the prototype, in addition to revision 1's set: `tr-display` (segments, dot-matrix, marquee, spectrum), `tr-led`, `tr-fader` (vertical slider with ticks and detent), `tr-chassis` (panel with optional title bar and grips), `tr-tabs`.
+
+## 7. Accessibility: realism without the usual damage
+
+| Pitfall | Trompe rule |
+|---|---|
+| Shadow-only boundaries (WCAG 1.4.11) | The outer line layer is mandatory on interactive parts and must reach 3:1 |
+| State shown only by depth or gloss | `aria-pressed`/`aria-checked` plus a second visible cue: LED, colour change of the glyph, or legend |
+| Text on gradients, textures, glass | Ink is checked against both gradient extremes; textures sit on a separate layer kept below 0.6 opacity under text; displays use high-contrast segment colours |
+| Custom-drawn controls lose semantics | Skins style real elements: `<input type="range">` for sliders and faders (vertical via `writing-mode`, so arrow keys and screen readers work), buttons for keys |
+| Focus lost in busy chrome | `outline` in `--tr-color-focus` with offset, never a glow |
+| Forced colours strip shadows and gradients | Every surface keeps a border; states map to `Highlight`/`ButtonText`; ghost segments disappear |
+| Motion | Marquee, spectrum and press animations stop under `prefers-reduced-motion` (marquee becomes static text) |
+| Increased contrast | `prefers-contrast: more` lowers realism to about 0.25 and removes display glow |
+| Transparency | `prefers-reduced-transparency` turns glass opaque (Chromium only today) |
+| Drag-only knobs and faders (2.5.7) | APG slider keyboard pattern on every continuous control |
+
+## 8. Stack (unchanged, adopted)
+
+Lit 3 + strict TypeScript; tsc + esbuild for the library, Vite for the showcase; DTCG 2025.10 tokens built by a small script into CSS, typed JSON and docs; `custom-elements.json` from the CEM analyzer; generated `trompe.manifest.json` and `llms.txt`; Playwright + axe for tests, including visual regression across recipes × light angles × realism × themes × forced colours. Baseline CSS used: `@property`, trig and `pow()`, `color-mix()`, `oklch()` and relative colour syntax, `light-dark()`, container queries, `:has()`, `@layer`, vertical `writing-mode` form controls. Enhancement only: `if()`, style queries, `corner-shape`, `prefers-reduced-transparency`.
+
+`trompe check` (follow-up, research thread) grows two rule groups from this revision: recipe validation (schema, contrast of every ink pair, missing slots) and performance budgets (section 3).
+
+## 9. Open questions
+
+- Tier 3 scope: ship a `tr-gl-surface` primitive in v1, or wait for a concrete hero use case? Recommendation: spike it after the first five components, behind a recipe flag.
+- How much ornament (screws, seams, stitching) belongs in core vs recipe CSS. Recommendation: core provides the slots, recipes provide the look.
 
 ## Sources
 
 - W3C Design Tokens Community Group, [first stable spec 2025.10](https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/) and [Format Module 2025.10](https://www.w3.org/community/reports/design-tokens/CG-FINAL-format-20251028/)
-- [Web Awesome repository](https://github.com/shoelace-style/webawesome) (Shoelace 3, built on Lit); Web Awesome's [packaged llms.txt](https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.6.0/dist/llms.txt)
-- [CSS `if()` support](https://web-platform-dx.github.io/web-features-explorer/features/if) (Chromium only)
-- [`prefers-reduced-transparency` on MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-transparency) (limited availability)
-- Liquid Glass accessibility: [Infinum](https://infinum.com/blog/apples-ios-26-liquid-glass-sleek-shiny-and-questionably-accessible/), [Frontend Masters](https://frontendmasters.com/blog/?p=6644), [CSS WG thread](https://lists.w3.org/Archives/Public/public-css-archive/2025Jun/0336.html)
-- llms.txt usage: [ppc.land adoption study](https://ppc.land/llms-txt-adoption-rises-8-8x-but-97-of-files-get-zero-ai-requests/), [Codex CLI and llms.txt](https://codex.danielvaughan.com/2026/06/06/llms-txt-specification-codex-cli-machine-readable-documentation-agent-context/)
-- WCAG 2.2: 1.4.3, 1.4.11, 2.3.3, 2.4.7, 2.4.11, 2.4.13, 2.5.7, 2.5.8; ARIA APG slider pattern
+- [Web Awesome repository](https://github.com/shoelace-style/webawesome) (Shoelace 3, built on Lit) and its [packaged llms.txt](https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.6.0/dist/llms.txt)
+- [CSS `if()` support](https://web-platform-dx.github.io/web-features-explorer/features/if), [`prefers-reduced-transparency`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-transparency)
+- Glass legibility: [Infinum on Liquid Glass](https://infinum.com/blog/apples-ios-26-liquid-glass-sleek-shiny-and-questionably-accessible/), [Frontend Masters](https://frontendmasters.com/blog/?p=6644), [CSS WG thread](https://lists.w3.org/Archives/Public/public-css-archive/2025Jun/0336.html)
+- llms.txt in coding agents: [Codex CLI and llms.txt](https://codex.danielvaughan.com/2026/06/06/llms-txt-specification-codex-cli-machine-readable-documentation-agent-context/)
+- WCAG 2.2: 1.4.3, 1.4.11, 2.3.3, 2.4.7, 2.4.11, 2.5.7, 2.5.8; ARIA APG slider pattern
