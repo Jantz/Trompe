@@ -34,18 +34,32 @@ export default async (pg, { out, name }) => {
   ok(/°/.test(await pg.$eval("#temp", (e) => e.textContent)), "numeral shows degrees");
 
   // Flick: fast drag, release; inertia should carry it further.
-  // Dispatch the whole flick in-page so the release velocity doesn't depend on CDP latency.
-  const lastV = await pg.evaluate(async ([cx, cy, rad]) => {
-    const ring = document.getElementById("ring"), t = (a) => ({ clientX: cx + rad * Math.cos(a), clientY: cy + rad * Math.sin(a), pointerId: 7, button: 0, bubbles: true, isPrimary: true });
+  // The release velocity comes from performance.now() stamps on the pointer moves, and a busy
+  // headless renderer can stall timers for longer than the controller's 90 ms velocity window,
+  // which made this flaky. Dispatch the whole gesture synchronously on a virtual clock (12 ms per
+  // move), start from a known value with headroom, and wait for the coast to settle instead of
+  // a fixed delay.
+  await pg.focus("#ring"); await pg.keyboard.press("Home");
+  for (let i = 0; i < 10; i++) await pg.keyboard.press("ArrowUp"); // 15.0
+  await wait(300);
+  const lastV = await pg.evaluate(([cx, cy, rad]) => {
+    const ring = document.getElementById("ring");
+    const pt = (a) => ({ clientX: cx + rad * Math.cos(a), clientY: cy + rad * Math.sin(a), pointerId: 7, button: 0, bubbles: true, isPrimary: true });
+    const realNow = performance.now.bind(performance); let t = realNow();
+    performance.now = () => t;
     ring.setPointerCapture = () => {}; // synthetic pointers cannot be captured
-    ring.dispatchEvent(new PointerEvent("pointerdown", t(0)));
-    for (let i = 1; i <= 8; i++) { await new Promise((r) => setTimeout(r, 10)); ring.dispatchEvent(new PointerEvent("pointermove", t(i * 0.06))); }
-    ring.dispatchEvent(new PointerEvent("pointerup", t(0.48)));
+    try {
+      const a0 = -Math.PI / 2;
+      ring.dispatchEvent(new PointerEvent("pointerdown", pt(a0)));
+      for (let i = 1; i <= 6; i++) { t += 12; ring.dispatchEvent(new PointerEvent("pointermove", pt(a0 + i * 0.05))); }
+      t += 4; ring.dispatchEvent(new PointerEvent("pointerup", pt(a0 + 0.3)));
+    } finally { performance.now = realNow; delete ring.setPointerCapture; }
     return ring.value;
   }, [cx, cy, rad]);
-  await wait(900);
+  const coasting = await attr("#ring", "data-tr-state");
+  await pg.waitForFunction(() => document.getElementById("ring").dataset.trState !== "settling", null, { timeout: 5000 }).catch(() => {});
   const vFlick = await val("#ring");
-  ok(vFlick > lastV, `flick coasts past release ${lastV} -> ${vFlick}`);
+  ok(coasting === "settling" && vFlick > lastV && vFlick < 30, `flick coasts past release ${lastV} -> ${vFlick}`);
 
   // Keyboard on the ring.
   await pg.focus("#ring");
@@ -58,7 +72,8 @@ export default async (pg, { out, name }) => {
   // Glass: press cycles modes.
   const modeOf = () => pg.$eval("#modes svg.on", (e) => e.dataset.m);
   const m0 = await modeOf();
-  await pg.click("#glass"); await wait(300);
+  await pg.click("#glass");
+  await pg.waitForFunction(() => document.querySelector("#modes svg.on")?.dataset.m !== "heat", null, { timeout: 2000 }).catch(() => {});
   const m1 = await modeOf();
   ok(m0 === "heat" && m1 === "cool", `glass click cycles ${m0} -> ${m1}`);
   await pg.focus("#glass"); await pg.keyboard.press("Enter"); await wait(250);

@@ -104,16 +104,24 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
   transition: transform .09s var(--tr-ease-out);
 }
 .key > * { transition: transform .09s var(--tr-ease-out); }
+@media (hover: hover) {
+  .key:not([aria-selected="true"]):hover::after, .key:not([aria-selected="true"]):hover > * { transform: translate(calc(var(--sx) * -.6px), calc(var(--sy) * -.6px)); }
+}
 .key:is(:active, [data-down])::after, .key:is(:active, [data-down]) > * { transform: translate(calc(var(--sx) * .5px), calc(var(--sy) * .5px)) scale(.985); }
 .key:is(:active, [data-down])::before { opacity: .45; }
 .key svg { width: 1.15em; height: 1.15em; flex: none; }
 .trough .key::before { box-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 1px oklch(0.3 0.03 60 / .3), calc(var(--sx) * .15em) calc(var(--sy) * .2em) .4em oklch(0.3 0.03 60 / .18); }
 .tab { flex: 1 1 0; min-width: 0; padding: 0 .9em; flex-direction: column; gap: .45em; }
-.tab i { width: .32em; height: .32em; border-radius: 50%; background: oklch(0.6 0.01 70 / .35); box-shadow: inset 0 .05em .08em oklch(0.2 0.02 60 / .5); }
+.tab i, .menu li::before { /* a dark glass LED lens pressed into the ceramic, with a lit chamfer */
+  width: .44em; height: .44em; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), oklch(0.64 0.012 72), oklch(0.44 0.012 64) 72%);
+  box-shadow: inset calc(var(--sx) * .04em) calc(var(--sy) * .05em) .06em oklch(0.1 0.02 60 / .8), 0 0 0 .07em oklch(0.74 0.014 74), calc(var(--sx) * .07em) calc(var(--sy) * .07em) 0 .07em oklch(1 0 0 / .85); }
 .tab[aria-selected="true"] { color: oklch(0.3 0.02 60); }
 .tab[aria-selected="true"]::after { transform: translate(calc(var(--sx) * .6px), calc(var(--sy) * .6px)) scale(.985); background: var(--tr-tex-noise) 0 0 / 160px, linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer), oklch(0.9 0.011 80) 55%, oklch(0.84 0.014 76)); background-blend-mode: soft-light, normal; box-shadow: inset calc(var(--sx) * .12em) calc(var(--sy) * .12em) .3em oklch(0.35 0.03 60 / .25), 0 0 0 .5px oklch(0.5 0.02 70 / .3); }
 .tab[aria-selected="true"]::before { opacity: 0; }
-.tab[aria-selected="true"] i { background: var(--heat); box-shadow: 0 0 .25em .05em oklch(0.85 0.15 65 / .9), 0 0 .8em oklch(0.85 0.15 65 / .5); }
+.tab[aria-selected="true"] i, .menu li[aria-selected="true"]::before {
+  background: radial-gradient(circle, oklch(0.99 0.04 90) 0 18%, oklch(0.86 0.15 68) 55%, oklch(0.74 0.16 55));
+  box-shadow: 0 0 0 .07em oklch(0.8 0.08 70), 0 0 .3em .06em oklch(0.82 0.16 62 / .85), 0 0 .9em .1em oklch(0.85 0.15 65 / .45); }
 .rooms { width: 25em; }
 
 /* ---------------- Scene listbox ---------------- */
@@ -134,8 +142,7 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 @keyframes pop { from { opacity: 0; transform: translateY(-.4em) scale(.97); } }
 .menu li { display: flex; align-items: center; gap: .8em; min-height: 2.75em; padding: 0 .9em; border-radius: .75em; font: 500 .9em/1.2 "Inter", sans-serif; color: var(--ink); cursor: pointer; }
 .menu li small { margin-left: auto; color: var(--ink-soft); font-size: .82em; font-weight: 400; }
-.menu li::before { content: ""; width: .38em; height: .38em; border-radius: 50%; flex: none; background: oklch(0.6 0.01 70 / .3); box-shadow: inset 0 .05em .08em oklch(0.2 0.02 60 / .5); }
-.menu li[aria-selected="true"]::before { background: var(--heat); box-shadow: 0 0 .3em oklch(0.85 0.15 65 / .9); }
+.menu li::before { content: ""; }
 .menu li:is(.active, :hover) { background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.89 0.012 78), oklch(0.93 0.009 80)); box-shadow: inset calc(var(--sx) * .1em) calc(var(--sy) * .1em) .25em oklch(0.35 0.03 60 / .2); }
 .menu:focus-visible { outline: none; }
 .menu:focus-visible li.active { box-shadow: inset 0 0 0 1.5px var(--tr-focus), inset calc(var(--sx) * .1em) calc(var(--sy) * .1em) .25em oklch(0.35 0.03 60 / .2); }
@@ -218,7 +225,7 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 .spec::before { content: ""; position: absolute; left: 14%; right: 14%; top: 3.5%; height: 42%; border-radius: 50%;
   background: radial-gradient(ellipse 50% 46% at 50% 36%, oklch(1 0 0 / .17), oklch(1 0 0 / .05) 60%, transparent 100%); }
 /* the window, reflected small and curved near the top of the dome */
-.win { left: 50%; top: 50%; width: 4.4em; height: 2.3em; margin: -1.15em 0 0 -2.2em; opacity: .55; border-radius: 45% 45% 35% 35% / 70% 70% 40% 40%; pointer-events: none;
+.win { left: 50%; top: 50%; width: 4.4em; height: 2.3em; margin: -1.15em 0 0 -2.2em; opacity: .42; border-radius: 45% 45% 35% 35% / 70% 70% 40% 40%; pointer-events: none;
   transform: translate(calc(var(--sx) * -5.3em), calc(var(--sy) * -5.3em)) perspective(10em) rotateX(calc(var(--sy) * 25deg)) rotateY(calc(var(--sx) * -25deg));
   background: linear-gradient(90deg, transparent 47%, oklch(0.15 0 0 / .28) 48.5% 51.5%, transparent 53%), linear-gradient(180deg, transparent 50%, oklch(0.15 0 0 / .22) 52% 56%, transparent 57%),
     linear-gradient(180deg, oklch(1 0.01 85 / .2), oklch(1 0.01 85 / .04)); filter: blur(1.4px); }
@@ -228,12 +235,16 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 
 /* ---------------- Flush ceramic plates ---------------- */
 .plate { position: relative; width: 8.6em; height: 14.4em; border-radius: .85em;
-  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.5 0.02 64), oklch(0.7 0.02 72));
-  box-shadow: calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0.6 0.02 70 / .25), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(1 0.01 85 / .6), inset calc(var(--sx) * .1em) calc(var(--sy) * .1em) .14em oklch(0.15 0.02 60 / .6); }
-.plate-face { position: absolute; inset: .11em; border-radius: .76em;
+  /* Shadow gap: the recess is open plaster, so it is the wall darkened, not a drawn line.
+     Deepest on the light side, where the lip shades it; the far side of the gap is lit. */
+  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.38 0.02 62 / .62), oklch(0.5 0.02 66 / .34) 45%, oklch(0.7 0.02 72 / .2));
+  box-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) .5px oklch(1 0.01 85 / .55), calc(var(--sx) * -.5px) calc(var(--sy) * -.5px) 1px oklch(0.4 0.02 64 / .14),
+    inset calc(var(--sx) * .1em) calc(var(--sy) * .12em) .12em oklch(0.2 0.02 60 / .3); }
+.plate-face { position: absolute; inset: max(1.5px, .085em); border-radius: .78em;
   background: var(--tr-tex-noise) 0 0 / 150px, radial-gradient(130% 90% at calc(50% - var(--sx) * 50%) calc(50% - var(--sy) * 50%), var(--cer-hi), var(--cer) 55%, var(--cer-lo));
   background-blend-mode: soft-light, normal;
-  box-shadow: inset calc(var(--sx) * 1.2px) calc(var(--sy) * 1.2px) 0 oklch(1 0 0 / .95), inset calc(var(--sx) * .3em) calc(var(--sy) * .3em) .4em oklch(1 0 0 / .45), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.5 0.02 70 / .4), inset calc(var(--sx) * -.3em) calc(var(--sy) * -.3em) .5em oklch(0.5 0.02 70 / .12); }
+  box-shadow: inset calc(var(--sx) * 1.2px) calc(var(--sy) * 1.2px) 0 oklch(1 0 0 / .95), inset calc(var(--sx) * .3em) calc(var(--sy) * .3em) .4em oklch(1 0 0 / .45), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.5 0.02 70 / .4), inset calc(var(--sx) * -.3em) calc(var(--sy) * -.3em) .5em oklch(0.5 0.02 70 / .12),
+    calc(var(--sx) * .05em) calc(var(--sy) * .07em) .07em oklch(0.2 0.02 60 / .3); }
 .plate .print { position: absolute; left: 0; right: 0; bottom: 1.35em; text-align: center; }
 
 /* dimmer */
@@ -262,14 +273,14 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 /* rockers */
 .rk-plate .plate-face { display: flex; justify-content: center; gap: .55em; padding-top: 1.05em; }
 .rk { position: relative; width: 3.2em; height: 11.6em; display: flex; flex-direction: column; align-items: center; outline-offset: 2px; border-radius: .5em; }
-.rk .led { width: .3em; height: .3em; border-radius: 50%; margin-bottom: .75em; background: oklch(0.35 0.02 62); box-shadow: inset 0 .05em .06em oklch(0 0 0 / .8), 0 .04em 0 oklch(1 0 0 / .8); position: relative; }
+.rk .led { width: .36em; height: .36em; border-radius: 50%; margin-bottom: .75em; background: oklch(0.35 0.02 62); box-shadow: inset 0 .05em .06em oklch(0 0 0 / .8), 0 .04em 0 oklch(1 0 0 / .8); position: relative; }
 .rk .led::after { content: ""; position: absolute; inset: -.55em; border-radius: 50%; opacity: 0; transition: opacity .25s;
   background: radial-gradient(circle, oklch(1 0.03 85) 0 .13em, var(--led) .17em, oklch(0.92 0.09 78 / .45) .3em, transparent 70%); }
 .rk[aria-checked="true"] .led::after { opacity: 1; }
 .aperture { position: relative; width: 2.85em; height: 8.4em; border-radius: .55em; perspective: 13em;
-  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.3 0.015 60), oklch(0.48 0.018 66));
-  box-shadow: 0 0 0 1px oklch(0.6 0.02 70 / .3), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff; }
-.paddle { position: absolute; inset: .09em; border-radius: .47em; --t: calc(var(--tr-value-ratio) * 2 - 1);
+  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.36 0.016 62), oklch(0.5 0.018 66) 50%, oklch(0.62 0.018 70));
+  box-shadow: inset calc(var(--sx) * .08em) calc(var(--sy) * .1em) .1em oklch(0.12 0.02 60 / .5), calc(var(--sx) * -.5px) calc(var(--sy) * -.5px) .5px oklch(0.55 0.02 70 / .3), calc(var(--sx) * 1px) calc(var(--sy) * 1px) .5px oklch(1 0 0 / .9); }
+.paddle { position: absolute; inset: .075em; border-radius: .47em; --t: calc(var(--tr-value-ratio) * 2 - 1);
   transform: rotateX(calc(var(--t) * 10deg)); will-change: transform;
   background: var(--tr-tex-noise) 0 0 / 150px, linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer-hi), var(--cer) 50%, var(--cer-lo));
   background-blend-mode: soft-light, normal;
@@ -285,29 +296,45 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 .paddle b { position: absolute; left: 50%; bottom: 1.05em; width: .9em; height: 2px; margin-left: -.45em; border-radius: 1px; background: oklch(0.55 0.012 68 / .5); }
 .rk .print { position: static; margin-top: .95em; font-size: .52em; }
 
-/* ---------------- Schedule cards ---------------- */
-.sched { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2em; margin: 0; padding: 0; list-style: none; }
+/* ---------------- Schedule tiles ----------------
+   Glazed ceramic tiles a few millimetres proud of the plaster: a rounded glaze edge that
+   catches the light, the tile's fired body visible as a thin edge on the shadow side, and
+   a contact shadow on the wall. The face is a separate layer so it can press. */
+.sched { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.3em; margin: 0; padding: 0; list-style: none; }
 .schedw h2 { margin: 0 0 1.1em; }
 .sched li { display: grid; }
-.card { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .1em 1em; padding: 1.05em 1.15em; border-radius: 1em; cursor: pointer;
-  background: var(--tr-tex-noise) 0 0 / 160px, linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer-hi), var(--cer) 55%, oklch(0.9 0.011 79));
-  background-blend-mode: soft-light, normal;
-  box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff, inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.5 0.02 70 / .3), 0 0 0 .5px oklch(0.45 0.02 70 / .28),
-    calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 1.5px oklch(0.3 0.03 60 / .25), calc(var(--sx) * .6em * var(--sl)) calc(var(--sy) * .8em * var(--sl)) 1.6em oklch(0.3 0.03 60 / .2); }
-.card time { font: 300 1.75em/1 "Outfit", sans-serif; letter-spacing: -.01em; color: oklch(0.34 0.016 64); transition: opacity .3s; }
-.card span { grid-column: 1; font: 500 .78em/1.3 "Inter", sans-serif; color: var(--ink-soft); transition: opacity .3s; }
-.card:has(input:not(:checked)) :is(time, span) { opacity: .45; }
+.card { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .15em 1em; padding: 1em 1.2em 1.05em 1.25em; border-radius: .8em 1em .9em 1em; cursor: pointer; isolation: isolate;
+  -webkit-tap-highlight-color: transparent; }
+.card::before, .card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.card::before { z-index: -2; /* body edge + cast shadow, fixed to the wall */
+  box-shadow: calc(var(--sx) * .07em) calc(var(--sy) * .1em) 0 oklch(0.83 0.013 75), calc(var(--sx) * .13em) calc(var(--sy) * .19em) 0 oklch(0.7 0.017 68),
+    calc(var(--sx) * .2em) calc(var(--sy) * .28em) .18em oklch(0.28 0.03 60 / .32), calc(var(--sx) * .8em * var(--sl)) calc(var(--sy) * 1em * var(--sl)) 1.8em oklch(0.3 0.03 60 / .2); }
+.card::after { z-index: -1; /* glazed face */
+  background: var(--tr-tex-noise) 0 0 / 160px,
+    radial-gradient(60% 90% at calc(50% - var(--sx) * 38%) calc(50% - var(--sy) * 70%), oklch(1 0 0 / .55), transparent 70%),
+    linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer-hi), var(--cer) 50%, oklch(0.9 0.011 79));
+  background-blend-mode: soft-light, normal, normal;
+  box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff, inset calc(var(--sx) * .28em) calc(var(--sy) * .32em) .4em oklch(1 0 0 / .55),
+    inset calc(var(--sx) * -.22em) calc(var(--sy) * -.26em) .4em oklch(0.5 0.02 70 / .16), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.5 0.02 70 / .32), 0 0 0 .5px oklch(0.45 0.02 70 / .26);
+  transition: transform .09s var(--tr-ease-out); }
+.card > * { transition: transform .09s var(--tr-ease-out), opacity .3s; }
+.card:active::after, .card:active > * { transform: translate(calc(var(--sx) * .5px), calc(var(--sy) * .5px)) scale(.992); }
+.card .print { grid-column: 1; font-size: .56em; letter-spacing: .22em; color: oklch(0.5 0.014 68); }
+.card time { grid-column: 1; font: 300 1.75em/1.05 "Outfit", sans-serif; letter-spacing: -.01em; color: oklch(0.34 0.016 64); }
+.card .det { grid-column: 1; font: 500 .78em/1.3 "Inter", sans-serif; color: oklch(0.5 0.013 68); }
+.card:has(input:not(:checked)) :is(time, .det, .print) { opacity: .6; }
+.card:has(.sw:focus-visible) { outline: 2px solid var(--tr-focus); outline-offset: 3px; }
 /* checkbox as a tiny ceramic slide switch in a plaster groove */
-.sw { grid-row: 1 / 3; grid-column: 2; appearance: none; -webkit-appearance: none; margin: 0; position: relative; width: 3.1em; height: 1.75em; border-radius: 1em; cursor: pointer;
+.sw { grid-row: 1 / 4; grid-column: 2; appearance: none; -webkit-appearance: none; margin: 0; position: relative; width: 3.1em; height: 1.75em; border-radius: 1em; cursor: pointer;
   background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.78 0.016 74), oklch(0.86 0.014 78));
   box-shadow: inset calc(var(--sx) * .1em) calc(var(--sy) * .12em) .22em oklch(0.25 0.03 60 / .45), calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0.6 0.02 70 / .3), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff; }
-.sw::before { content: ""; position: absolute; left: .55em; top: 50%; width: .3em; height: .3em; margin-top: -.15em; border-radius: 50%; background: var(--led); box-shadow: 0 0 .3em var(--led); opacity: 0; transition: opacity .2s; }
+.sw::before { content: ""; position: absolute; left: .5em; top: 50%; width: .36em; height: .36em; margin-top: -.18em; border-radius: 50%; background: var(--led); box-shadow: 0 0 .3em var(--led); opacity: 0; transition: opacity .2s; }
 .sw::after { content: ""; position: absolute; top: .17em; left: .17em; width: 1.41em; height: 1.41em; border-radius: 50%; transition: transform .22s var(--tr-ease-spring);
   background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), var(--cer-hi), var(--cer) 50%, oklch(0.83 0.013 75));
   box-shadow: calc(var(--sx) * .08em) calc(var(--sy) * .12em) .18em oklch(0.25 0.03 60 / .45), 0 0 0 .5px oklch(0.45 0.02 70 / .4); }
 .sw:checked::after { transform: translateX(1.35em); }
 .sw:checked::before { opacity: 1; }
-.sw:focus-visible { outline: 2px solid var(--tr-focus); outline-offset: 3px; }
+.sw:focus-visible { outline: none; }
 .h2 { font: 600 .66em/1 "Inter", sans-serif; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-soft); }
 
 /* ---------------- Confirm dialog ---------------- */
@@ -319,6 +346,7 @@ dialog { border: 0; padding: 2em 2em 1.6em; width: min(26em, calc(100vw - 32px))
 dialog[open] { animation: pop .22s var(--tr-ease-out); }
 dialog::backdrop { background: oklch(0.3 0.02 60 / .28); backdrop-filter: blur(3px) saturate(.9); }
 dialog h2 { margin: 0 0 .5em; font: 300 1.65em/1.15 "Outfit", sans-serif; color: oklch(0.32 0.016 64); }
+dialog h2 .q { margin-left: -.07em; }
 dialog p { margin: 0 0 1.5em; font-size: .92em; line-height: 1.55; color: var(--ink-soft); }
 .dlg-actions { display: flex; justify-content: flex-end; gap: .7em; }
 .dlg-actions .key { font-size: .9em; padding: 0 1.4em; }
@@ -438,7 +466,7 @@ dialog p { margin: 0 0 1.5em; font-size: .92em; line-height: 1.55; color: var(--
 
 <dialog id="dlg" aria-labelledby="dlgT" aria-describedby="dlgD">
   <form method="dialog">
-    <h2 id="dlgT">Turn everything off?</h2>
+    <h2 id="dlgT">Turn everything off<span class="q">?</span></h2>
     <p id="dlgD">Heating, lights and fans in every room switch off. Shades stay where they are, and schedules resume tomorrow morning.</p>
     <div class="dlg-actions">
       <button class="key" value="cancel" autofocus>Cancel</button>
@@ -680,8 +708,8 @@ opts.forEach((o, i) => { o.addEventListener("pointerenter", () => hilite(i)); o.
 document.addEventListener("pointerdown", (e) => { if (!e.target.closest(".scene")) closeList(false); });
 
 /* ---------- schedule ---------- */
-const SCHED = [["06:30", "Wake · 21.0° all rooms", true], ["09:00", "Away · 17.0° · lights off", true], ["18:30", "Evening · 21.5° · shades", false]];
-$(".sched").insertAdjacentHTML("beforeend", SCHED.map(([t, w, on], i) => `<li><label class="card"><time>${t}</time><span>${w}</span><input type="checkbox" class="sw" ${on ? "checked" : ""} aria-label="${t} ${w.split(" · ")[0]}"></label></li>`).join(""));
+const SCHED = [["06:30", "Wake", "21.0° · all rooms", true], ["09:00", "Away", "17.0° · lights off", true], ["18:30", "Evening", "21.5° · shades down", false]];
+$(".sched").insertAdjacentHTML("beforeend", SCHED.map(([t, n, d, on]) => `<li><label class="card"><span class="print">${n}</span><time>${t}</time><span class="det">${d}</span><input type="checkbox" class="sw" ${on ? "checked" : ""} aria-label="${n} at ${t}, ${d}"></label></li>`).join(""));
 document.querySelectorAll(".sw").forEach((c) => c.addEventListener("change", () => feedback.play(c.checked ? "snap" : "rocker", { intensity: 0.55 })));
 
 /* ---------- all off ---------- */
