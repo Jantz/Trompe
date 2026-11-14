@@ -7,6 +7,27 @@ import { PressController } from '../../interaction/press.js';
 let nextId = 0;
 
 /**
+ * Rows added to lists already on screen, opened into place together once the rows rendered in
+ * the same turn have all rendered (still before the next paint). A batch of more than a few rows in one list is a render, not an insertion: it appears
+ * at once, without a per-row animation.
+ */
+const arriving = new Set<TrListItem>();
+function queueArrival(row: TrListItem): void {
+  if (!arriving.size) {
+    queueMicrotask(() => {
+      const byList = new Map<Element | null, TrListItem[]>();
+      for (const r of arriving) {
+        const list = r.closest('tr-list');
+        byList.set(list, [...(byList.get(list) ?? []), r]);
+      }
+      arriving.clear();
+      for (const rows of byList.values()) if (rows.length <= 3) for (const r of rows) insertAnimated(r);
+    });
+  }
+  arriving.add(row);
+}
+
+/**
  * A row in a tr-list: optional leading icon or avatar, a title with an optional description
  * line, and trailing meta or actions. Rows are separated by engraved divider lines. In a
  * `selectable` list the row is an option: it presses into the tray and shows a check mark when
@@ -210,8 +231,7 @@ export class TrListItem extends TrompeElement {
   protected override firstUpdated(changed: PropertyValues): void {
     super.firstUpdated(changed);
     // A row added to a list already on screen opens into place instead of pushing rows down.
-    const list = this.closest('tr-list');
-    if (hasPainted(list)) insertAnimated(this);
+    if (hasPainted(this.closest('tr-list'))) queueArrival(this);
   }
 
   /** Removes the row with an exit: it fades while its height closes, so the rows below slide up. */

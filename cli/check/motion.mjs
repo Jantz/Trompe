@@ -47,9 +47,12 @@ function install() {
     for (const el of walk(document, [])) if (el.shadowRoot) out.push(...el.shadowRoot.getAnimations());
     return out;
   };
+  // Animations already running before the change (a hover fade, a spinner) do not make what the
+  // change did count as animated: only animations that started with it do.
+  let before = new WeakSet();
   const animated = (el) => {
     for (let n = el; n; n = n.parentElement ?? n.getRootNode().host) {
-      if (n.getAnimations().some((a) => a.playState === 'running' || a.playState === 'paused')) return true;
+      if (n.getAnimations().some((a) => (a.playState === 'running' || a.playState === 'paused') && !before.has(a))) return true;
     }
     return false;
   };
@@ -98,7 +101,16 @@ function install() {
     },
     freezeFrames(on) {
       // JS motion (Trompe's shared spring loop) holds still too: see setTimeScale in loop.ts.
-      globalThis.__trompeTimeScale = on ? 0 : 1;
+      // The page's own time scale (a slow-motion switch) is restored afterwards.
+      if (on) {
+        this.scale = globalThis.__trompeTimeScale;
+        globalThis.__trompeTimeScale = 0;
+      } else if (globalThis.__trompeTimeScale === 0) {
+        globalThis.__trompeTimeScale = this.scale ?? 1;
+      }
+    },
+    markBefore() {
+      before = new WeakSet(allAnimations());
     },
     resetShift() {
       shift = 0;
@@ -149,7 +161,11 @@ function install() {
     async diff(pngs, threshold = 24) {
       const imgs = await Promise.all(
         pngs.map(async (b64) => {
-          const blob = await (await fetch('data:image/png;base64,' + b64)).blob();
+          // Decoded here rather than fetched as a data: URL, which a page's CSP may block.
+          const bin = atob(b64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          const blob = new Blob([bytes], { type: 'image/png' });
           const bmp = await createImageBitmap(blob);
           const c = new OffscreenCanvas(bmp.width, bmp.height);
           const g = c.getContext('2d', { willReadFrequently: true });
@@ -198,6 +214,7 @@ export async function measureChange(page, trigger, opts = {}) {
     await frames(page, 2);
     await page.evaluate(() => {
       window.__trMotion.a = window.__trMotion.snapshot();
+      window.__trMotion.markBefore();
       window.__trMotion.resetShift();
     });
     const before = await shot();
@@ -311,8 +328,10 @@ export async function sweepInteractions(page, opts = {}) {
     ({ include, exclude, limit }) => {
       let i = 0;
       for (const el of document.querySelectorAll(include)) {
-        // Links that go somewhere (another page, or a jump to an anchor) are navigation, not a state change.
+        // Links that go somewhere (another page, or a jump to an anchor) and submit buttons are
+        // navigation, not a state change.
         if (el.closest('a[href]:not([href="#"]), tr-nav-item[href]:not([href="#"])')) continue;
+        if (el.matches('[type="submit"], form button:not([type]), form tr-button:not([type])')) continue;
         if (el.matches(exclude) || el.closest('tr-menu:not(:popover-open), [hidden], dialog:not([open]), tr-dialog:not([open])')) continue;
         if (!el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
         const r = el.getBoundingClientRect();
@@ -325,51 +344,63 @@ export async function sweepInteractions(page, opts = {}) {
     { include, exclude, limit },
   );
   const out = [];
-  for (let i = 0; i < count; i++) {
-    const sel = `[data-tr-probe="${i}"]`;
-    const loc = page.locator(sel);
-    const info = await loc
-      .evaluate((el) => {
-        if (!el.isConnected || !el.checkVisibility()) return null;
-        el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
-        const text = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40);
-        const r = el.getBoundingClientRect();
-        const index = [...document.querySelectorAll(el.localName)].indexOf(el);
-        return { tag: el.localName, index, desc: `${el.localName}${el.id ? '#' + el.id : ''}${text ? ` "${text}"` : ''}`, x: r.x + r.width / 2, y: r.y + r.height / 2 };
-      })
-      .catch(() => null);
-    if (!info) continue;
-    await page.waitForTimeout(100);
-    // Clicking a link that leaves the page is not a change to measure.
-    page.once('dialog', (d) => d.dismiss().catch(() => {}));
-    let m;
-    try {
-      m = await measureChange(page, (p) => p.mouse.click(info.x, info.y), {
-        wait: 120,
-        settle: 1500,
-        clip: opts.clipAround ? { x: Math.max(0, info.x - 300), y: Math.max(0, info.y - 150), width: 600, height: 300 } : undefined,
-        saveFrames: opts.saveFrames ? (f) => opts.saveFrames(i, info.desc, f) : undefined,
-      });
-    } catch (e) {
-      out.push({ target: info.desc, tag: info.tag, index: info.index, error: String(e).slice(0, 200), problems: [], issues: [] });
-      continue;
+  // A click that leaves the page ends the sweep; a dialog it opens (alert, confirm) is dismissed.
+  let navigated = false;
+  const onNav = (frame) => { if (frame === page.mainFrame()) navigated = true; };
+  const onDialog = (d) => d.dismiss().catch(() => {});
+  page.on('framenavigated', onNav);
+  page.on('dialog', onDialog);
+  try {
+    for (let i = 0; i < count && !navigated; i++) {
+      const sel = `[data-tr-probe="${i}"]`;
+      const loc = page.locator(sel);
+      const info = await loc
+        .evaluate((el) => {
+          if (!el.isConnected || !el.checkVisibility()) return null;
+          el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+          const text = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+          const r = el.getBoundingClientRect();
+          const index = [...document.querySelectorAll(el.localName)].indexOf(el);
+          return { tag: el.localName, index, desc: `${el.localName}${el.id ? '#' + el.id : ''}${text ? ` "${text}"` : ''}`, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+        }, undefined, { timeout: 1000 })
+        .catch(() => null);
+      if (!info) continue;
+      // Hover first and let hover effects settle, so they are not mixed into the click's change.
+      await page.mouse.move(info.x, info.y);
+      await page.waitForTimeout(250);
+      let m;
+      try {
+        m = await measureChange(page, (p) => p.mouse.click(info.x, info.y), {
+          wait: 120,
+          settle: 1500,
+          clip: opts.clipAround ? { x: Math.max(0, info.x - 300), y: Math.max(0, info.y - 150), width: 600, height: 300 } : undefined,
+          saveFrames: opts.saveFrames ? (f) => opts.saveFrames(i, info.desc, f) : undefined,
+        });
+      } catch (e) {
+        if (navigated) break;
+        out.push({ target: info.desc, tag: info.tag, index: info.index, error: String(e).slice(0, 200), problems: [], issues: [] });
+        continue;
+      }
+      const issues = motionIssues(m, opts.limits);
+      out.push({ target: info.desc, tag: info.tag, index: info.index, measurement: m, issues, problems: issues.map((i) => i.message) });
+      await page.keyboard.press('Escape').catch(() => {});
+      // Escape is a key press, which turns on keyboard focus rings; drop focus so the next
+      // measurement does not count the ring leaving (rings leave at once by design, so only one
+      // control ever looks focused).
+      await page
+        .evaluate(() => {
+          let a = document.activeElement;
+          while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement;
+          a?.blur?.();
+          document.activeElement?.blur?.();
+        })
+        .catch(() => {});
+      await page.mouse.move(0, 0).catch(() => {});
+      await page.waitForTimeout(350);
     }
-    const issues = motionIssues(m, opts.limits);
-    out.push({ target: info.desc, tag: info.tag, index: info.index, measurement: m, issues, problems: issues.map((i) => i.message) });
-    await page.keyboard.press('Escape').catch(() => {});
-    // Escape is a key press, which turns on keyboard focus rings; drop focus so the next
-    // measurement does not count the ring leaving (rings leave at once by design, so only one
-    // control ever looks focused).
-    await page
-      .evaluate(() => {
-        let a = document.activeElement;
-        while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement;
-        a?.blur?.();
-        document.activeElement?.blur?.();
-      })
-      .catch(() => {});
-    await page.mouse.move(0, 0).catch(() => {});
-    await page.waitForTimeout(350);
+  } finally {
+    page.off('framenavigated', onNav);
+    page.off('dialog', onDialog);
   }
   await page.evaluate(() => document.querySelectorAll('[data-tr-probe]').forEach((el) => el.removeAttribute('data-tr-probe'))).catch(() => {});
   return out;

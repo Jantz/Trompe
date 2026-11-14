@@ -275,6 +275,7 @@ export class TrSelect extends FormControl {
   @query('.listbox') private listbox!: HTMLElement;
   private shownText: string | null = null;
   private closing = false;
+  private closeRun = 0;
   @query('.trigger') private trigger!: HTMLElement;
 
   private defaultValue: string | null = null;
@@ -450,7 +451,10 @@ export class TrSelect extends FormControl {
       }
       // Rows keep their highlight while the sheet fades out; then the active row is cleared.
       this.closing = true;
+      const run = ++this.closeRun;
       void afterExit(lb).then(() => {
+        // A later close owns the highlight now.
+        if (run !== this.closeRun) return;
         this.closing = false;
         if (!this.open) {
           this.activeIndex = -1;

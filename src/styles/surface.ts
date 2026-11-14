@@ -68,6 +68,14 @@ export const hostStyles = css`
       animation-duration: 0s !important;
     }
   }
+  /* data-tr-motion="reduce" on an ancestor (mirrored onto the host by TrompeElement) */
+  :host([data-tr-reduced]),
+  :host([data-tr-reduced]) *,
+  :host([data-tr-reduced]) *::before,
+  :host([data-tr-reduced]) *::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+  }
 `;
 
 /**

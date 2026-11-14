@@ -306,7 +306,6 @@ export class TrTextarea extends FormControl {
   /** Error message. Setting it marks the field invalid and shows the message; clear it to make it valid again. */
   @property({ reflect: true }) error = '';
 
-  /** Accessible name forwarded to the inner textarea when there is no visible label. */
   /** The foot glides to its new height when notes come and go. */
   protected readonly footSize = new SizeTransition(this, () => ({
     outer: this.renderRoot?.querySelector<HTMLElement>('.messages'),
@@ -318,7 +317,11 @@ export class TrTextarea extends FormControl {
     inner: this.autosize ? this.textarea : null,
   }));
   private shownError = '';
+  /** The error on screen in the last render ('' when none), to tell a replaced error from a new one. */
+  private visibleError = '';
+  private renderedError = '';
 
+  /** Accessible name forwarded to the inner textarea when there is no visible label. */
   @property({ attribute: 'aria-label', reflect: false }) accessibleLabel: string | null = null;
 
   @query('textarea') private textarea!: HTMLTextAreaElement;
@@ -367,6 +370,7 @@ export class TrTextarea extends FormControl {
     const name = this.label ? undefined : (this.accessibleLabel ?? undefined);
     const showError = Boolean(this.error) || this.hasAttribute('data-user-invalid');
     const errorText = this.error || (showError ? this.textarea?.validationMessage : '') || '';
+    this.renderedError = showError && errorText ? errorText : '';
     const hasHint = Boolean(this.hint) || this.hasHintSlot;
     const len = this.value.length;
     const max = this.maxlength;
@@ -397,7 +401,7 @@ export class TrTextarea extends FormControl {
       <div class="messages"><div class="foot">
         <div class="notes">
           <div part="hint" id="hint" class="msg hint" ?hidden=${!hasHint}><slot name="hint" @slotchange=${this.onSlotChange}>${this.hint}</slot></div>
-          <div part="error" id="error" class="msg error" ?hidden=${!(showError && errorText)}>
+          <div part="error" id="error" class="msg error" ?hidden=${!this.renderedError}>
             <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor" /><path d="M8 4.2v4.6M8 10.9v.9" stroke="var(--_err-ink, #fff)" stroke-width="1.8" stroke-linecap="round" /></svg>
             <span class="error-text">${errorText || this.shownError}</span>
           </div>
@@ -414,8 +418,10 @@ export class TrTextarea extends FormControl {
     this.internals.setFormValue(this.value);
     this.syncValidity();
     const text = this.renderRoot.querySelector<HTMLElement>('.error-text');
-    const now = text && !text.parentElement?.hidden ? (text.textContent ?? '') : '';
-    if (now && this.shownError && now !== this.shownError) crossfadeText(text, this.shownError);
+    const now = this.renderedError;
+    // Only an error that was on screen cross-fades; a new error after a cleared one just fades in.
+    if (text && now && this.visibleError && now !== this.visibleError) crossfadeText(text, this.visibleError);
+    this.visibleError = now;
     if (now) this.shownError = now;
     if (changed.has('error')) {
       if (this.error) this.setAttribute('data-user-invalid', '');

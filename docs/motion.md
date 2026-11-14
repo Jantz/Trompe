@@ -17,22 +17,22 @@ This page covers what the components already do, the primitives you can use in y
 | List rows | A row added to a list on screen opens into place; `item.dismiss()` fades a row while its height closes. |
 | Input and textarea messages | Hints and errors fade in and out, their area animates its height, and a changed message cross-fades. The clear button is always laid out and only fades, so the field never reflows. |
 | Badge, progress, display text | A changed count or label cross-fades, and its box eases to the new width. |
-| Theme, skin, realism, material, light | Changes to `data-tr-theme`, `data-tr-skin`, `data-tr-realism`, `data-tr-material`, `data-tr-finish` and `data-tr-profile`, made by any code, run inside a View Transition. Light angle, elevation and realism also transition as registered properties. Opt out with `data-tr-view-transitions="off"` on the root. |
+| Theme, skin, realism, material, light | Changes to `data-tr-theme`, `data-tr-skin`, `data-tr-realism`, `data-tr-material`, `data-tr-finish` and `data-tr-profile` on any element, and to `material`, `finish`, `profile` and `realism` on Trompe elements, made by any code, run inside a View Transition. Light angle, elevation and realism also transition as registered properties. Opt out with `data-tr-view-transitions="off"` on the root. |
 | Focus | The focus ring arrives with a short settle. It leaves at once by design, so only one control ever looks focused. |
 
 ## Primitives
 
 From `trompe` (or `trompe/interaction`):
 
-- `new SizeTransition(host, () => ({ outer, inner }), { axis, duration })` keeps `outer` at the size of `inner` and animates it whenever `inner` changes size. Because `outer` never snaps, no layout shift is reported. A Lit reactive controller; also works on plain elements.
+- `new SizeTransition(host, () => ({ outer, inner }), { axis, duration, pin })` keeps `outer` at the size of `inner` and animates it whenever `inner` changes size. Because `outer` never snaps, no layout shift is reported. With `pin: false`, `outer` sizes itself between changes (so it can stretch or fill) and only changes announced with `hold()` animate; tabs use this so a panel can fill the folder. A Lit reactive controller; also works on plain elements.
 - `enter(el, { y, scale, duration })` and `exit(el, ...)` fade a small part in or out (`exit` resolves when the part is gone).
 - `insertAnimated(el)` opens a just-inserted element into place; `removeAnimated(el)` fades it while its height closes, then removes it.
 - `crossfadeText(el, previousText)` cross-fades a label whose text you just replaced.
-- `viewTransition(update)` runs a page-wide change inside a View Transition. `autoViewTransitions()` does it for the look attributes above (Trompe calls it for you).
+- `viewTransition(update)` runs a page-wide change inside a View Transition. `autoViewTransitions()` does it for the look attributes above (Trompe calls it for you). To capture the old look, it shows the old attribute values again until the next frame, so code that reads such an attribute back in the same frame sees the old value; Trompe elements keep their properties at the new value. Wrap a change in `viewTransition()` yourself when you need to read the attribute right away.
 - `afterExit(el)` resolves once an element's exit transitions have finished, for code that must wait (unplacing a popover, removing a node).
 - `setTimeScale(scale)` scales every JS spring (0 freezes them). Used by the probe; handy for slow-motion debugging.
 
-Everything honours `prefers-reduced-motion` and `data-tr-motion="reduce"` on an ancestor: sizes snap, travel is removed, short fades remain.
+Everything honours `prefers-reduced-motion` and `data-tr-motion="reduce"` on an ancestor: sizes snap, travel is removed, and CSS transitions inside components are turned off (Trompe elements mirror the attribute as `data-tr-reduced` on themselves, since an ancestor selector cannot reach into shadow roots). Only short opacity fades remain.
 
 ## How to keep your own UI smooth
 

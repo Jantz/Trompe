@@ -332,6 +332,9 @@ export class TrInput extends FormControl {
     inner: this.renderRoot?.querySelector<HTMLElement>('.stack'),
   }));
   private shownError = '';
+  /** The error on screen in the last render ('' when none), to tell a replaced error from a new one. */
+  private visibleError = '';
+  private renderedError = '';
 
   constructor() {
     super();
@@ -374,6 +377,7 @@ export class TrInput extends FormControl {
     const name = this.label ? undefined : (this.accessibleLabel ?? undefined);
     const showError = Boolean(this.error) || this.hasAttribute('data-user-invalid');
     const errorText = this.error || (showError ? this.input?.validationMessage : '') || '';
+    this.renderedError = showError && errorText ? errorText : '';
     const hasHint = Boolean(this.hint) || this.slots.hint;
     const describedBy = [hasHint ? 'hint' : '', showError && errorText ? 'error' : ''].filter(Boolean).join(' ');
     return html`
@@ -419,7 +423,7 @@ export class TrInput extends FormControl {
       <div class="messages">
         <div class="stack">
           <div part="hint" id="hint" class="msg hint" ?hidden=${!hasHint}><slot name="hint" @slotchange=${this.onSlotChange}>${this.hint}</slot></div>
-          <div part="error" id="error" class="msg error" ?hidden=${!(showError && errorText)}>
+          <div part="error" id="error" class="msg error" ?hidden=${!this.renderedError}>
             <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor" /><path d="M8 4.2v4.6M8 10.9v.9" stroke="var(--_err-ink, #fff)" stroke-width="1.8" stroke-linecap="round" /></svg>
             <span class="error-text">${errorText || this.shownError}</span>
           </div>
@@ -434,8 +438,10 @@ export class TrInput extends FormControl {
     this.syncValidity();
     // A different error replacing a visible one cross-fades instead of flicking over.
     const text = this.renderRoot.querySelector<HTMLElement>('.error-text');
-    const now = text && !text.parentElement?.hidden ? (text.textContent ?? '') : '';
-    if (now && this.shownError && now !== this.shownError) crossfadeText(text, this.shownError);
+    const now = this.renderedError;
+    // Only an error that was on screen cross-fades; a new error after a cleared one just fades in.
+    if (text && now && this.visibleError && now !== this.visibleError) crossfadeText(text, this.visibleError);
+    this.visibleError = now;
     // Kept after the error clears, so the message fades out with its words still in it.
     if (now) this.shownError = now;
     // An author-set error is shown right away; clearing it hides it again.

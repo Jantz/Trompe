@@ -30,6 +30,11 @@ export interface SizeTransitionOptions {
   axis?: 'block' | 'inline';
   /** Milliseconds. Default 240. */
   duration?: number;
+  /**
+   * Default `true`: `outer` always holds the content's size, so every change animates. `false`:
+   * `outer` sizes itself between changes and only changes announced with `hold()` animate.
+   */
+  pin?: boolean;
 }
 
 /**
@@ -39,7 +44,10 @@ export interface SizeTransitionOptions {
  * `outer` holds an explicit size equal to the content's, so content that grows or shrinks does not
  * move anything in its first frame; a ResizeObserver then animates `outer` to the new size (clipped
  * while it moves). When the box's width changes (window resize), the height follows at once instead
- * of lagging behind.
+ * of lagging behind. A change while an animation runs carries on from the box's current size.
+ *
+ * With `pin: false`, `outer` keeps no inline size between changes (so it can stretch or fill like
+ * any other box) and only changes announced with {@link SizeTransition.hold} animate.
  *
  * Works as a Lit reactive controller (`new SizeTransition(this, …)`) or on its own: call
  * `connect()` / `disconnect()`.
@@ -49,10 +57,12 @@ export class SizeTransition {
   private last = -1;
   private cross = -1;
   private anim: Animation | null = null;
+  private holding = false;
   private outerEl: HTMLElement | null = null;
   private innerEl: HTMLElement | null = null;
   private readonly axis: 'block' | 'inline';
   private readonly duration: number;
+  private readonly pin: boolean;
 
   constructor(
     host: { addController?: (c: object) => void } | null,
@@ -61,11 +71,14 @@ export class SizeTransition {
   ) {
     this.axis = options.axis ?? 'block';
     this.duration = options.duration ?? SIZE_MS;
+    this.pin = options.pin ?? true;
     host?.addController?.(this);
   }
 
   hostConnected(): void {
-    // Parts render after connect: wire on the first update.
+    // On first connect the parts render later (hostUpdated wires them). A host moved in the DOM
+    // is reconnected without re-rendering, so wire its existing parts again here.
+    this.connect();
   }
 
   hostUpdated(): void {
@@ -96,18 +109,38 @@ export class SizeTransition {
     this.ro = null;
     this.anim?.cancel();
     this.anim = null;
-    if (this.outerEl) this.release(this.outerEl);
+    this.holding = false;
+    if (this.outerEl) this.release(this.outerEl, true);
     this.outerEl = this.innerEl = null;
     this.last = this.cross = -1;
+  }
+
+  /**
+   * Keeps `outer` at its current size until the content's next size change has been animated.
+   * Call it right before a change you make (only needed with `pin: false`).
+   */
+  hold(): void {
+    const outer = this.outerEl;
+    if (this.pin || !outer || this.last < 0 || this.anim) return;
+    outer.style.setProperty(this.prop(), `${this.last}px`);
+    this.holding = true;
+    // No size change after all: let go after the change has rendered.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (this.holding && !this.anim) {
+        this.holding = false;
+        this.release(outer, true);
+      }
+    }));
   }
 
   private prop(): 'height' | 'width' {
     return this.axis === 'block' ? 'height' : 'width';
   }
 
-  private release(el: HTMLElement): void {
-    el.style.removeProperty(this.prop());
+  private release(el: HTMLElement, size = false): void {
+    if (size || !this.pin) el.style.removeProperty(this.prop());
     el.style.removeProperty('overflow');
+    el.style.removeProperty('overflow-clip-margin');
   }
 
   private onResize(entry: ResizeObserverEntry): void {
@@ -119,24 +152,41 @@ export class SizeTransition {
     const prop = this.prop();
     const first = this.last < 0;
     const reflow = !first && Math.abs(cross - this.cross) > 0.5;
-    const from = this.anim ? outer.getBoundingClientRect()[prop] : this.last;
+    const from = this.last;
     this.cross = cross;
-    if (Math.abs(size - this.last) < 0.5 && !this.anim) return;
+    if (Math.abs(size - from) < 0.5) return;
     this.last = size;
-    this.anim?.cancel();
-    this.anim = null;
+    const animate = this.pin || this.holding || !!this.anim;
+    this.holding = false;
+    // First measurement, a width change reflowing the content, a hidden box, reduced motion, or
+    // (unpinned) a change nobody announced: snap.
+    if (first || reflow || !animate || !outer.isConnected || reducedMotion(outer) || typeof outer.animate !== 'function') {
+      this.anim?.cancel();
+      this.anim = null;
+      if (this.pin) outer.style.setProperty(prop, `${size}px`);
+      this.release(outer);
+      return;
+    }
     outer.style.setProperty(prop, `${size}px`);
-    // First measurement, a width change reflowing the content, a hidden box or reduced motion: snap.
-    if (first || reflow || !outer.isConnected || reducedMotion(outer) || typeof outer.animate !== 'function' || Math.abs(size - from) < 0.5) return;
+    let start = from;
+    if (this.anim) {
+      // Changed again mid-way (a nested group opening): carry on from where the box is now. The
+      // computed size is the animated one, and unlike a bounding rect ignores ancestor transforms.
+      start = parseFloat(getComputedStyle(outer)[prop]) || from;
+      this.anim.cancel();
+      this.anim = null;
+    }
     const { easing } = sizeEasing();
     outer.style.setProperty('overflow', 'clip');
-    const anim = outer.animate([{ [prop]: `${from}px` }, { [prop]: `${size}px` }], { duration: this.duration, easing });
+    // Let focus rings and edge shadows of the content show past a moving bottom edge.
+    if (this.axis === 'block') outer.style.setProperty('overflow-clip-margin', '6px');
+    const anim = outer.animate([{ [prop]: `${start}px` }, { [prop]: `${size}px` }], { duration: this.duration, easing });
     this.anim = anim;
     anim.finished.then(
       () => {
         if (this.anim !== anim) return;
         this.anim = null;
-        outer.style.removeProperty('overflow');
+        this.release(outer);
       },
       () => {},
     );
@@ -213,6 +263,8 @@ export async function removeAnimated(el: HTMLElement, { duration = 200 }: { dura
   const h = el.getBoundingClientRect().height;
   el.style.overflow = 'clip';
   el.style.pointerEvents = 'none';
+  // Leaving: gone for focus and assistive tech from the start, only the picture remains.
+  el.inert = true;
   const { easing } = sizeEasing();
   const collapse = el.animate(
     [
@@ -306,10 +358,18 @@ export function viewTransition(update: () => void, doc: Document = document): Pr
   }
   doc.documentElement.toggleAttribute('data-tr-vt-reduced', reducedMotion(doc.documentElement));
   active++;
-  const t = d.startViewTransition(update);
-  return t.finished.finally(() => {
-    if (--active === 0) doc.documentElement.removeAttribute('data-tr-vt-reduced');
+  const t = d.startViewTransition(() => {
+    update();
+    // Look changes made inside this transition are already animated by it: don't start another.
+    watching?.takeRecords();
   });
+  // A transition skipped by a newer one rejects `ready`; that is expected, not an error.
+  t.ready?.catch(() => {});
+  return t.finished
+    .catch(() => {})
+    .finally(() => {
+      if (--active === 0) doc.documentElement.removeAttribute('data-tr-vt-reduced');
+    });
 }
 
 /** Attributes whose change restyles everything beneath them. */
@@ -318,6 +378,16 @@ export const LOOK_ATTRIBUTES = ['data-tr-theme', 'data-tr-skin', 'data-tr-realis
 const ELEMENT_LOOK = ['material', 'finish', 'profile', 'realism'];
 
 let watching: MutationObserver | null = null;
+let replayingLook = false;
+
+/**
+ * True while {@link autoViewTransitions} puts back old look attributes to capture the old look,
+ * or replays the new ones. Elements skip attributeChangedCallback then, so their properties keep
+ * the value that was actually set.
+ */
+export function isReplayingLook(): boolean {
+  return replayingLook;
+}
 const painted = new WeakSet<Element>();
 
 /** Whether an element has been on screen (see {@link notePainted}). */
@@ -338,47 +408,67 @@ export function notePainted(el: Element): void {
  */
 export function autoViewTransitions(doc: Document = document): void {
   if (watching || typeof MutationObserver === 'undefined' || typeof (doc as VTDocument).startViewTransition !== 'function') return;
-  let replaying = false;
-  watching = new MutationObserver((records) => {
-    if (replaying) return;
-    const changes = records.filter(
-      (r) =>
-        r.type === 'attributes' &&
-        r.attributeName &&
-        r.oldValue !== (r.target as Element).getAttribute(r.attributeName) &&
-        (LOOK_ATTRIBUTES.includes(r.attributeName) || (ELEMENT_LOOK.includes(r.attributeName) && (r.target as Element).localName.startsWith('tr-'))),
-    );
-    if (!changes.length) return;
-    // A Trompe element reflecting its first `material` (no old value, never painted) has nothing to fade from.
-    const visible = changes.filter((r) => (r.target as Element).isConnected && !(r.oldValue === null && (r.target as Element).localName.startsWith('tr-') && !painted.has(r.target as Element)));
-    if (!visible.length) return;
-    // The microtask runs before the next frame: put the old values back, then replay the change
-    // inside a View Transition so the browser captures the old look first.
-    const finals = new Map<Element, Map<string, string | null>>();
-    for (const r of changes) {
-      const el = r.target as Element;
-      let m = finals.get(el);
-      if (!m) finals.set(el, (m = new Map()));
-      if (!m.has(r.attributeName!)) m.set(r.attributeName!, el.getAttribute(r.attributeName!));
-    }
-    replaying = true;
-    for (const r of [...changes].reverse()) {
-      const el = r.target as Element;
-      if (r.oldValue === null) el.removeAttribute(r.attributeName!);
-      else el.setAttribute(r.attributeName!, r.oldValue);
+  // Changes waiting for their View Transition: the value to show until the old look is captured,
+  // and the value to apply inside the transition. Later changes in the same frame fold in here.
+  let pending: Map<Element, Map<string, { old: string | null; final: string | null }>> | null = null;
+  const apply = (which: 'old' | 'final') => {
+    replayingLook = true;
+    for (const [el, attrs] of pending!) {
+      for (const [name, v] of attrs) {
+        const value = v[which];
+        if (el.getAttribute(name) === value) continue;
+        if (value === null) el.removeAttribute(name);
+        else el.setAttribute(name, value);
+      }
     }
     watching!.takeRecords();
-    replaying = false;
-    void viewTransition(() => {
-      replaying = true;
-      for (const [el, attrs] of finals) {
-        for (const [name, value] of attrs) {
-          if (value === null) el.removeAttribute(name);
-          else el.setAttribute(name, value);
+    replayingLook = false;
+  };
+  watching = new MutationObserver((records) => {
+    if (replayingLook) return;
+    // Earliest old value per element and attribute: several changes in one task count as one.
+    const seen = new Map<Element, Map<string, string | null>>();
+    for (const r of records) {
+      const el = r.target as Element;
+      const name = r.attributeName;
+      if (r.type !== 'attributes' || !name) continue;
+      if (!LOOK_ATTRIBUTES.includes(name) && !(ELEMENT_LOOK.includes(name) && el.localName.startsWith('tr-'))) continue;
+      let m = seen.get(el);
+      if (!m) seen.set(el, (m = new Map()));
+      if (!m.has(name)) m.set(name, r.oldValue);
+    }
+    let added = false;
+    const fresh = !pending;
+    pending ??= new Map();
+    for (const [el, attrs] of seen) {
+      for (const [name, oldValue] of attrs) {
+        const final = el.getAttribute(name);
+        const known = pending.get(el)?.get(name);
+        if (known) {
+          known.final = final;
+          continue;
         }
+        if (oldValue === final || !el.isConnected) continue;
+        // A Trompe element reflecting its first `material` (no old value, never painted) has nothing to fade from.
+        if (oldValue === null && el.localName.startsWith('tr-') && !painted.has(el)) continue;
+        let m = pending.get(el);
+        if (!m) pending.set(el, (m = new Map()));
+        m.set(name, { old: oldValue, final });
+        added = true;
       }
-      watching!.takeRecords();
-      replaying = false;
+    }
+    if (fresh && !added) {
+      pending = null;
+      return;
+    }
+    // The microtask runs before the next frame: show the old values again so the browser captures
+    // the old look first, then apply the final values inside the View Transition. Trompe elements
+    // ignore these replays, so their properties keep the value that was set.
+    apply('old');
+    if (!fresh) return;
+    void viewTransition(() => {
+      apply('final');
+      pending = null;
     }, doc);
   });
   watching.observe(doc.documentElement, { attributes: true, attributeOldValue: true, subtree: true, attributeFilter: [...LOOK_ATTRIBUTES, ...ELEMENT_LOOK] });

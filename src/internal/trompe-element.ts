@@ -2,7 +2,20 @@ import { LitElement, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { globalCss, type Depth, type Finish, type Material, type Profile, type Realism } from '../generated/tokens.js';
 import { hostStyles, surfaceStyles, focusStyles } from '../styles/surface.js';
-import { autoViewTransitions, notePainted } from '../interaction/smooth.js';
+import { autoViewTransitions, isReplayingLook, notePainted } from '../interaction/smooth.js';
+import { reducedMotion } from '../interaction/motion.js';
+
+/**
+ * data-tr-motion="reduce" on an ancestor must calm CSS motion inside shadow roots too, where an
+ * ancestor selector cannot reach. Each Trompe element mirrors it as data-tr-reduced on itself
+ * (hostStyles then drops its transitions and animations), and one observer keeps every
+ * connected element in step when the attribute changes.
+ */
+const connected = new Set<HTMLElement>();
+let motionWatch: MutationObserver | null = null;
+function syncReduced(el: HTMLElement): void {
+  el.toggleAttribute('data-tr-reduced', reducedMotion(el) && !matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
 
 /**
  * Page-level motion: the light and realism glide to new values instead of jumping, and page-wide
@@ -100,6 +113,12 @@ export function define(tag: string, ctor: CustomElementConstructor): void {
 export class TrompeElement extends LitElement {
   static override styles = [hostStyles, surfaceStyles, focusStyles];
 
+  /** Look attributes replayed for a View Transition must not overwrite the property that was set. */
+  override attributeChangedCallback(name: string, old: string | null, value: string | null): void {
+    if (isReplayingLook()) return;
+    super.attributeChangedCallback(name, old, value);
+  }
+
   /**
    * Physical material of the element's surface. Unset = inherit from the nearest
    * ancestor with data-tr-material, otherwise plastic.
@@ -128,6 +147,21 @@ export class TrompeElement extends LitElement {
    * Resting depth level, -2 (well) to 4 (overlay). Each component has its own default.
    */
   @property({ type: Number, reflect: true }) depth?: Depth;
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    connected.add(this);
+    syncReduced(this);
+    if (!motionWatch && typeof MutationObserver !== 'undefined') {
+      motionWatch = new MutationObserver(() => connected.forEach(syncReduced));
+      motionWatch.observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['data-tr-motion'] });
+    }
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    connected.delete(this);
+  }
 
   protected override firstUpdated(changed: PropertyValues): void {
     super.firstUpdated(changed);
