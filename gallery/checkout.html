@@ -12,8 +12,11 @@
 <style>
 /* Kurogane: black urushi lacquer, gold hairline inlay (maki-e), raw silk wells, brushed brass hardware.
    Every surface reads the scene light: --sx/--sy point away from the light, so -sx/-sy point at it. */
+@property --fgap { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --cvc-hl { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hl { syntax: "<number>"; inherits: false; initial-value: 0; }
 :root {
-color-scheme: dark;
+color-scheme: dark; interpolate-size: allow-keywords;
 --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --len: var(--tr-shadow-len);
 --la: var(--tr-light-angle); --away: calc(var(--tr-light-angle) + 180deg);
 --gold-dome: radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), var(--gold-hi), var(--gold) 40%, var(--gold-lo) 85%, var(--gold-deep));
@@ -145,19 +148,19 @@ content: ""; position: absolute; left: .2em; top: 50%; width: 4.5em; height: 1px
 transform-origin: 0 50%; transform: scaleX(0); transition: transform .5s var(--tr-ease-out);
 }
 .steps li[data-state="done"] + li::after, .steps li[data-state="current"]:not(:first-child)::after { transform: scaleX(1); }
-.steps button { display: flex; align-items: center; gap: .6em; border: 0; background: none; padding: .5em .3em; min-height: 2.75em; color: var(--ink-3); font: 500 .86em/1 var(--sans); letter-spacing: .04em; border-radius: .6em; }
+.steps button { display: flex; align-items: center; gap: .6em; border: 0; background: none; padding: .5em .3em; min-height: 2.75em; color: var(--ink-3); font: 500 .86em/1 var(--sans); letter-spacing: .04em; border-radius: .6em; transition: color .2s var(--tr-ease-out); }
 .steps li[data-state="current"] button { color: var(--ink); }
 .steps li[data-state="done"] button { color: var(--ink-2); }
 .stud { position: relative; display: grid; place-items: center; width: 2em; height: 2em; border-radius: 50%; font: 600 .88em/1 var(--sans);
 color: var(--gold); background: radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), oklch(.27 .01 40), oklch(.08 .005 30) 70%);
-box-shadow: inset 0 0 0 1px var(--gold-lo), 0 0 0 1px #000, calc(var(--sx) * 1px) calc(var(--sy) * 2px) 3px #000c; }
+box-shadow: inset 0 0 0 1px var(--gold-lo), 0 0 0 1px #000, calc(var(--sx) * 1px) calc(var(--sy) * 2px) 3px #000c; transition: color .2s var(--tr-ease-out); }
 .stud::after {
 content: ""; position: absolute; inset: 0; border-radius: 50%; opacity: 0; transform: scale(.6); transition: opacity .2s, transform .35s var(--tr-ease-spring);
 background: var(--gold-dome);
 box-shadow: inset 0 0 0 1px oklch(.35 .06 60 / .6);
 }
-.stud b { position: relative; z-index: 1; }
-.stud svg { position: absolute; z-index: 1; width: 1.05em; height: 1.05em; stroke: oklch(.25 .04 60); opacity: 0; }
+.stud b { position: relative; z-index: 1; transition: opacity .18s; }
+.stud svg { position: absolute; z-index: 1; width: 1.05em; height: 1.05em; stroke: oklch(.25 .04 60); opacity: 0; transition: opacity .22s .05s; }
 li:is([data-state="current"], [data-state="done"]) .stud::after { opacity: 1; transform: none; }
 li:is([data-state="current"], [data-state="done"]) .stud { color: oklch(.24 .04 60); }
 li[data-state="done"] .stud b { opacity: 0; }
@@ -174,7 +177,8 @@ background: linear-gradient(#0000, var(--gold-lo) 12%, var(--gold) 45%, var(--go
 box-shadow: 1px 0 0 #000;
 }
 .stack > * + * { margin-top: 1.25em; }
-.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: .55em; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); --fgap: .55em; }
+.field > * + :not(.lb) { margin-top: var(--fgap); }
 .lbl-row { display: flex; justify-content: space-between; align-items: baseline; }
 
 /* Silk-lined lacquer well (inputs) */
@@ -194,7 +198,8 @@ var(--on1) 0 #000e;
 }
 .well::after {
 content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .18s;
-box-shadow: inset 0 0 0 1px oklch(.86 .11 86 / .8), inset 0 0 1.3em -.35em oklch(.86 .12 86 / .3);
+box-shadow: inset 0 0 0 1px oklch(.86 .11 86 / .8), inset 0 0 1.3em -.35em oklch(.86 .12 86 / .3), 0 0 1.3em -.15em oklch(.6 .22 30 / 0);
+transition: opacity .18s, box-shadow .2s var(--tr-ease-out);
 }
 .well:focus-within::after { opacity: 1; }
 .well:has(:focus-visible) { outline: 1px solid oklch(.9 .08 90 / .55); outline-offset: 3px; }
@@ -205,10 +210,12 @@ color: var(--ink); caret-color: var(--gold-hi); font: 500 max(16px, 1em)/1 var(-
 }
 .well input::placeholder { color: oklch(.66 .016 75); }
 .well input:-webkit-autofill { -webkit-text-fill-color: var(--ink); transition: background-color 1e5s; }
-.msg { display: flex; gap: .5em; align-items: center; min-height: 1.2em; font-size: .82em; color: var(--shu-ink); }
-.msg:empty { display: none; }
-.msg::before { content: ""; width: .5em; height: .5em; flex: none; transform: rotate(45deg); background: var(--shu); box-shadow: 0 0 .5em var(--shu); }
-.msg.ok { color: var(--gold); } .msg.ok::before { background: var(--gold); box-shadow: none; }
+.msg { display: flex; gap: .5em; align-items: center; min-height: 1.2em; font-size: .82em; color: var(--shu-ink); overflow-x: visible; overflow-y: clip;
+transition: height .24s var(--tr-ease-out), min-height .24s var(--tr-ease-out), margin-top .24s var(--tr-ease-out), opacity .2s, color .2s; }
+.msg:not(.on) { height: 0; min-height: 0; margin-top: 0 !important; opacity: 0; }
+#place-msg { margin-top: .8em; }
+.msg::before { content: ""; width: .5em; height: .5em; flex: none; transform: rotate(45deg); background: var(--shu); box-shadow: 0 0 .5em var(--shu); transition: background-color .2s, box-shadow .2s; }
+.msg.ok { color: var(--gold); } .msg.ok::before { background: var(--gold); box-shadow: 0 0 .5em #0000; }
 
 
 .brass { flex: none; display: grid; place-items: center; width: 2.75em; height: 2.75em; margin-right: .2em; padding: 0; border: 0; background: none; border-radius: .6em; }
@@ -222,8 +229,9 @@ transform: translate(calc(var(--sx) * var(--tr-press, 0) * .1em), calc(var(--sy)
 }
 .brass svg { width: 1.2em; height: 1.2em; fill: none; stroke: oklch(.27 .04 58); stroke-width: 1.7; stroke-linecap: round;
 filter: drop-shadow(calc(var(--sx) * .7px) calc(var(--sy) * .7px) 0 oklch(.97 .06 92 / .55)); }
-.brass .off, .brass[aria-pressed="true"] .on { display: none; }
-.brass[aria-pressed="true"] .off { display: block; }
+.brass svg { grid-area: 1 / 1; transition: opacity .18s var(--tr-ease-out), scale .22s var(--tr-ease-out); }
+.brass .off, .brass[aria-pressed="true"] .on { opacity: 0; scale: .8; }
+.brass[aria-pressed="true"] .off { opacity: 1; scale: 1; }
 
 /* Checkbox: lacquered square, gold check inlay */
 .check { position: relative; display: flex; align-items: center; gap: .8em; min-height: 2.75em; color: var(--ink-2); font-size: .93em; cursor: pointer; width: fit-content; }
@@ -265,6 +273,8 @@ translate: calc(var(--sx) * -5%) calc((var(--sy) - .7) * -60%);
 transition: transform .45s var(--tr-ease-out), opacity .25s; opacity: .75;
 }
 .pf::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: #0005; opacity: calc(var(--tr-press, 0) * .8); }
+.pf { transition: color .22s var(--tr-ease-out), opacity .22s var(--tr-ease-out); }
+.pebble::before, .plq::before { transition: filter .22s var(--tr-ease-out); }
 .pebble:hover .pf::before { transform: translateX(calc(var(--sx) * 5% + 3%)); opacity: 1; }
 .plq:hover .pf::before { opacity: 1; }
 .pf > * { position: relative; z-index: 1; }
@@ -282,7 +292,7 @@ box-shadow: inset var(--o1) 0 #fff4, inset var(--on1) 0 #0009,
 .plq svg { width: 1.15em; height: 1.15em; fill: none; stroke: var(--gold); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .plq[aria-disabled="true"], .pebble[aria-disabled="true"] { cursor: not-allowed; }
 .plq[aria-disabled="true"] .pf, .pebble[aria-disabled="true"] .pf { color: var(--ink-3); opacity: .55; }
-.plq[aria-disabled="true"]::before, .pebble[aria-disabled="true"]::before { opacity: .35; }
+.plq[aria-disabled="true"]::before, .pebble[aria-disabled="true"]::before { filter: opacity(.35); }
 .duo { display: grid; grid-template-columns: 1fr 1fr; gap: .75em; }
 .or { display: flex; align-items: center; gap: 1em; color: var(--ink-3); font-size: .78em; letter-spacing: .14em; text-transform: uppercase; }
 .or::before, .or::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #0000, var(--gold-lo)); box-shadow: 0 1px 0 #000; opacity: .6; }
@@ -319,7 +329,7 @@ box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px -1px #000e, calc(var
 position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: .2em .8em; align-items: center; height: 100%; padding: 1.05em 1.1em; border-radius: inherit; overflow: hidden;
 background: var(--lacquer);
 box-shadow: inset var(--o1) 0 #fff4, inset var(--on1) 0 #0009, 0 0 0 1px #000;
-transition: transform .32s var(--tr-ease-spring);
+transition: transform .32s var(--tr-ease-spring); will-change: transform;
 }
 .ship .sf::before { content: ""; position: absolute; pointer-events: none; transition: transform .45s var(--tr-ease-out), opacity .25s; opacity: .8; }
 .ship:hover .sf::before { opacity: 1; }
@@ -358,15 +368,19 @@ border-radius: .9em; scrollbar-width: thin; scrollbar-color: var(--gold-lo) #000
 background: linear-gradient(var(--away), oklch(.2 .009 40), oklch(.1 .006 35) 45%, oklch(.07 .004 30));
 box-shadow: inset var(--o1) 0 #fff4, inset 0 0 0 1px oklch(.6 .08 70 / .3), 0 0 0 1px #000,
 calc(var(--sx) * 12px * var(--len)) calc(var(--sy) * 18px * var(--len)) 30px #000d;
-transform-origin: 50% 0; animation: lb-in .2s var(--tr-ease-out);
+transform-origin: 50% 0; transition: opacity .2s var(--tr-ease-out), transform .2s var(--tr-ease-out), display .2s allow-discrete;
 }
-@keyframes lb-in { from { opacity: 0; transform: translateY(-.4em) scale(.98); } }
-.lb li { position: relative; display: flex; justify-content: space-between; align-items: center; min-height: 2.75em; padding: 0 .9em 0 1.4em; border-radius: .55em; color: var(--ink-2); cursor: pointer; }
-.lb li + li::before { content: ""; position: absolute; left: .9em; right: .9em; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(.62 .09 72 / .45), #0000); }
+.lb[hidden] { opacity: 0; transform: translateY(-.4em) scale(.98); }
+@starting-style { .lb { opacity: 0; transform: translateY(-.4em) scale(.98); } }
+.lb li { position: relative; display: flex; justify-content: space-between; align-items: center; min-height: 2.75em; padding: 0 .9em 0 1.4em; border-radius: .55em; color: var(--ink-2); cursor: pointer;
+background: linear-gradient(90deg, oklch(.8 .11 84 / calc(var(--hl) * .16)), oklch(.8 .11 84 / calc(var(--hl) * .04))); box-shadow: inset 0 0 0 1px oklch(.8 .11 84 / calc(var(--hl) * .35));
+transition: --hl .14s var(--tr-ease-out), color .14s var(--tr-ease-out); }
+.lb li + li::before { content: ""; position: absolute; left: .9em; right: .9em; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(.62 .09 72 / .45), #0000); transition: opacity .14s; }
 .lb li small { color: var(--ink-3); font-size: .8em; }
 .lb li[aria-selected="true"] { color: var(--gold-hi); }
-.lb li[aria-selected="true"]::after { content: ""; position: absolute; left: .55em; top: 50%; width: .35em; height: .35em; margin-top: -.175em; transform: rotate(45deg); background: var(--gold); }
-.lb li.active { color: var(--ink); background: linear-gradient(90deg, oklch(.8 .11 84 / .16), oklch(.8 .11 84 / .04)); box-shadow: inset 0 0 0 1px oklch(.8 .11 84 / .35); }
+.lb li::after { content: ""; position: absolute; left: .55em; top: 50%; width: .35em; height: .35em; margin-top: -.175em; transform: rotate(45deg) scale(.4); background: var(--gold); opacity: 0; transition: opacity .16s, transform .22s var(--tr-ease-out); }
+.lb li[aria-selected="true"]::after { opacity: 1; transform: rotate(45deg); }
+.lb li.active { color: var(--ink); --hl: 1; }
 .lb li.active + li::before, .lb li:has(+ li.active)::before { opacity: 0; }
 
 
@@ -393,7 +407,7 @@ box-shadow: 0 0 0 1px oklch(.18 .02 50), inset var(--o1) 0 oklch(.98 .05 92 / .7
 calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px #000d, calc(var(--sx) * 5px * var(--len)) calc(var(--sy) * 7px * var(--len)) 9px #0008;
 }
 .sw:focus-visible { outline-offset: 2px; border-radius: 2em; }
-.sw-state { font: 600 .7em/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); min-width: 5.4em; text-align: left; }
+.sw-state { font: 600 .7em/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); min-width: 5.4em; text-align: left; transition: color .22s var(--tr-ease-out); }
 .sw[aria-checked="true"] + .sw-state { color: var(--gold); }
 
 /* Payment: shibuichi brushed card that flips */
@@ -440,7 +454,7 @@ background: linear-gradient(oklch(.17 .006 40), oklch(.09 .004 35) 45%, oklch(.1
 background: repeating-linear-gradient(-30deg, oklch(.9 .02 85) 0 .3em, oklch(.84 .03 80) .3em .6em); box-shadow: inset 0 1px 2px #0005; }
 .cvc-box { position: absolute; right: 1.3em; top: 5.1em; width: 3.7em; height: 2.2em; display: grid; place-items: center; border-radius: .25em;
 background: oklch(.95 .01 85); color: oklch(.2 .01 60); font: 500 .95em/1 var(--mono); letter-spacing: .12em;
-box-shadow: inset 0 1px 2px #0006, 0 0 0 1.5px oklch(.85 .12 84 / calc(var(--cvc-hl, 0))); }
+box-shadow: inset 0 1px 2px #0006, 0 0 0 1.5px oklch(.85 .12 84 / calc(var(--cvc-hl, 0))); transition: --cvc-hl .25s var(--tr-ease-out); }
 .back .fine { position: absolute; left: 2.6em; right: 2.6em; bottom: 2em; font: 500 .6em/1.5 var(--sans); letter-spacing: .05em; color: oklch(.26 .01 60); }
 .pay-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
 .pay-fields .wide { grid-column: 1 / -1; }
@@ -471,12 +485,11 @@ calc(var(--sx) * 3px) calc(var(--sy) * 4px) 4px #000e, calc(var(--sx) * 18px * v
 content: ""; position: absolute; inset: .55em; border-radius: .95em; pointer-events: none; box-shadow: inset 0 0 0 1px oklch(.72 .1 78 / .35);
 }
 .lid-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1em; }
-.lid-h span { color: var(--ink-3); font-size: .85em; }
+.lid-h > span { color: var(--ink-3); font-size: .85em; }
 .items { list-style: none; margin: 0; padding: 0; }
 .item { display: grid; grid-template-columns: 4.4em 1fr auto; grid-template-areas: "th nm tot" "th qt rm"; gap: .35em .85em; align-items: center; padding: 1em 0; position: relative; }
-.item + .item::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(.6 .09 72 / .45) 20%, oklch(.6 .09 72 / .45) 80%, #0000); box-shadow: 0 1px 0 #000; }
-.item.out { animation: out .32s var(--tr-ease-out) forwards; }
-@keyframes out { to { opacity: 0; transform: translateX(1.5em); } }
+.item::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(.6 .09 72 / .45) 20%, oklch(.6 .09 72 / .45) 80%, #0000); box-shadow: 0 1px 0 #000; opacity: 0; transition: opacity .25s; }
+.item + .item::before { opacity: 1; }
 /* Product shots: each piece photographed on undyed (kinari) raw silk, lit by the scene light. Drawn on a 3.7em grid, shown at 1.19x. */
 .thumb { grid-area: th; position: relative; font-size: 1.19em; width: 3.7em; height: 3.7em; border-radius: .55em; overflow: hidden;
 background:
@@ -516,13 +529,19 @@ box-shadow: 0 0 0 1px oklch(.15 .02 50), calc(var(--sx) * 1.5px) calc(var(--sy) 
 transform: translate(calc(var(--sx) * var(--tr-press, 0) * .08em), calc(var(--sy) * var(--tr-press, 0) * .08em)) scale(calc(1 - var(--tr-press, 0) * .07));
 }
 .kn svg { width: .75em; height: .75em; stroke: oklch(.28 .045 58); stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(calc(var(--sx) * .5px) calc(var(--sy) * .5px) 0 oklch(1 .05 90 / .6)); }
+.kn .kf { transition: filter .22s var(--tr-ease-out); }
 .kn[aria-disabled="true"] { cursor: not-allowed; } .kn[aria-disabled="true"] .kf { filter: saturate(.3) brightness(.6); }
 .qv { position: relative; width: 2em; height: 1.9em; overflow: hidden; display: grid; place-items: center; border-radius: .45em; font-weight: 600; font-size: .95em; min-height: 0; }
 .qv span { grid-area: 1 / 1; }
 .promo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .6em; }
 .promo .plq { width: auto; min-height: 3.15em; }
 .promo .plq .pf { padding: 0 1.25em; color: var(--gold); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: .85em; }
-.totals { display: grid; grid-template-columns: 1fr auto; gap: .55em 1em; margin: 0; font-size: .93em; }
+.totals { display: grid; grid-template-columns: 1fr auto; column-gap: 1em; margin: 0; font-size: .93em; }
+.totals > * + * { margin-top: .55em; }
+.totals > .tr { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
+.totals > .opt { height: 0; margin-top: 0; opacity: 0; visibility: hidden; overflow: clip;
+transition: height .26s var(--tr-ease-out), margin-top .26s var(--tr-ease-out), opacity .2s, visibility .26s; }
+.totals > .opt.on { height: auto; margin-top: .55em; opacity: 1; visibility: visible; }
 .totals dt { color: var(--ink-3); } .totals dd { margin: 0; text-align: right; color: var(--ink-2); }
 .totals .disc { color: var(--gold); }
 .totals .grand { font: 600 1.15em/1 var(--sans); color: var(--ink); align-self: end; }
@@ -533,6 +552,9 @@ transform: translate(calc(var(--sx) * var(--tr-press, 0) * .08em), calc(var(--sy
 /* Dialog: sealed with a gold-stamped mark */
 dialog { padding: 0; border: 0; background: none; color: var(--ink); width: min(28em, calc(100vw - 32px)); overflow: visible; font-size: 16px; }
 dialog::backdrop { background: oklch(.04 .004 40 / .72); backdrop-filter: blur(5px); }
+dialog, dialog::backdrop { transition: opacity .28s var(--tr-ease-out), display .28s allow-discrete, overlay .28s allow-discrete; }
+dialog:not([open]), dialog:not([open])::backdrop { opacity: 0; }
+@starting-style { dialog[open], dialog[open]::backdrop { opacity: 0; } }
 .dlg { position: relative; padding: 4.2em 2em 2em; text-align: center; border-radius: 1.5em;
 background: radial-gradient(90% 50% at calc(50% - var(--sx) * 50%) calc(50% - var(--sy) * 90%), oklch(.24 .01 40), #0000 70%),
 linear-gradient(var(--away), oklch(.15 .008 38), oklch(.07 .005 32) 55%, oklch(.05 .004 30));
@@ -588,9 +610,17 @@ text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85)
 .peek { display: flex; width: calc(100% - 2.4em); margin: 1.2em 1.2em 0; }
 .board::before { opacity: .75; }
 }
-@media (prefers-reduced-motion: reduce) { .seal, dialog[open] .dlg, .lb { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .seal, dialog[open] .dlg { animation: none; } }
 @media (forced-colors: active) { .well, .ship .sf, .box, .sw .ch { border: 1px solid CanvasText; } }
 
+
+/* Text that changes keeps its old face until the new one has rolled in (see roll()). */
+.rl { display: inline-grid; grid-template-columns: minmax(0, 1fr); justify-items: unsafe start; }
+.rl > .rf { grid-area: 1 / 1; white-space: nowrap; }
+.msg .rf, .ship .e .rf, #tax-t .rf { white-space: normal; }
+.rl.tot, .totals dd.rl, #pieces.rl, #place-t.rl, #peek-t.rl, .ship .p.rl, #tax-t.rl { justify-items: unsafe end; }
+.bag i.rl { justify-items: unsafe center; }
+.maker { view-transition-name: maker; }
 
 .tg-caption { padding-top: 8px; color: var(--ink-2); }
 .tg-caption ul { margin: 0; padding-left: 1.2em; opacity: .82; }
@@ -758,16 +788,16 @@ text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85)
 <p class="msg" id="promo-msg" role="status"></p>
 </div>
 <dl class="totals num" style="margin-top:1.3em">
-<dt>Subtotal</dt><dd id="t-sub"></dd>
-<dt>Shipping</dt><dd id="t-ship"></dd>
-<dt id="t-gift-l" hidden>Gift wrap</dt><dd id="t-gift" hidden></dd>
-<dt id="t-disc-l" hidden>Promo AKI10</dt><dd id="t-disc" class="disc" hidden></dd>
-<hr class="hair" style="grid-column:1/-1;margin:.5em 0 .2em">
-<dt class="grand">Total</dt><dd class="grand" id="t-total"></dd>
+<div class="tr"><dt>Subtotal</dt><dd id="t-sub"></dd></div>
+<div class="tr"><dt>Shipping</dt><dd id="t-ship"></dd></div>
+<div class="tr opt" id="r-gift"><dt id="t-gift-l">Gift wrap</dt><dd id="t-gift"></dd></div>
+<div class="tr opt" id="r-disc"><dt id="t-disc-l">Promo AKI10</dt><dd id="t-disc" class="disc"></dd></div>
+<hr class="hair" style="grid-column:1/-1;margin:1.05em 0 .2em">
+<div class="tr"><dt class="grand">Total</dt><dd class="grand" id="t-total"></dd></div>
 </dl>
-<p class="fine" id="tax-note" style="text-align:right;margin-top:.4em">Includes consumption tax</p>
+<p class="fine" id="tax-note" style="text-align:right;margin-top:.4em"><span id="tax-t">Includes consumption tax</span></p>
 <div style="margin-top:1.4em"><button class="pebble big" type="button" id="place"><span class="pf"><span>Place order</span><span class="num" id="place-t"></span></span></button></div>
-<p class="msg" id="place-msg" role="alert" style="margin-top:.8em"></p>
+<p class="msg" id="place-msg" role="alert"></p>
 <p class="fine" style="margin-top:.9em">Demo store, no payment is taken.</p>
 </div>
 </aside>
@@ -802,7 +832,7 @@ text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85)
 </section>
 
 <script type="module">
-import { mountBar, PressController, ToggleController, feedback, animate, reduceMotion } from "./kit/objects.js";
+import { mountBar, PressController, ToggleController, feedback, animate, morph, reduceMotion } from "./kit/objects.js";
 mountBar({ title: "Kurogane", subtitle: "Sign in and checkout · urushi lacquer, gold inlay, raw silk, brass", tone: "dark" });
 
 const $ = (s) => document.querySelector(s);
@@ -821,12 +851,67 @@ const ZONES = { jp: [0, 1200, "2–3 days · tracked", "Tomorrow · signed for"]
 const COUNTRIES = [["Australia", "world"], ["Canada", "world"], ["France", "world"], ["Germany", "world"], ["Hong Kong", "asia"], ["Italy", "world"], ["Japan", "jp"], ["Netherlands", "world"], ["New Zealand", "world"], ["Norway", "world"], ["Singapore", "asia"], ["South Korea", "asia"], ["Spain", "world"], ["Sweden", "world"], ["Switzerland", "world"], ["Taiwan", "asia"], ["United Kingdom", "world"], ["United States", "world"]];
 const zone = () => ZONES[COUNTRIES.find((c) => c[0] === S.country)[1]];
 
-/* Numbers that change roll in from below (transform + opacity only). */
-function setText(el, t, dir = 1) {
-  if (el.textContent === t) return;
-  el.textContent = t;
-  if (motion()) el.animate([{ opacity: 0, transform: `translateY(${dir * 0.45}em)` }, { opacity: 1, transform: "none" }], { duration: 260, easing: ease });
+/* Text that changes keeps its old face while the new one rolls in from below (dir 1), from above
+   (dir -1) or simply fades in (dir 0); the box eases to the new width so neighbours never jump. */
+function setNow(el, t) { el.textContent = t; el._txt = t; }
+function roll(el, t, dir = 1) {
+  t = String(t);
+  if ((el._txt ?? el.textContent) === t) return;
+  el._txt = t;
+  if (!motion() || !el.isConnected || !el.getClientRects().length) { el.textContent = t; return; }
+  el.classList.add("rl");
+  let faces = [...el.children].filter((c) => c.classList.contains("rf"));
+  if (!faces.length) { const f = document.createElement("span"); f.className = "rf"; f.textContent = el.textContent; el.replaceChildren(f); faces = [f]; }
+  faces.slice(0, -1).forEach((f) => f.remove());
+  const old = faces.at(-1), nu = document.createElement("span");
+  nu.className = "rf"; nu.textContent = t;
+  old.getAnimations().forEach((a) => a.cancel());
+  const w0 = el.getBoundingClientRect().width;
+  el._wa?.cancel();
+  old.setAttribute("aria-hidden", "true"); old.style.display = "none"; el.append(nu);
+  const w1 = el.getBoundingClientRect().width;
+  old.style.display = "";
+  const o = { duration: 260, easing: ease }, y = (d) => (dir ? `translateY(${d * dir * 0.45}em)` : "none");
+  old.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: y(-1) }], { ...o, fill: "forwards" }).onfinish = () => old.remove();
+  nu.animate([{ opacity: 0, transform: y(1) }, { opacity: 1, transform: "none" }], o);
+  if (Math.abs(w1 - w0) > 0.5) el._wa = el.animate([{ width: w0 + "px" }, { width: w1 + "px" }], o);
 }
+/* Focus a field; if it is off screen, glide to it rather than jumping. */
+function focusInto(el) {
+  el.focus({ preventScroll: true });
+  const r = el.getBoundingClientRect();
+  if (r.top < 60 || r.bottom > innerHeight - 20) glideTo(el, "center");
+}
+/* Messages grow open when they have something to say and fold away when they are cleared. */
+function say(el, t = "") {
+  clearTimeout(el._clr);
+  const span = el.firstElementChild || el.appendChild(document.createElement("span"));
+  if (!t) {
+    if (!el.classList.contains("on")) return;
+    el.classList.remove("on");
+    el._clr = setTimeout(() => setNow(span, ""), motion() ? 300 : 0);
+  } else if (el.classList.contains("on")) roll(span, t, 0);
+  else { setNow(span, t); el.classList.add("on"); }
+}
+/* Page scroll on the shared frame loop, so it eases (and holds still when motion is frozen). */
+let glide = null;
+function glideTo(el, block = "center") {
+  const r = el.getBoundingClientRect(), max = document.documentElement.scrollHeight - innerHeight;
+  const y = Math.max(0, Math.min(max, scrollY + (block === "center" ? r.top + r.height / 2 - innerHeight / 2 : r.top - (parseFloat(getComputedStyle(el).scrollMarginTop) || 0))));
+  glide?.(); glide = null;
+  if (!motion()) { scrollTo({ top: y, behavior: "instant" }); return; }
+  const y0 = scrollY, d = y - y0, T = Math.min(0.75, 0.38 + Math.abs(d) / 5000);
+  if (Math.abs(d) < 1) return;
+  let t = 0;
+  const stop = animate((dt) => {
+    t += dt; const p = Math.min(1, t / T), e = 1 - Math.pow(1 - p, 3);
+    scrollTo({ top: y0 + d * e, behavior: "instant" });
+    if (p >= 1) { if (glide === stop) glide = null; return false; }
+  });
+  glide = stop;
+}
+addEventListener("wheel", () => { glide?.(); glide = null; }, { passive: true });
+addEventListener("touchstart", () => { glide?.(); glide = null; }, { passive: true });
 
 /* ---------- Items + quantity steppers ---------- */
 const list = $("#items");
@@ -864,11 +949,16 @@ function bump(it, d) {
   total(d);
 }
 function removeItem(it) {
+  if (!ITEMS.includes(it)) return;
   feedback.play("clack", { intensity: 0.6 });
   const li = it.el, next = li.nextElementSibling || li.previousElementSibling;
-  li.classList.add("out");
   ITEMS.splice(ITEMS.indexOf(it), 1);
-  setTimeout(() => { li.remove(); (next?.querySelector(".rm") || $("#promo")).focus({ preventScroll: true }); total(); }, motion() ? 300 : 0);
+  const done = () => { li.remove(); (next?.querySelector(".rm") || $("#promo")).focus({ preventScroll: true }); total(); };
+  if (!motion()) return done();
+  const cs = getComputedStyle(li), H = li.getBoundingClientRect().height, h = cs.boxSizing === "border-box" ? H : H - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const full = { height: h + "px", paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom };
+  li.animate([{ opacity: 1, transform: "none", ...full }, { opacity: 0, transform: "translateX(1.5em)", ...full, offset: 0.5 }, { opacity: 0, transform: "translateX(1.5em)", height: "0px", paddingTop: "0px", paddingBottom: "0px" }],
+    { duration: 560, easing: "cubic-bezier(.3,0,.2,1)", fill: "forwards" }).onfinish = done;
 }
 
 /* ---------- Totals ---------- */
@@ -876,25 +966,33 @@ function total(dir = 1) {
   let sub = 0, n = 0;
   for (const it of ITEMS) {
     sub += it.price * it.qty; n += it.qty;
-    setText(it.el.querySelector(".tot"), yen(it.price * it.qty), dir);
+    roll(it.el.querySelector(".tot"), yen(it.price * it.qty), dir);
     it.el.querySelectorAll(".kn").forEach((b) => b.setAttribute("aria-disabled", String(b.dataset.d < 0 ? it.qty <= 1 : it.qty >= 9)));
   }
   const z = zone(), ship = n ? (S.ship === "std" ? z[0] : z[1]) : 0;
   const gift = S.gift && n ? 800 : 0, disc = S.promo ? -Math.round(sub * 0.1) : 0;
   const tot = sub + ship + gift + disc;
-  setText($("#t-sub"), yen(sub), dir);
-  setText($("#t-ship"), ship ? yen(ship) : "Free", dir);
-  for (const [k, v] of [["gift", gift], ["disc", disc]]) { $(`#t-${k}`).hidden = $(`#t-${k}-l`).hidden = !v; setText($(`#t-${k}`), yen(v)); }
-  setText($("#t-total"), yen(tot), dir);
-  setText($("#place-t"), yen(tot), dir);
-  $("#pieces").textContent = $("#peek-n").textContent = n === 1 ? "1 piece" : `${n} pieces`;
-  $("#peek-t").textContent = yen(tot);
-  $("#bag-n").textContent = n; $("#bag-n").setAttribute("aria-label", `${n} pieces`);
-  $("#p-std").textContent = z[0] ? yen(z[0]) : "Free"; $("#p-exp").textContent = yen(z[1]);
-  $("#e-std").textContent = z[2]; $("#e-exp").textContent = z[3];
-  $("#tax-note").textContent = S.country === "Japan" ? "Includes consumption tax" : "Import duties may be charged on delivery";
+  roll($("#t-sub"), yen(sub), dir);
+  roll($("#t-ship"), ship ? yen(ship) : "Free", dir);
+  for (const [k, v] of [["gift", gift], ["disc", disc]]) {
+    const row = $(`#r-${k}`), was = row.classList.contains("on");
+    if (v) (was ? roll : setNow)($(`#t-${k}`), yen(v), dir);
+    row.classList.toggle("on", !!v);
+  }
+  roll($("#t-total"), yen(tot), dir);
+  roll($("#place-t"), yen(tot), dir);
+  const pcs = n === 1 ? "1 piece" : `${n} pieces`;
+  roll($("#pieces"), pcs, dir); roll($("#peek-n"), pcs, dir);
+  roll($("#peek-t"), yen(tot), dir);
+  roll($("#bag-n"), n, dir); $("#bag-n").setAttribute("aria-label", `${n} pieces`);
+  roll($("#p-std"), z[0] ? yen(z[0]) : "Free", 0); roll($("#p-exp"), yen(z[1]), 0);
+  roll($("#e-std"), z[2], 0); roll($("#e-exp"), z[3], 0);
+  roll($("#tax-t"), S.country === "Japan" ? "Includes consumption tax" : "Import duties may be charged on delivery", 0);
   $("#place").setAttribute("aria-disabled", String(!n));
-  if (!n) list.innerHTML = '<li class="item" style="display:block;color:var(--ink-3)">Your bag is empty.</li>';
+  if (!n && !list.querySelector(".empty")) {
+    list.insertAdjacentHTML("beforeend", '<li class="item empty" style="display:block;color:var(--ink-3)">Your bag is empty.</li>');
+    if (motion()) list.lastElementChild.animate([{ opacity: 0, transform: "translateY(.4em)" }, { opacity: 1, transform: "none" }], { duration: 260, easing: ease });
+  }
   S.total = tot; S.n = n;
 }
 
@@ -912,12 +1010,12 @@ function steps() {
 document.querySelectorAll(".steps button").forEach((b) => b.addEventListener("click", () => {
   feedback.play("tick");
   const h = b.dataset.go === "account" ? $("#h-acc") : b.dataset.go === "delivery" ? $("#h-del") : $("#payment");
-  h.scrollIntoView({ behavior: motion() ? "smooth" : "auto", block: "center" });
+  glideTo(h, "center");
   h.focus({ preventScroll: true });
 }));
 
 new PressController($("#peek"), { sound: "click", onActivate: () => {
-  $("#h-sum").scrollIntoView({ behavior: motion() ? "smooth" : "auto", block: "start" }); $("#h-sum").focus({ preventScroll: true });
+  glideTo($("#h-sum"), "start"); $("#h-sum").focus({ preventScroll: true });
 } });
 
 /* ---------- Sign in ---------- */
@@ -925,7 +1023,7 @@ const email = $("#email"), pw = $("#pw");
 function fieldError(input, msg) {
   const w = input.closest(".well"), m = document.getElementById(input.getAttribute("aria-describedby"));
   if (msg) { w.dataset.invalid = ""; input.setAttribute("aria-invalid", "true"); } else { delete w.dataset.invalid; input.removeAttribute("aria-invalid"); }
-  if (m) m.textContent = msg || "";
+  if (m) say(m, msg || "");
 }
 const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
 email.addEventListener("input", () => { if (email.hasAttribute("aria-invalid") && validEmail(email.value)) fieldError(email); });
@@ -936,32 +1034,35 @@ function signIn() {
   const e = !email.value.trim() ? "Enter your email address." : !validEmail(email.value) ? "That email looks incomplete. Try name@example.com." : "";
   const p = !pw.value ? "Enter your password." : "";
   fieldError(email, e); fieldError(pw, p);
-  if (e || p) { feedback.play("thunk", { intensity: 0.35 }); (e ? email : pw).focus(); return; }
-  S.busy = true; $("#signin-l").textContent = "Signing in…";
+  if (e || p) { feedback.play("thunk", { intensity: 0.35 }); focusInto(e ? email : pw); return; }
+  S.busy = true; roll($("#signin-l"), "Signing in…", 0);
   setTimeout(() => {
     S.busy = false; S.signedIn = true;
-    $("#signin").hidden = true; $("#acct").hidden = false; $("#signin-l").textContent = "Sign in";
-    $("#acct-mail").textContent = email.value.trim();
-    $("#h-acc").textContent = "Signed in"; $("#acc-lede").textContent = "Your saved address and card name are filled in below.";
-    $("#c-name").textContent = "Aya Kosaka";
-    addr(); steps(); feedback.play("latch", { intensity: 0.6 });
-    $("#h-acc").focus({ preventScroll: true });
+    feedback.play("latch", { intensity: 0.6 });
+    morph(() => {
+      $("#signin").hidden = true; $("#acct").hidden = false; setNow($("#signin-l"), "Sign in");
+      $("#acct-mail").textContent = email.value.trim();
+      $("#h-acc").textContent = "Signed in"; $("#acc-lede").textContent = "Your saved address and card name are filled in below.";
+      $("#c-name").textContent = "Aya Kosaka";
+      addr(); steps();
+      $("#h-acc").focus({ preventScroll: true });
+    });
   }, 650);
 }
 for (const i of [email, pw]) i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); pressOnce(signBtn); } });
 /* Programmatic press with full travel + feedback (kit has no public press()). */
 function pressOnce(pc) { pc._begin(); setTimeout(() => pc._end(false), 90); }
-$("#signout").addEventListener("click", () => {
+$("#signout").addEventListener("click", () => morph(() => {
   S.signedIn = false; $("#signin").hidden = false; $("#acct").hidden = true; pw.value = "";
   $("#h-acc").textContent = "Sign in"; $("#acc-lede").textContent = "Check out faster with your saved address and order history.";
   $("#c-name").textContent = "Your name"; addr(); steps(); email.focus();
-});
+}));
 new PressController($("#pw-tog"), { mode: "latching", sound: "click", latchDepth: 0.6, onChange: (on, pc) => {
   pw.type = on ? "text" : "password"; pc.host.setAttribute("aria-label", on ? "Hide password" : "Show password");
 } });
 $("#remember").addEventListener("change", (e) => feedback.play("snap", { intensity: e.target.checked ? 1 : 0.6 }));
-$("#forgot").addEventListener("click", (e) => { e.preventDefault(); $("#alt-msg").textContent = "A reset link would be sent to your email (demo)."; feedback.play("tick"); });
-document.querySelectorAll("[data-alt]").forEach((b) => new PressController(b, { sound: "click", onActivate: () => { $("#alt-msg").textContent = `${b.dataset.alt} sign-in is not available in this demo.`; } }));
+$("#forgot").addEventListener("click", (e) => { e.preventDefault(); say($("#alt-msg"), "A reset link would be sent to your email (demo)."); feedback.play("tick"); });
+document.querySelectorAll("[data-alt]").forEach((b) => new PressController(b, { sound: "click", onActivate: () => { say($("#alt-msg"), `${b.dataset.alt} sign-in is not available in this demo.`); } }));
 function addr() {
   $("#addr-t").innerHTML = S.signedIn ? `<b>Aya Kosaka</b><br>3-8-2 Higashiyama, Room 4<br>605-0062 · ${S.country}` : "Sign in to ship to a saved address, or add a new one on the next screen.";
 }
@@ -991,8 +1092,10 @@ function closeLb() { if (lb.hidden) return; lb.hidden = true; cb.setAttribute("a
 function choose(i) {
   S.country = COUNTRIES[i][0];
   opts.forEach((o, j) => o.setAttribute("aria-selected", String(j === i)));
-  $("#country-v").textContent = S.country; closeLb(); feedback.play("click", { intensity: 0.7 });
-  addr(); total();
+  closeLb(); feedback.play("click", { intensity: 0.7 });
+  roll($("#country-v"), S.country, 0);
+  // Address, shipping prices, totals and the tax note all change together: one view transition.
+  morph(() => { addr(); total(); });
 }
 function typeahead(ch) {
   const now = performance.now(); typed = now - typedT > 600 ? ch : typed + ch; typedT = now;
@@ -1021,7 +1124,7 @@ document.addEventListener("pointerdown", (e) => { if (!e.target.closest(".sel"))
 
 /* ---------- Gift wrap slide ---------- */
 const giftEl = $("#gift");
-const gift = new ToggleController(giftEl, { axis: "x", sound: "latch", dragPx: 30, onChange: (v) => { S.gift = !!v; $("#gift-s").textContent = v ? "Added" : "Off"; total(); } });
+const gift = new ToggleController(giftEl, { axis: "x", sound: "latch", dragPx: 30, onChange: (v) => { S.gift = !!v; roll($("#gift-s"), v ? "Added" : "Off", v ? 1 : -1); total(); } });
 $("#gift-txt").addEventListener("click", () => { gift.set(1 - giftEl.value); giftEl.focus(); });
 
 /* ---------- Promo ---------- */
@@ -1033,7 +1136,7 @@ function applyPromo() {
   const v = promo.value.trim().toUpperCase();
   if (!v) return;
   if (v === "AKI10") {
-    S.promo = true; fieldError(promo); const m = $("#promo-msg"); m.classList.add("ok"); m.textContent = "AKI10 applied: 10% off for the autumn firing.";
+    S.promo = true; fieldError(promo); const m = $("#promo-msg"); m.classList.add("ok"); say(m, "AKI10 applied: 10% off for the autumn firing.");
     feedback.play("snap", { intensity: 0.8 }); total(-1);
   } else {
     S.promo = false; $("#promo-msg").classList.remove("ok"); fieldError(promo, `“${v}” isn’t a current code. Try AKI10.`); feedback.play("thunk", { intensity: 0.35 }); total();
@@ -1062,7 +1165,7 @@ function payState() {
   const d = exp.value.replace(/\D/g, "");
   const was = S.paid;
   S.paid = cc.value.replace(/\D/g, "").length === 16 && d.length === 4 && +d.slice(0, 2) >= 1 && +d.slice(0, 2) <= 12 && cvc.value.length >= 3;
-  if (S.paid && !was) $("#place-msg").textContent = "";
+  if (S.paid && !was) say($("#place-msg"));
   steps();
 }
 /* One spring drives flip + hover tilt; the brushed sheen slides with the turn. */
@@ -1102,20 +1205,20 @@ new PressController($("#place"), { sound: "click", onActivate: placeOrder });
 function placeOrder() {
   const m = $("#place-msg");
   if (!S.n) return;
-  if (!S.signedIn) { m.textContent = "Sign in first so we know where to send it."; feedback.play("thunk", { intensity: 0.35 }); email.scrollIntoView({ block: "center", behavior: motion() ? "smooth" : "auto" }); email.focus({ preventScroll: true }); return; }
+  if (!S.signedIn) { say(m, "Sign in first so we know where to send it."); feedback.play("thunk", { intensity: 0.35 }); glideTo(email, "center"); email.focus({ preventScroll: true }); return; }
   if (!S.paid) {
-    m.textContent = "Add the demo card details to continue (any 16 digits).";
+    say(m, "Add the demo card details to continue (any 16 digits).");
     if (cc.value.replace(/\D/g, "").length < 16) fieldError(cc, "Enter all 16 digits.");
-    feedback.play("thunk", { intensity: 0.35 }); (cc.value.replace(/\D/g, "").length < 16 ? cc : exp.value.length < 7 ? exp : cvc).focus(); return;
+    feedback.play("thunk", { intensity: 0.35 }); focusInto(cc.value.replace(/\D/g, "").length < 16 ? cc : exp.value.length < 7 ? exp : cvc); return;
   }
-  m.textContent = "";
+  say(m);
   const z = zone();
   $("#done-dl").innerHTML = `<dt>Order</dt><dd>KG-24817</dd><dt>Pieces</dt><dd>${S.n}</dd><dt>Delivery</dt><dd>${S.ship === "std" ? "Standard" : "Express"}, ${(S.ship === "std" ? z[2] : z[3]).split(" · ")[0]}</dd><dt>Ship to</dt><dd>${S.country}</dd><dt>Total</dt><dd>${yen(S.total)}</dd>`;
   dlg.showModal(); S.ordered = true; steps();
   setTimeout(() => feedback.play("thunk"), motion() ? 420 : 0);
 }
 new PressController($("#done-btn"), { sound: "click", onActivate: () => dlg.close() });
-dlg.addEventListener("close", () => $("#place").focus());
+dlg.addEventListener("close", () => $("#place").focus({ preventScroll: true }));
 
 total(); steps();
 </script>
