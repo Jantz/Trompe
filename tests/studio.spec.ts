@@ -82,9 +82,9 @@ test('describe -> skin -> export, with undo, and no layout shift', async ({ page
   expect(skin.elements['tr-knob'].material).toBe('metal');
   await expect(page.locator('#check-pill')).toHaveAttribute('data-state', 'ok');
 
-  // The preview really uses the skin: panels carry the wood texture.
+  // The preview really uses the skin: panels carry the wood texture (an SVG, or its cached bitmap).
   const tex = await page.locator('#frame .screen[data-active] tr-panel').first().evaluate((el) => getComputedStyle(el).getPropertyValue('--tr-m-texture'));
-  expect(tex).toContain('data:image/svg+xml');
+  expect(tex).toMatch(/data:image\/svg\+xml|blob:/);
 
   const css = await exported(page, 'css');
   expect(css).toContain(`[data-tr-skin='${skin.name}']`);

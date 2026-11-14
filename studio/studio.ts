@@ -168,13 +168,13 @@ function schedule() {
 }
 
 /** Runs a discrete change as an animated cross-fade of the preview (View Transitions). */
-function animated(change: () => void, type?: string) {
+function animated(change: () => void, type?: string): Promise<void> {
   type VT = { updateCallbackDone?: Promise<void>; finished: Promise<void> };
   const doc = document as unknown as { startViewTransition?: (arg: (() => void) | { update: () => void; types?: string[] }) => VT };
   if (reduceMotion.matches || !doc.startViewTransition) {
     change();
     flush();
-    return;
+    return Promise.resolve();
   }
   const update = () => {
     change();
@@ -194,6 +194,7 @@ function animated(change: () => void, type?: string) {
     if (pendingUpdate === p) pendingUpdate = null;
   });
   pendingUpdate = p;
+  return vt.finished.catch(() => {});
 }
 let pendingUpdate: Promise<void> | null = null;
 /** Runs fn once any animated state change in flight has been applied. */
@@ -204,15 +205,24 @@ function afterUpdate(fn: () => void) {
 
 /* ============================================================== history */
 
-let undoStack: string[] = [];
+/** Each step keeps the skin and the words that produced it, so undo also restores the prompt and notes. */
+interface Step {
+  json: string;
+  prompt: string;
+  notes: string[];
+}
+let undoStack: Step[] = [];
 let at = -1;
 let persistTimer = 0;
+/** The describe prompt and how it was read, for the current step. */
+const words = { prompt: '', notes: [] as string[] };
+let onWordsRestore: () => void = () => {};
 function commit() {
   if (pendingUpdate) return afterUpdate(commit);
   const json = JSON.stringify(state.skin);
-  if (undoStack[at] === json) return;
+  if (undoStack[at]?.json === json) return;
   undoStack = undoStack.slice(0, at + 1);
-  undoStack.push(json);
+  undoStack.push({ json, prompt: words.prompt, notes: [...words.notes] });
   if (undoStack.length > 120) undoStack.shift();
   at = undoStack.length - 1;
   updateHistoryButtons();
@@ -227,7 +237,13 @@ function travel(delta: number) {
   const next = at + delta;
   if (next < 0 || next >= undoStack.length) return;
   at = next;
-  load(JSON.parse(undoStack[at]!) as Skin, { commit: false });
+  const step = undoStack[at]!;
+  load(JSON.parse(step.json) as Skin, { commit: false });
+  if (step.prompt !== words.prompt || step.notes.join('\n') !== words.notes.join('\n')) {
+    words.prompt = step.prompt;
+    words.notes = [...step.notes];
+    onWordsRestore();
+  }
   updateHistoryButtons();
   persist();
 }
@@ -352,19 +368,38 @@ function select(label: string, options: [string, string][], get: () => string, s
   return el;
 }
 
-function segmented(label: string, options: [string, string][], get: () => string, set: (v: string) => void) {
-  const el = tr('tr-segmented', { label, size: 'sm', 'full-width': true });
-  for (const [v, l] of options) el.append(tr('tr-option', { value: v, text: l }));
-  el.addEventListener('change', () => {
-    animated(() => {
-      set(String(el.value));
-      syncAll();
+/** A one-of-many choice as a wrapping row of chips (labels never truncate), arrow-key operable. */
+function choice(label: string, options: [string, string][], get: () => string, set: (v: string) => void) {
+  const el = h('div', { class: 'chips', role: 'radiogroup', 'aria-label': label });
+  const buttons = options.map(([v, l]) => {
+    const b = h('button', { class: 'chip', type: 'button', role: 'radio', 'aria-checked': 'false', 'data-value': v, text: l });
+    b.addEventListener('click', () => {
+      if (get() === v) return;
+      animated(() => {
+        set(v);
+        syncAll();
+      });
+      commit();
     });
-    commit();
+    b.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      const i = (buttons.indexOf(b) + d + buttons.length) % buttons.length;
+      buttons[i]!.focus();
+      buttons[i]!.click();
+    });
+    el.append(b);
+    return b;
   });
   onSync(() => {
     const v = get();
-    if (el.value !== v) el.value = v;
+    for (const b of buttons) {
+      const on = b.dataset.value === v;
+      b.setAttribute('aria-checked', String(on));
+      b.setAttribute('aria-pressed', String(on));
+      b.tabIndex = on || (!options.some(([x]) => x === v) && b === buttons[0]) ? 0 : -1;
+    }
   })();
   return el;
 }
@@ -474,6 +509,11 @@ function showPanel(id: string) {
 function buildDescribe() {
   const area = h('textarea', { id: 'describe-text', rows: 4, placeholder: 'e.g. walnut panels with brushed brass controls, amber accent, low evening light, serif type', 'aria-label': 'Describe a style' }) as HTMLTextAreaElement;
   const notes = h('ul', { class: 'notes', id: 'describe-notes', 'aria-live': 'polite' });
+  const showNotes = () => notes.replaceChildren(...words.notes.map((line, i) => h('li', { style: `--i:${i}`, text: line })));
+  onWordsRestore = () => {
+    area.value = words.prompt;
+    showNotes();
+  };
   const go = tr('tr-button', { tone: 'accent' }, svgIcon('spark'), 'Generate skin');
   go.firstElementChild?.setAttribute('slot', 'start');
   const dice = tr('tr-button', { 'aria-label': 'Surprise me', title: 'Surprise me' }, svgIcon('dice'));
@@ -484,8 +524,10 @@ function buildDescribe() {
       return;
     }
     const { skin, notes: n } = skinFromDescription(text);
+    words.prompt = text;
+    words.notes = n;
     load(skin);
-    notes.replaceChildren(...n.map((line, i) => h('li', { style: `--i:${i}`, text: line })));
+    showNotes();
     nameInput.value = skin.name;
   };
   go.addEventListener('click', () => run(area.value));
@@ -653,7 +695,7 @@ function buildColour() {
     h('p', { class: 'panel-lede', text: 'Set the intent and the palette follows. Every readable pair is kept at WCAG contrast as you move.' }),
     group(
       'Scheme',
-      segmented(
+      choice(
         'Colour scheme',
         [
           ['light', 'Light'],
@@ -693,6 +735,17 @@ function buildColour() {
 
 /* ---------- materials ---------- */
 let swatchSync: Sync = () => {};
+let lastSwatchView = '';
+/** "Walnut", "Walnut, edited" or "Custom material": what a role is made of, in words. */
+function materialName(spec: SkinElement): string {
+  const texOf = (t: SkinTexture | undefined) => (!t || t === 'none' ? '' : typeof t === 'string' ? t : t.name);
+  const same = materialPresets.find((p) => p.spec.material === spec.material && p.spec.finish === spec.finish && texOf(p.spec.texture) === texOf(spec.texture) && p.spec.vars?.['--tr-m-base'] === spec.vars?.['--tr-m-base']);
+  if (same) return same.label;
+  const near = materialPresets.find((p) => p.spec.material === spec.material && texOf(p.spec.texture) === texOf(spec.texture) && (texOf(spec.texture) || p.spec.finish === spec.finish));
+  if (near && (texOf(spec.texture) || spec.vars)) return `${near.label}, edited`;
+  const m = spec.material ?? 'plastic';
+  return `${m[0]!.toUpperCase()}${m.slice(1)}, ${spec.finish ?? 'satin'}`;
+}
 function buildMaterials() {
   const chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Which controls to edit' });
   const note = h('p', { class: 'role-note' });
@@ -708,8 +761,14 @@ function buildMaterials() {
       c.toggleAttribute('data-custom', r.id !== 'base' && !!roleSpec(r));
     }
     const r = currentRole();
+    const made = materialName(effectiveSpec(r));
+    const accent = r.id === 'buttons' ? ' Accent buttons, like Save, keep the accent colour on this material.' : '';
     note.textContent =
-      r.id === 'base' ? 'The default for every control. Specific groups override it.' : roleSpec(r) ? `Custom for ${r.tags.join(', ')}.` : `Follows “Everything”. Pick a material to make ${r.label.toLowerCase()} different.`;
+      r.id === 'base'
+        ? `${made}. The default for every control; groups marked • have their own material.`
+        : roleSpec(r)
+          ? `${made}.${accent}`
+          : `Follows “Everything” (${made.toLowerCase()}). Pick a material to make ${r.label.toLowerCase()} different.${accent}`;
   });
 
   // Material library: real-world recipes rendered with the engine itself.
@@ -737,10 +796,19 @@ function buildMaterials() {
   swatchSync = onSync(() => {
     const spec = effectiveSpec(currentRole());
     const key = JSON.stringify({ m: spec.material, f: spec.finish, t: spec.texture, b: spec.vars?.['--tr-m-base'] });
+    let hit: HTMLElement | undefined;
     for (const t of tiles) {
       const p = materialPresets.find((x) => x.id === t.id)!;
-      t.el.setAttribute('aria-pressed', String(JSON.stringify({ m: p.spec.material, f: p.spec.finish, t: p.spec.texture, b: p.spec.vars?.['--tr-m-base'] }) === key));
+      const on = JSON.stringify({ m: p.spec.material, f: p.spec.finish, t: p.spec.texture, b: p.spec.vars?.['--tr-m-base'] }) === key;
+      t.el.setAttribute('aria-pressed', String(on));
+      if (on) hit = t.el;
     }
+    // Bring the current material into view when the group or the panel changes, not on every edit.
+    const where = `${state.role}|${state.panel}`;
+    if (where !== lastSwatchView && state.panel === 'materials' && hit) {
+      lastSwatchView = where;
+      requestAnimationFrame(() => hit!.scrollIntoView({ block: 'nearest', behavior: reduceMotion.matches ? 'auto' : 'smooth' }));
+    } else if (state.panel !== 'materials') lastSwatchView = '';
   });
 
   const r = () => currentRole();
@@ -919,7 +987,7 @@ function buildMotion() {
     h('p', { class: 'panel-lede', text: 'How controls press, release and travel. Reduced-motion users always get instant changes.' }),
     group(
       'Feel',
-      segmented('Motion feel', FEELS, feel, (v) => {
+      choice('Motion feel', FEELS, feel, (v) => {
         if (v === 'natural') {
           for (const k of ['motion.duration.press', 'motion.duration.release', 'motion.duration.travel', 'motion.easing.spring']) setToken(k, undefined);
           return;
@@ -1017,13 +1085,25 @@ function refreshChecks() {
 function buildStage() {
   $('#sprite').outerHTML = SPRITE;
   const picker = $('#screen-picker');
+  const select = $('#screen-select') as HTMLElement & { value: string };
   for (const s of SCREENS) {
     picker.append(tr('tr-option', { value: s.id, text: s.label }));
+    select.append(tr('tr-option', { value: s.id, text: s.label }));
     const el = h('div', { class: 'screen', 'data-screen': s.id, html: s.html });
     frame.append(el);
   }
   (picker as HTMLElement & { value: string }).value = state.screen;
-  picker.addEventListener('change', () => showScreen((picker as HTMLElement & { value: string }).value));
+  select.value = state.screen;
+  select.addEventListener('change', () => showScreen(select.value, true));
+  // Narrow screens: the editor is a bottom sheet; the handle expands it over the preview.
+  const handle = $('#sheet-handle');
+  handle.addEventListener('click', () => {
+    const open = handle.getAttribute('aria-expanded') !== 'true';
+    handle.setAttribute('aria-expanded', String(open));
+    handle.querySelector('.sr-only')!.textContent = open ? 'Collapse the editor' : 'Expand the editor';
+    $('#studio').toggleAttribute('data-sheet-open', open);
+  });
+  picker.addEventListener('change', () => showScreen((picker as HTMLElement & { value: string }).value, true));
   showScreen(state.screen);
   for (const f of frame.querySelectorAll('form')) f.addEventListener('submit', (e) => e.preventDefault());
   for (const a of frame.querySelectorAll('tr-nav-item')) a.addEventListener('click', (e) => e.preventDefault());
@@ -1031,14 +1111,36 @@ function buildStage() {
   const device = $('#device') as HTMLElement & { value: string };
   device.addEventListener('change', () => animated(() => (frame.dataset.device = device.value), 'device'));
   const backdrop = $('#backdrop') as HTMLElement & { pressed: boolean };
-  backdrop.addEventListener('change', () => (canvas.dataset.backdrop = backdrop.pressed ? 'mesh' : 'plain'));
+  // Glass needs something behind it to read as glass: the vivid backdrop comes on by itself for
+  // skins with glass, until you choose for yourself.
+  let backdropChosen = false;
+  backdrop.addEventListener('change', () => {
+    backdropChosen = true;
+    canvas.dataset.backdrop = backdrop.pressed ? 'mesh' : 'plain';
+  });
+  onSync(() => {
+    if (backdropChosen) return;
+    const glass = Object.values(state.skin.elements ?? {}).some((e) => e?.material === 'glass');
+    backdrop.pressed = glass;
+    canvas.dataset.backdrop = glass ? 'mesh' : 'plain';
+  });
   setupInspector();
 }
-function showScreen(id: string) {
+/**
+ * Switches the preview screen. Animated switches run as a view transition: the frame morphs to
+ * the new screen's height while the old screen dissolves and the new one settles in, so the page
+ * below never jumps when screens differ in height.
+ */
+function showScreen(id: string, animate = false) {
+  if (id === state.screen && animate) return;
   state.screen = id;
-  const picker = $('#screen-picker') as HTMLElement & { value: string };
-  if (picker.value !== id) picker.value = id;
-  for (const s of frame.querySelectorAll<HTMLElement>('.screen')) s.toggleAttribute('data-active', s.dataset.screen === id);
+  for (const p of [$('#screen-picker'), $('#screen-select')] as (HTMLElement & { value: string })[]) if (p && p.value !== id) p.value = id;
+  const swap = () => {
+    for (const s of frame.querySelectorAll<HTMLElement>('.screen')) s.toggleAttribute('data-active', s.dataset.screen === id);
+  };
+  if (!animate) return swap();
+  frame.setAttribute('data-snap', '');
+  void animated(swap, 'screen').then(() => frame.removeAttribute('data-snap'));
 }
 
 /* ---------- inspector ---------- */
@@ -1125,6 +1227,10 @@ function buildTop() {
   start.addEventListener('change', () => {
     const hit = opts.find(([v]) => v === start.value);
     if (!hit) return;
+    const ex = EXAMPLES.find((e) => `ex:${e.id}` === hit[0]);
+    words.prompt = ex?.prompt ?? '';
+    words.notes = ex ? skinFromDescription(ex.prompt).notes : [];
+    onWordsRestore();
     load(hit[2]);
     nameInput.value = state.skin.name;
     toast(`Started from ${hit[1].replace(' (built-in)', '')}`);

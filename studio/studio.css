@@ -64,7 +64,8 @@ button {
   display: grid;
   grid-template: 'top top' var(--top-h) 'rail stage' minmax(0, 1fr) / var(--rail-w) minmax(0, 1fr);
   height: 100dvh;
-  overflow: hidden;
+  /* clip, not hidden: nothing (focus, scrollIntoView) can scroll the shell and cut off the top bar */
+  overflow: clip;
 }
 .studio[data-ready] {
   opacity: 1;
@@ -566,7 +567,7 @@ details.more > .group {
   --tr-panel-padding: 0;
   --tr-panel-radius: 0.5rem;
   --tr-panel-container-type: normal;
-  height: 2.6rem;
+  height: 3.6rem;
   pointer-events: none;
 }
 .swatch-label {
@@ -636,12 +637,18 @@ details.more > .group {
   background: oklch(76% 0.15 62 / 0.06);
 }
 .notes {
+  /* a fixed box: new notes never push the examples below it around */
   display: grid;
+  align-content: start;
   gap: 0.3rem;
-  min-height: 9rem;
+  height: 11.5rem;
   margin: 0;
-  padding: 0;
+  padding: 0 0.25rem 0 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   list-style: none;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent);
 }
 .notes:empty::before {
   content: 'Decisions appear here, one per line, so you can see how the words were read.';
@@ -778,6 +785,11 @@ details.more > .group {
 }
 .screen-picker {
   flex: none;
+}
+/* phone-only controls: the screen menu replaces the chips, the handle grows the editor sheet */
+.screen-select,
+.sheet-handle {
+  display: none;
 }
 .stage-tools {
   display: flex;
@@ -1079,10 +1091,13 @@ details.more > .group {
 }
 /* Device change: the frame morphs while the old layout dissolves and the new one settles in,
    so two layouts are never seen on top of each other. */
-:active-view-transition-type(device)::view-transition-old(pv-frame) {
+.frame[data-snap] .screen {
+  transition: none;
+}
+:active-view-transition-type(device, screen)::view-transition-old(pv-frame) {
   animation: pv-out calc(var(--t-slow) * 0.4) var(--ease-out) both;
 }
-:active-view-transition-type(device)::view-transition-new(pv-frame) {
+:active-view-transition-type(device, screen)::view-transition-new(pv-frame) {
   animation: pv-in calc(var(--t-slow) * 0.6) var(--ease-out) calc(var(--t-slow) * 0.4) both;
 }
 @keyframes pv-out {
@@ -1449,5 +1464,71 @@ details.more > .group {
   }
   .stage-bar .stage-tools #backdrop {
     display: none;
+  }
+  /* the editor is a bottom sheet: the handle (or a tap on it) grows it, the row height animates */
+  .studio {
+    transition: opacity var(--t-slow) var(--ease-out), grid-template-rows var(--t-slow) var(--ease-io);
+  }
+  .studio[data-sheet-open] {
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 78dvh);
+  }
+  .rail {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+  .sheet-handle {
+    display: grid;
+    place-items: center;
+    height: 1.1rem;
+    border: 0;
+    padding: 0;
+    background: oklch(16% 0.007 260);
+    cursor: grab;
+    touch-action: none;
+  }
+  .sheet-handle::before {
+    content: '';
+    width: 2.6rem;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--ui-muted);
+    opacity: 0.55;
+    transition: opacity var(--t-fast), transform var(--t-med) var(--ease-out);
+  }
+  .sheet-handle:hover::before,
+  .sheet-handle:focus-visible::before {
+    opacity: 1;
+  }
+  .sheet-handle[aria-expanded='true']::before {
+    transform: scaleX(0.7);
+  }
+}
+
+@media (max-width: 600px) {
+  .stage-bar #screen-picker,
+  .stage-bar #device,
+  .btn-label {
+    display: none;
+  }
+  .screen-select {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 12rem;
+  }
+  .rail-tab {
+    flex: 1 1 0;
+    min-width: 3rem;
+  }
+  .check-pill {
+    width: 2rem;
+    padding: 0;
+    justify-content: center;
+  }
+  .check-pill .check-text {
+    /* still the button's name for screen readers */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
   }
 }

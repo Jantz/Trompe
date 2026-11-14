@@ -30,12 +30,13 @@
           <button class="check-pill" id="check-pill" type="button" data-state="ok">
             <span class="check-dot" aria-hidden="true"></span><span class="check-text" id="check-text">Checks pass</span>
           </button>
-          <tr-button id="share" size="sm"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-share" /></svg>Share</tr-button>
-          <tr-button id="export" size="sm" tone="accent"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-download" /></svg>Export</tr-button>
+          <tr-button id="share" size="sm" aria-label="Share"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-share" /></svg><span class="btn-label">Share</span></tr-button>
+          <tr-button id="export" size="sm" tone="accent" aria-label="Export"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-download" /></svg><span class="btn-label">Export</span></tr-button>
         </div>
       </header>
 
       <aside class="rail" data-tr-skin="studio-ui" aria-label="Skin editor">
+        <button class="sheet-handle" id="sheet-handle" type="button" aria-expanded="false" aria-controls="rail-panels"><span class="sr-only">Expand the editor</span></button>
         <div class="rail-tabs" role="tablist" aria-label="Editor sections" aria-orientation="vertical" id="rail-tabs"></div>
         <div class="rail-panels" id="rail-panels"></div>
       </aside>
@@ -43,6 +44,7 @@
       <main class="stage" aria-label="Preview">
         <div class="stage-bar" data-tr-skin="studio-ui">
           <tr-segmented id="screen-picker" size="sm" label="Screen" class="screen-picker"></tr-segmented>
+          <tr-select id="screen-select" size="sm" aria-label="Screen" class="screen-select"></tr-select>
           <div class="stage-tools">
             <tr-segmented id="device" size="sm" label="Device width" value="desktop">
               <tr-option value="desktop" aria-label="Desktop"><svg width="16" height="16" aria-hidden="true"><use href="#i-desktop" /></svg></tr-option>
@@ -50,7 +52,7 @@
               <tr-option value="phone" aria-label="Phone"><svg width="16" height="16" aria-hidden="true"><use href="#i-phone" /></svg></tr-option>
             </tr-segmented>
             <tr-button id="backdrop" size="sm" toggle aria-label="Vivid backdrop" title="Vivid backdrop, for glass and translucent materials"><svg width="16" height="16" aria-hidden="true"><use href="#i-image" /></svg></tr-button>
-            <tr-button id="inspect" size="sm" toggle title="Click any control in the preview to edit its material (I)"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-target" /></svg>Inspect</tr-button>
+            <tr-button id="inspect" size="sm" toggle aria-label="Inspect" title="Click any control in the preview to edit its material (I)"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-target" /></svg><span class="btn-label">Inspect</span></tr-button>
           </div>
         </div>
         <div class="stage-canvas" id="canvas" data-backdrop="plain">
