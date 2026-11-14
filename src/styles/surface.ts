@@ -114,8 +114,9 @@ export const surfaceStyles = css`
     /* non-linear physical offset: each level reads clearly higher than the last */
     --_off: calc(pow(var(--_raise), var(--tr-depth-curve, 1.6)) * var(--tr-depth-unit, 2px) * var(--_len));
     --_in: calc(pow(var(--_sink), var(--tr-depth-curve, 1.6)) * var(--tr-depth-unit, 2px) * var(--_len) * 1.2);
-    /* highlight strength: sharp highlights read brighter */
-    --_spec: calc(var(--_specular) * (1 - var(--_roughness) * 0.6) * var(--_r));
+    /* highlight strength: sharp highlights read brighter. The floor of a well (sunk 2 or more) sees
+       little of the sky, so its sheen is cut to a quarter: no glossy streak across dark fields. */
+    --_spec: calc(var(--_specular) * (1 - var(--_roughness) * 0.6) * var(--_r) * (1 - min(var(--_sink), 2) * 0.375));
     /* reflections fade in faster than shadows as realism rises */
     --_rg: calc(var(--_r) * (2 - var(--_r)));
     /* metals shade with more contrast */
@@ -210,16 +211,24 @@ export const surfaceStyles = css`
         transparent 80%
       ),
       /* brushed: two hairline periods so the grain never looks regular */
+      /* highlight hairlines at uneven spacing and strength (a 13px cycle against the 11px shadow
+         cycle), so big faces read as fine grain rather than scan lines */
       repeating-linear-gradient(
         0deg,
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * (0.06 + 0.1 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 0 1px,
-        transparent 1px 3px
+        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * (0.02 + 0.13 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 0 1px,
+        transparent 1px 3px,
+        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * (0.01 + 0.06 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 3px 4px,
+        transparent 4px 6px,
+        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * (0.02 + 0.1 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 6px 7px,
+        transparent 7px 10px,
+        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * (0.005 + 0.04 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 10px 11px,
+        transparent 11px 13px
       ),
       repeating-linear-gradient(
         0deg,
-        color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * 8%), transparent) 0 1px,
+        color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * (3% + 5% * var(--_reflect, var(--tr-reflect-scale, 1)))), transparent) 0 1px,
         transparent 1px 5px,
-        color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * 5%), transparent) 5px 6px,
+        color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * (2% + 3% * var(--_reflect, var(--tr-reflect-scale, 1)))), transparent) 5px 6px,
         transparent 6px 11px
       ),
       /* material texture, under every lighting layer so the light still reads over it */

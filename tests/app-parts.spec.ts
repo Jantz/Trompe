@@ -187,3 +187,35 @@ test('tr-select: hint and error show under the field, are read out and set valid
   await expect(sel).not.toHaveAttribute('aria-invalid', 'true');
   expect(await page.locator('#f').evaluate((f: HTMLFormElement) => f.checkValidity())).toBe(true);
 });
+
+test('tr-table: stacked rows keep sorting through the Sort by keys', async ({ page }) => {
+  await mount(
+    page,
+    `<tr-table id="t" autosort style="width:320px"><table>
+      <thead><tr><th data-sort="name">Name</th><th data-sort="qty" data-numeric>Qty</th></tr></thead>
+      <tbody><tr><td>Beans</td><td>12</td></tr><tr><td>Apples</td><td>3</td></tr><tr><td>Cherries</td><td>40</td></tr></tbody>
+    </table></tr-table>`,
+  );
+  const key = page.getByRole('button', { name: 'Sort by Qty' });
+  await expect(key).toBeVisible();
+  await key.click();
+  await expect(page.getByRole('button', { name: 'Sort by Qty, ascending' })).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.locator('#t tbody td:first-child').allTextContents()).toEqual(['Apples', 'Beans', 'Cherries']);
+  // an app that sorts for itself sets aria-sort, and the keys follow
+  await page.locator('th[data-sort=name]').evaluate((th) => th.setAttribute('aria-sort', 'descending'));
+  await expect(page.getByRole('button', { name: 'Sort by Name, descending' })).toBeVisible();
+  // wide tables keep the header and hide the keys
+  await page.locator('#t').evaluate((el) => (el.style.width = '700px'));
+  await expect(page.getByRole('group', { name: 'Sort by' })).toBeHidden();
+  const r = await new AxeBuilder({ page }).include('#root').analyze();
+  expect(r.violations).toEqual([]);
+});
+
+test('tr-progress: the ring cap takes your own centre content', async ({ page }) => {
+  await mount(page, `<tr-progress id="p" variant="ring" size="lg" value="6240" max="8000" label="Steps"><span slot="center"><strong>6,240</strong><small>steps</small></span></tr-progress>`);
+  const cap = (await page.locator('#p').locator('[part=cap]').boundingBox())!;
+  const text = (await page.getByText('6,240').boundingBox())!;
+  expect(text.x).toBeGreaterThan(cap.x);
+  expect(text.x + text.width).toBeLessThan(cap.x + cap.width);
+  expect(Math.abs(text.y + text.height / 2 - (cap.y + cap.height / 2))).toBeLessThan(cap.height * 0.3);
+});

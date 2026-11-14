@@ -229,10 +229,76 @@ export const scenarios: MotionScenario[] = [
     trigger: (p) => p.click('th[data-sort="n"]'),
   },
   {
+    name: 'chart: data change line',
+    markup: `<tr-chart id="t" type="line" label="Visits" style="width:560px"></tr-chart>${AFTER}`,
+    setup: async (p) => {
+      await p.evaluate(() => ((document.querySelector('#t') as unknown as { data: object[] }).data = [{ x: 'Mon', a: 30, b: 12 }, { x: 'Tue', a: 42, b: 20 }, { x: 'Wed', a: 36, b: 28 }, { x: 'Thu', a: 48, b: 24 }]));
+      await p.evaluate(() => document.fonts.ready);
+      await p.waitForFunction(() => document.querySelector('#t')!.shadowRoot!.getAnimations().length === 0);
+    },
+    trigger: set('#t', 'data', [{ x: 'Mon', a: 22, b: 30 }, { x: 'Tue', a: 46, b: 16 }, { x: 'Wed', a: 40, b: 34 }, { x: 'Thu', a: 31, b: 26 }]),
+  },
+  {
+    name: 'chart: data change bar',
+    markup: `<tr-chart id="t" type="bar" label="Steps" style="width:560px"><table><thead><tr><th>Day</th><th>Steps</th></tr></thead><tbody><tr><td>Mon</td><td>8200</td></tr><tr><td>Tue</td><td id="v">10400</td></tr><tr><td>Wed</td><td>6900</td></tr></tbody></table></tr-chart>${AFTER}`,
+    setup: (p) => p.evaluate(() => document.fonts.ready).then(() => p.waitForFunction(() => document.querySelector('#t')!.shadowRoot!.getAnimations().length === 0)),
+    trigger: (p) => p.evaluate(() => (document.querySelector('#v')!.textContent = '4300')),
+  },
+  {
+    name: 'chart: hover readout',
+    markup: `<tr-chart id="t" type="line" label="Visits" values="3,5,4,7,6" style="width:560px"></tr-chart>${AFTER}`,
+    setup: (p) => p.evaluate(() => document.fonts.ready).then(() => p.waitForFunction(() => document.querySelector('#t')!.shadowRoot!.getAnimations().length === 0)),
+    trigger: (p) => p.hover('#t'),
+  },
+  {
+    name: 'table: sort from the stacked keys',
+    markup: '<tr-table id="t" autosort style="width:320px"><table><thead><tr><th data-sort="n">Name</th><th data-sort="q" data-numeric>Qty</th></tr></thead><tbody><tr><td>Beans</td><td>12</td></tr><tr><td>Apples</td><td>3</td></tr></tbody></table></tr-table>',
+    trigger: (p) => p.getByRole('button', { name: 'Sort by Name' }).click(),
+  },
+  {
+    name: 'progress: ring centre content changes',
+    markup: '<tr-progress id="t" variant="ring" size="lg" value="40" label="Steps"><span slot="center" id="c">4,000</span></tr-progress>',
+    trigger: (p) => p.evaluate(() => { (document.querySelector('#t') as HTMLElement & { value: number }).value = 60; }),
+  },
+  {
     name: 'toast: show',
     markup: '<tr-button>Save</tr-button>',
     trigger: (p) => p.evaluate(() => (window as unknown as { trompe: { toast(m: string, o?: object): void } }).trompe.toast('Saved', { tone: 'success', duration: 0 })),
   },
   { name: 'select: error appears', markup: `<tr-select id="t" label="Payee"><tr-option value="a">Ada</tr-option></tr-select>${AFTER}`, trigger: attr('#t', 'error', 'Choose who to pay.') },
   { name: 'select: hint appears', markup: `<tr-select id="t" label="Payee"><tr-option value="a">Ada</tr-option></tr-select>${AFTER}`, trigger: attr('#t', 'hint', 'Saved payees only.') },
+  // Choice cards and pagination
+  {
+    name: 'choice: select another card',
+    markup: '<tr-choice-group label="Plan" value="a" style="width:640px"><tr-choice-card value="a">Free<span slot="end">$0</span></tr-choice-card><tr-choice-card id="t" value="b">Pro<span slot="end">$12</span></tr-choice-card></tr-choice-group>',
+    trigger: (p) => p.click('#t'),
+  },
+  {
+    name: 'choice: toggle in a multiple group',
+    markup: '<tr-choice-group label="Days" multiple style="width:640px"><tr-choice-card id="t" value="mon">Monday</tr-choice-card><tr-choice-card value="tue">Tuesday</tr-choice-card></tr-choice-group>',
+    trigger: (p) => p.click('#t'),
+  },
+  {
+    name: 'choice: error appears',
+    markup: `<tr-choice-group id="t" label="Delivery" style="width:640px"><tr-choice-card value="a">Standard</tr-choice-card><tr-choice-card value="b">Express</tr-choice-card></tr-choice-group>${AFTER}`,
+    trigger: attr('#t', 'error', 'Choose how to ship.'),
+  },
+  { name: 'choice: hover', markup: '<tr-choice-group label="Plan" style="width:640px"><tr-choice-card id="t" value="a">Free</tr-choice-card></tr-choice-group>', trigger: (p) => p.hover('#t') },
+  { name: 'pagination: next page', markup: '<tr-pagination id="t" pages="12" page="2"></tr-pagination>', trigger: (p) => p.getByRole('button', { name: 'Next page' }).click() },
+  { name: 'pagination: window moves', markup: '<tr-pagination id="t" pages="12" page="6"></tr-pagination>', trigger: set('#t', 'page', 7) },
+  { name: 'pagination: hover', markup: '<tr-pagination id="t" pages="12" page="2"></tr-pagination>', trigger: (p) => p.getByRole('button', { name: 'Page 4' }).hover() },
+  { name: 'pagination: compact step', markup: '<tr-pagination id="t" pages="40" page="3" compact></tr-pagination>', trigger: (p) => p.getByRole('button', { name: 'Next page' }).click() },
+  { name: 'icon: name change', markup: `<tr-button><tr-icon id="t" slot="start" name="play" size="lg"></tr-icon>Start</tr-button>${AFTER}`, trigger: set('#t', 'name', 'pause') },
+  { name: 'icon: variant change', markup: '<tr-icon id="t" name="lock" size="xl" variant="printed"></tr-icon>', trigger: set('#t', 'variant', 'embossed') },
+  { name: 'icon: tone change', markup: '<tr-icon id="t" name="bolt" size="xl" variant="lit"></tr-icon>', trigger: set('#t', 'tone', 'danger') },
+
+  // Calendar and date picker
+  { name: 'calendar: next month', markup: `<tr-calendar id="t" value="2026-11-14" locale="en-GB"></tr-calendar>${AFTER}`, trigger: (p) => p.click('#t [part=next]') },
+  { name: 'calendar: select day', markup: '<tr-calendar id="t" value="2026-11-14" locale="en-GB"></tr-calendar>', trigger: (p) => p.click('#t [data-date="2026-11-19"]') },
+  { name: 'calendar: range end', markup: '<tr-calendar id="t" range value="2026-11-03" locale="en-GB"></tr-calendar>', setup: (p) => p.click('#t [data-date="2026-11-03"]'), trigger: (p) => p.click('#t [data-date="2026-11-12"]') },
+  { name: 'calendar: month grid', markup: `<tr-calendar id="t" value="2026-11-14" locale="en-GB"></tr-calendar>${AFTER}`, trigger: (p) => p.click('#t [part=title]') },
+  { name: 'date picker: open', markup: `<tr-date-picker id="t" label="Check-in" value="2026-11-14" locale="en-GB"></tr-date-picker>${AFTER}`, trigger: set('#t', 'open', true) },
+  { name: 'date picker: close', markup: `<tr-date-picker id="t" label="Check-in" value="2026-11-14" locale="en-GB"></tr-date-picker>${AFTER}`, setup: set('#t', 'open', true), trigger: set('#t', 'open', false) },
+  { name: 'date picker: error appears', markup: `<tr-date-picker id="t" label="Check-in" locale="en-GB"></tr-date-picker>${AFTER}`, trigger: attr('#t', 'error', 'Choose a day after today.') },
+  { name: 'date picker: value change', markup: '<tr-date-picker id="t" label="Check-in" value="2026-11-14" locale="en-GB"></tr-date-picker>', trigger: set('#t', 'value', '2026-12-01') },
 ];

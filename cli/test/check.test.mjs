@@ -142,3 +142,19 @@ test('--render motion: cuts, jumps and pop-ins are found; a transition is clean'
   assert.ok(motion.some((m) => m.startsWith('TR122') && m.includes('#jump')), motion.join('\n'));
   assert.ok(!motion.some((m) => m.includes('#smooth')), motion.join('\n'));
 });
+
+test('TR005: an icon-only button is named by its aria-label or a labelled tr-icon', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trompe-icon-'));
+  const { writeFileSync } = await import('node:fs');
+  writeFileSync(join(dir, 'package.json'), '{"name":"x"}');
+  writeFileSync(join(dir, 'i.html'), [
+    '<tr-button aria-label="Settings"><tr-icon name="settings"></tr-icon></tr-button>',
+    '<tr-button><tr-icon name="close" label="Close"></tr-icon></tr-button>',
+    '<tr-button><tr-icon slot="start" name="download"></tr-icon>Export</tr-button>',
+    '<tr-button><tr-icon name="trash"></tr-icon></tr-button>',
+    '<tr-icon name="bell"></tr-icon>',
+  ].join('\n') + '\n');
+  writeFileSync(join(dir, 'V.vue'), '<template>\n  <tr-button><tr-icon name="plus" :label="addText"></tr-icon></tr-button>\n</template>\n');
+  const r = await run({ inputs: ['i.html', 'V.vue'], cwd: dir });
+  assert.deepEqual(r.findings.map((f) => `${f.file}:${f.id}@${f.line}`), ['i.html:TR005@4']);
+});

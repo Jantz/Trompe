@@ -56,7 +56,9 @@ export class TrPanel extends TrompeElement {
         --_screw: var(--tr-panel-screw-size, 0.8em);
         --_screw-at: var(--tr-panel-screw-inset, 0.95em);
         --_radius: var(--tr-panel-radius, var(--tr-radius-lg, 16px));
-        display: block;
+        /* a column, so the chassis fills any height the panel is given: height, min-height, or a grid row */
+        display: flex;
+        flex-direction: column;
         container-name: tr-panel;
         /* inline-size containment drops the panel's intrinsic width: in shrink-to-fit layouts
            (auto grid tracks, floats, inline-flex) give it a width or set this to normal */
@@ -77,6 +79,7 @@ export class TrPanel extends TrompeElement {
         --_tr-z: var(--_depth);
         display: flex;
         flex-direction: column;
+        flex: 1 1 auto;
         gap: var(--_gap);
         min-height: 100%;
         padding: var(--_pad);

@@ -143,6 +143,11 @@ export function textOf(node) {
     if (c.nodeName === '#text') s += c.value;
     else if (c.tagName && c.tagName !== 'svg' && c.tagName !== 'template' && c.tagName !== 'script' && c.tagName !== 'style') {
       if (c.attrs?.some((a) => a.name === 'aria-hidden' && a.value === 'true')) continue;
+      // a labelled tr-icon is an image with a name, like <img alt>
+      if (c.tagName === 'tr-icon') {
+        s += c.attrs?.find((a) => ['label', 'aria-label'].includes(a.name.replace(/^(:|v-bind:)/, '')))?.value ?? '';
+        continue;
+      }
       if (c.attrs?.some((a) => a.name === 'slot' && ['start', 'end', 'icon', 'prefix', 'suffix'].includes(a.value)) && !textOf(c).trim()) continue;
       s += textOf(c);
     } else if (c.tagName === 'svg') {

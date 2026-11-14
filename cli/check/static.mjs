@@ -20,7 +20,8 @@ const isFrameworkBinding = (n) => /^(:|@|#|\.|\?|v-|bind:|on:|use:|class:|style:
 const isDynamic = (v) => v != null && (v.includes(EXPR) || v.includes(MARK) || v.includes(TEXT) || /\{\{|\$\{/.test(v));
 // Words agents reach for from other design systems, mapped to Trompe's values.
 const SYNONYMS = { primary: 'accent', secondary: 'neutral', default: 'neutral', destructive: 'danger', error: 'danger', warning: 'danger',
-  small: 'sm', medium: 'md', large: 'lg', s: 'sm', m: 'md', l: 'lg', round: 'circle', rounded: 'pill', square: 'rect', metallic: 'metal', steel: 'metal', aluminium: 'metal', aluminum: 'metal', frosted: 'glass', shiny: 'gloss', glossy: 'gloss', polished: 'mirror', realistic: 'real', subtle: 'soft' };
+  small: 'sm', medium: 'md', large: 'lg', s: 'sm', m: 'md', l: 'lg', round: 'circle', rounded: 'pill', square: 'rect', metallic: 'metal', steel: 'metal', aluminium: 'metal', aluminum: 'metal', frosted: 'glass', shiny: 'gloss', glossy: 'gloss', polished: 'mirror', realistic: 'real', subtle: 'soft',
+  etched: 'engraved', debossed: 'engraved', carved: 'engraved', inset: 'engraved', raised: 'embossed', backlit: 'lit', glow: 'lit', glowing: 'lit', outline: 'printed', flat: 'printed' };
 const pick = (value, values) => (values.includes(SYNONYMS[value?.toLowerCase()]) ? SYNONYMS[value.toLowerCase()] : suggest(value, values));
 const CONTAINER_ENUMS = { 'data-tr-material': 'material', 'data-tr-finish': 'finish', 'data-tr-profile': 'profile', 'data-tr-realism': 'realism', 'data-tr-theme': 'theme' };
 

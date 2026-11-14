@@ -1,5 +1,5 @@
-import { css, html } from 'lit';
-import { property } from 'lit/decorators.js';
+import { css, html, nothing } from 'lit';
+import { property, state } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 
 /**
@@ -30,6 +30,10 @@ const TABLE_CSS = `
   border-bottom: 1px solid var(--_rule);
   /* an engraved line: the cut catches light on its far edge */
   box-shadow: inset 0 -1px 0 0 var(--_rule-light);
+  /* when rows are re-ordered the last row's rule fades out and the new one's fades in */
+  transition:
+    border-bottom-color var(--tr-motion-duration-travel, 220ms) ease-out,
+    box-shadow var(--tr-motion-duration-travel, 220ms) ease-out;
 }
 :where(tr-table) :where(thead th, thead td) {
   position: var(--_sticky, static);
@@ -48,7 +52,7 @@ const TABLE_CSS = `
 :where(tr-table) :where(tbody tr:last-child) > :where(th, td),
 :where(tr-table) :where(tfoot tr:last-child) > :where(th, td) {
   border-bottom-color: transparent;
-  box-shadow: none;
+  box-shadow: inset 0 -1px 0 0 transparent;
 }
 :where(tr-table) :where(tfoot) :where(th, td) {
   font-weight: var(--tr-font-weight-strong, 600);
@@ -126,10 +130,14 @@ const TABLE_CSS = `
     padding: calc(var(--_cell-y) * 0.6) 0;
     border-bottom: 1px solid var(--_rule);
     box-shadow: inset 0 -1px 0 0 var(--_rule-light);
+    transition:
+      border-bottom-color var(--tr-motion-duration-travel, 220ms) ease-out,
+      box-shadow var(--tr-motion-duration-travel, 220ms) ease-out;
   }
   :where(tr-table:not([stack='never'])) > table > :where(tbody, tfoot) > tr:last-child {
-    border-bottom: 0;
-    box-shadow: none;
+    /* the rule stays 1px (so re-ordering moves nothing) and only fades */
+    border-bottom-color: transparent;
+    box-shadow: inset 0 -1px 0 0 transparent;
   }
   :where(tr-table:not([stack='never'])) > table > :where(tbody, tfoot) > tr > :where(td, th) {
     display: grid;
@@ -187,6 +195,7 @@ const cellText = (c: Element) => (c.textContent ?? '').trim();
  * Responsive by default: when the table is narrower than 34em, each row turns into a card of
  * label/value pairs. The labels come from the header cells and are copied to each cell's
  * `data-label` automatically (set it yourself to override, or `data-label=""` to hide one).
+ * Sortable columns stay sortable there: a row of "Sort by" keys replaces the hidden header.
  *
  * Sorting: give a header `data-sort` (any key) and clicking it, or Enter on it, cycles
  * `aria-sort` and fires a `sort` event with `{ key, column, direction }`. Re-order your data in the
@@ -203,6 +212,7 @@ const cellText = (c: Element) => (c.textContent ?? '').trim();
  * @slot - A native `<table>`.
  *
  * @csspart tray - The tray around the table (scrolls horizontally when `stack="never"`).
+ * @csspart sortbar - The "Sort by" keys shown instead of the header when rows are stacked.
  *
  * @cssprop --tr-table-cell-padding-x - Horizontal cell padding. Defaults by density.
  * @cssprop --tr-table-cell-padding-y - Vertical cell padding. Defaults by density.
@@ -274,6 +284,79 @@ export class TrTable extends TrompeElement {
       :host([sticky-header]:not([variant='raised'])) {
         --_head-bg: color-mix(in oklch, var(--tr-color-well), var(--tr-color-surface) 45%);
       }
+      /* Stacked rows hide the header, so sortable columns get a row of keys instead. */
+      .sortbar {
+        display: none;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.375em;
+        margin-block-end: 0.625em;
+        font-size: var(--tr-font-size-sm, 0.875em);
+      }
+      .sortbar > span {
+        color: var(--tr-color-ink-muted);
+        font-size: 0.85em;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-weight: var(--tr-font-weight-strong, 600);
+        margin-inline-end: 0.25em;
+      }
+      @container tr-table (max-width: 34em) {
+        :host(:not([stack='never'])) .sortbar {
+          display: flex;
+        }
+      }
+      .sortkey {
+        --_tr-z: 1;
+        --_base: var(--_m-base);
+        --_ink: var(--_m-ink);
+        --_curve: 0.3;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4em;
+        min-height: 2.25em;
+        padding: 0 0.75em;
+        border-radius: var(--tr-radius-pill, 999px);
+        font: inherit;
+        cursor: pointer;
+        transition:
+          --_tr-z var(--tr-motion-duration-press, 90ms) var(--tr-motion-easing-press, ease-out),
+          color var(--tr-motion-duration-release, 160ms) ease-out;
+      }
+      .sortkey:active {
+        --_tr-z: -1;
+      }
+      .sortkey[aria-pressed='true'] {
+        --_tr-z: -1;
+        color: var(--tr-color-accent);
+      }
+      .sortkey:focus-visible {
+        outline: 2px solid var(--tr-color-focus);
+        outline-offset: 2px;
+      }
+      .sortkey .arrow {
+        width: 0.55em;
+        height: 0.7em;
+        background: currentColor;
+        clip-path: polygon(50% 0, 100% 40%, 0 40%, 0 60%, 100% 60%, 50% 100%);
+        opacity: 0.45;
+        transition:
+          clip-path var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-settle, ease-out),
+          opacity var(--tr-motion-duration-release, 160ms) ease-out;
+      }
+      .sortkey[data-dir='ascending'] .arrow {
+        clip-path: polygon(50% 15%, 100% 75%, 50% 75%, 50% 75%, 0 75%, 0 75%);
+        opacity: 1;
+      }
+      .sortkey[data-dir='descending'] .arrow {
+        clip-path: polygon(50% 85%, 0 25%, 50% 25%, 50% 25%, 100% 25%, 100% 25%);
+        opacity: 1;
+      }
+      @media (forced-colors: active) {
+        .sortkey {
+          border: 1px solid ButtonText;
+        }
+      }
       @media (forced-colors: active) {
         .tray {
           border: 1px solid CanvasText;
@@ -302,13 +385,16 @@ export class TrTable extends TrompeElement {
 
   private observer?: MutationObserver;
 
+  /** Sortable headers, mirrored as keys for the stacked layout. */
+  @state() private sortKeys: { th: HTMLTableCellElement; text: string; dir: string }[] = [];
+
   override connectedCallback(): void {
     super.connectedCallback();
     adopt(this.getRootNode());
     this.addEventListener('click', this.onClick);
     this.addEventListener('keydown', this.onKey);
     this.observer = new MutationObserver(() => this.label());
-    this.observer.observe(this, { childList: true, subtree: true, characterData: true });
+    this.observe();
     this.label();
   }
 
@@ -345,7 +431,14 @@ export class TrTable extends TrompeElement {
       if (th.hasAttribute('data-sort') && !th.hasAttribute('tabindex')) th.tabIndex = 0;
       if (th.hasAttribute('data-sort') && !th.hasAttribute('aria-sort')) th.setAttribute('aria-sort', 'none');
     }
-    this.observer?.observe(this, { childList: true, subtree: true, characterData: true });
+    const keys = heads.filter((th) => th.hasAttribute('data-sort')).map((th) => ({ th, text: cellText(th), dir: th.getAttribute('aria-sort') ?? 'none' }));
+    if (JSON.stringify(keys.map((k) => [k.text, k.dir])) !== JSON.stringify(this.sortKeys.map((k) => [k.text, k.dir])) || keys.some((k, i) => k.th !== this.sortKeys[i]?.th)) this.sortKeys = keys;
+    this.observe();
+  }
+
+  private observe(): void {
+    // aria-sort is watched too, so apps that sort for themselves keep the stacked keys in step.
+    this.observer?.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['aria-sort'] });
   }
 
   private onClick = (e: Event): void => {
@@ -372,6 +465,7 @@ export class TrTable extends TrompeElement {
     // The arrows always follow the click; cancelling only stops autosort from moving rows.
     for (const h of heads) if (h.hasAttribute('aria-sort')) h.setAttribute('aria-sort', h === th ? direction : 'none');
     if (ok && this.autosort) this.reorder(column, direction);
+    this.label();
   }
 
   private reorder(column: number, direction: 'ascending' | 'descending'): void {
@@ -379,6 +473,10 @@ export class TrTable extends TrompeElement {
     if (!body) return;
     const rows = [...body.rows];
     const before = new Map(rows.map((r) => [r, r.getBoundingClientRect().top]));
+    // Rows are re-inserted, which skips CSS transitions: the rule under the last row (row or cell
+    // borders, depending on the layout) is faded by hand from where it was.
+    const ruled = rows.flatMap((r) => [r, ...r.cells] as HTMLElement[]);
+    const rules = new Map(ruled.map((el) => { const cs = getComputedStyle(el); return [el, [cs.borderBottomColor, cs.boxShadow]] as const; }));
     const key = (r: HTMLTableRowElement) => {
       const c = r.cells[column];
       const v = c?.dataset.value ?? cellText(c ?? r);
@@ -394,6 +492,12 @@ export class TrTable extends TrompeElement {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     // Rows glide from their old places. Offsetting with relative `top` (not a transform) keeps the
     // text on the same sub-pixel grid as at rest, so nothing shimmers on the first frame.
+    for (const el of ruled) {
+      const [color, shadow] = rules.get(el)!;
+      const cs = getComputedStyle(el);
+      if (cs.borderBottomColor !== color || cs.boxShadow !== shadow)
+        el.animate([{ borderBottomColor: color, boxShadow: shadow }, { borderBottomColor: cs.borderBottomColor, boxShadow: cs.boxShadow }], { duration: 260, easing: 'ease-out' });
+    }
     const many = rows.length > 80;
     for (const r of rows) {
       const dy = before.get(r)! - r.getBoundingClientRect().top;
@@ -404,7 +508,26 @@ export class TrTable extends TrompeElement {
   }
 
   protected override render() {
-    return html`<div part="tray" class="tray surface"><slot @slotchange=${() => this.label()}></slot></div>`;
+    const keys = this.sortKeys;
+    const dirWord = (d: string) => (d === 'ascending' ? ', ascending' : d === 'descending' ? ', descending' : '');
+    return html`${keys.length
+        ? html`<div part="sortbar" class="sortbar" role="group" aria-label="Sort by">
+            <span aria-hidden="true">Sort</span>
+            ${keys.map(
+              (k) =>
+                html`<button
+                  type="button"
+                  class="sortkey surface"
+                  data-dir=${k.dir}
+                  aria-pressed=${k.dir === 'none' ? 'false' : 'true'}
+                  aria-label=${`Sort by ${k.text}${dirWord(k.dir)}`}
+                  @click=${() => this.sortBy(k.th)}
+                >
+                  ${k.text}<span class="arrow" aria-hidden="true"></span>
+                </button>`,
+            )}
+          </div>`
+        : nothing}<div part="tray" class="tray surface"><slot @slotchange=${() => this.label()}></slot></div>`;
   }
 }
 

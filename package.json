@@ -39,6 +39,14 @@
       "types": "./dist/components/menu/menu-item.d.ts",
       "default": "./dist/components/menu/menu-item.js"
     },
+    "./components/choice-group": {
+      "types": "./dist/components/choice/choice-group.d.ts",
+      "default": "./dist/components/choice/choice-group.js"
+    },
+    "./components/choice-card": {
+      "types": "./dist/components/choice/choice-card.d.ts",
+      "default": "./dist/components/choice/choice-card.js"
+    },
     "./components/*": {
       "types": "./dist/components/*/*.d.ts",
       "default": "./dist/components/*/*.js"

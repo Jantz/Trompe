@@ -16,7 +16,7 @@ import { PressController } from '../../interaction/press.js';
  * @tag tr-nav-item
  *
  * @slot - Item label.
- * @slot icon - Icon before the label (16 to 20px SVG).
+ * @slot icon - Icon before the label: a `<tr-icon>` (or a 16 to 20px SVG).
  * @slot badge - Trailing content such as a tr-badge count.
  * @slot children - Nested tr-nav-items (assigned automatically).
  *
