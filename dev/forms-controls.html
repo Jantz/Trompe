@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="/src/generated/skins.css">
+<script type="module" src="/src/index.ts"></script>
+<style>body{margin:0;background:#888;font-family:system-ui}
+.sec{padding:24px;display:grid;grid-template-columns:repeat(4,max-content);gap:22px 34px;align-items:start;background:var(--tr-color-canvas);color:var(--tr-color-ink)}
+.col{display:grid;gap:12px;align-content:start}
+h4{grid-column:1/-1;margin:0;font:600 11px/1 system-ui;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
+</style></head>
+<body>
+<template id="t">
+  <div class="col">
+    <tr-checkbox checked>Email me updates</tr-checkbox>
+    <tr-checkbox>Unchecked</tr-checkbox>
+    <tr-checkbox indeterminate>Select all</tr-checkbox>
+    <tr-checkbox checked material="metal">Metal</tr-checkbox>
+    <tr-checkbox checked disabled>Disabled</tr-checkbox>
+  </div>
+  <div class="col">
+    <tr-radio-group label="Shipping" value="exp">
+      <tr-radio value="std">Standard</tr-radio><tr-radio value="exp">Express</tr-radio><tr-radio value="ovn" disabled>Overnight</tr-radio>
+    </tr-radio-group>
+    <tr-segmented aria-label="View" value="grid"><tr-option value="list">List</tr-option><tr-option value="grid">Grid</tr-option><tr-option value="board">Board</tr-option></tr-segmented>
+    <tr-segmented aria-label="Range" value="w" material="metal" size="sm"><tr-option value="d">Day</tr-option><tr-option value="w">Week</tr-option><tr-option value="m">Month</tr-option></tr-segmented>
+  </div>
+  <div class="col">
+    <tr-select label="Country" placeholder="Choose…"><tr-option value="nl">Netherlands</tr-option><tr-option value="jp">Japan</tr-option></tr-select>
+    <tr-select label="Sort by" value="top" material="metal"><tr-option value="new">Newest</tr-option><tr-option value="top">Top rated</tr-option></tr-select>
+    <tr-select label="Open" class="opener"><tr-option value="a">Apple</tr-option><tr-option value="b">Banana</tr-option><tr-option value="c" disabled>Cherry</tr-option><tr-option value="d">Date</tr-option></tr-select>
+  </div>
+  <div class="col">
+    <tr-textarea label="Message" rows="3" maxlength="160" counter hint="Shown on your profile." value="Hello there, this is a note."></tr-textarea>
+    <tr-textarea aria-label="Notes" placeholder="Notes…" rows="2" error="Too short."></tr-textarea>
+  </div>
+</template>
+<div id="out"></div>
+<script type="module">
+const variants = [['', 'light default'], ['data-tr-theme="dark"', 'dark default'], ['data-tr-skin="studio"', 'studio'], ['data-tr-skin="chrome"', 'chrome'], ['data-tr-skin="heritage"', 'heritage'], ['data-tr-skin="soft"', 'soft'], ['data-tr-skin="aurora"', 'aurora'], ['data-tr-realism="flat" style="--tr-realism:0.1"', 'flat']];
+const t = document.getElementById('t').innerHTML;
+const sel = new URLSearchParams(location.search).get('v');
+document.getElementById('out').innerHTML = variants.filter((v, i) => sel == null || sel.split(',').includes(String(i))).map(([a, n]) => `<div class="sec" ${a}><h4>${n}</h4>${t}</div>`).join('');
+if (new URLSearchParams(location.search).has('open')) setTimeout(() => document.querySelectorAll('.opener').forEach((s, i) => i === 0 && (s.focus(), s.show())), 200);
+</script>
+</body></html>

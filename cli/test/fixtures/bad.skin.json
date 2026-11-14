@@ -1,0 +1,14 @@
+{
+  "name": "Night Club",
+  "colorScheme": "dusk",
+  "tokens": {
+    "color.canvas": "oklch(20% 0.02 260)",
+    "color.ink": "oklch(35% 0.02 260)",
+    "color.acent": "oklch(70% 0.2 300)"
+  },
+  "elements": {
+    "tr-buton": { "material": "plastic" },
+    "tr-knob": { "material": "wood", "vars": { "--tr-m-shine": 1 } },
+    "tr-panel": { "vars": { "--tr-m-base": "oklch(30% 0.01 260)", "--tr-m-ink": "oklch(40% 0.01 260)" } }
+  }
+}

@@ -1,0 +1,554 @@
+/* Showcase page chrome. Component looks come from Trompe itself; this file only lays things out. */
+@import '../src/generated/skins.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --page: oklch(14% 0.008 260);
+  --page-ink: oklch(94% 0.006 85);
+  --page-muted: oklch(72% 0.01 85);
+}
+:root[data-tr-theme='light'] {
+  --page: oklch(95% 0.006 85);
+  --page-ink: oklch(22% 0.01 260);
+  --page-muted: oklch(42% 0.01 260);
+}
+
+html {
+  background: var(--page);
+  color: var(--page-ink);
+  font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+body {
+  margin: 0;
+}
+code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: color-mix(in oklch, currentColor 10%, transparent);
+}
+
+/* ---------- hero ---------- */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: center;
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 7vw, 6rem) 1rem clamp(2rem, 5vw, 4rem);
+}
+.eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--page-muted);
+}
+h1 {
+  margin: 0;
+  font-size: clamp(3.25rem, 9vw, 6.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  background: linear-gradient(180deg, oklch(98% 0 0) 0%, oklch(80% 0.01 250) 48%, oklch(45% 0.02 250) 52%, oklch(88% 0.01 250) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 0 oklch(0% 0 0 / 0.5));
+}
+:root[data-tr-theme='light'] h1 {
+  background: linear-gradient(180deg, oklch(55% 0.01 250) 0%, oklch(25% 0.02 250) 48%, oklch(10% 0.02 250) 52%, oklch(40% 0.02 250) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 1px 0 oklch(100% 0 0 / 0.8));
+}
+.lede {
+  max-width: 34rem;
+  font-size: 1.125rem;
+  color: var(--page-muted);
+}
+.rig-grid {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.75rem;
+}
+.rig-switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+
+/* ---------- stages ---------- */
+main {
+  display: grid;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: 0 clamp(0px, 2vw, 1.5rem) 4rem;
+}
+.stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: clamp(0px, 2vw, 28px);
+  padding: clamp(2rem, 5vw, 4rem) 1rem clamp(2.5rem, 6vw, 5rem);
+  background: var(--tr-color-canvas);
+  color: var(--tr-color-ink);
+}
+.stage-head {
+  max-width: 64rem;
+  margin: 0 auto clamp(1.5rem, 4vw, 3rem);
+  text-align: center;
+}
+.stage-head h2 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  letter-spacing: -0.02em;
+}
+.stage-head p {
+  margin: 0;
+  color: var(--tr-color-ink-muted);
+}
+
+/* ---------- app scenes ---------- */
+.app {
+  max-width: 68rem;
+  margin: 0 auto;
+}
+.muted {
+  color: var(--tr-color-ink-muted);
+  margin: 0;
+}
+.pad {
+  padding: 1rem 0.25rem;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+.row.end {
+  justify-content: flex-end;
+}
+.spacer {
+  flex: 1;
+}
+h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+.form {
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem 1.25rem;
+  align-items: end;
+}
+.form-grid > * {
+  min-width: 0;
+}
+.form-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  font-weight: 700;
+  color: var(--tr-color-accent-ink);
+  background: radial-gradient(circle at 35% 30%, color-mix(in oklch, var(--tr-color-accent) 60%, white), var(--tr-color-accent) 60%);
+  box-shadow: inset 0 -3px 6px oklch(0% 0 0 / 0.2), 0 3px 8px oklch(0% 0 0 / 0.2);
+}
+.fieldset {
+  display: grid;
+  gap: 0.6rem;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.fieldset legend {
+  padding: 0;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.help {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tr-color-ink-muted);
+  cursor: help;
+}
+.help:focus-visible {
+  outline: 2px solid var(--tr-color-focus);
+  outline-offset: 2px;
+}
+
+.form tr-input,
+.form tr-textarea,
+.form tr-select,
+.compose tr-input,
+.compose tr-textarea {
+  width: 100%;
+}
+
+/* Soft: settings */
+.app-settings {
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.app-side tr-nav {
+  --tr-nav-width: 100%;
+}
+
+/* Studio: dashboard */
+.stage-studio {
+  background:
+    radial-gradient(120% 80% at 50% 0%, oklch(26% 0.01 260), transparent 70%),
+    var(--tr-color-canvas);
+}
+.app-dash {
+  display: grid;
+  gap: 1.25rem;
+}
+.dash-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.dash-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  margin-right: auto;
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 1rem;
+}
+.kpi::part(body),
+.kpi {
+  display: block;
+}
+.kpi > * {
+  margin: 0;
+}
+.kpi {
+  --kpi-pad: 1.1rem 1.25rem;
+}
+.kpi-label {
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tr-color-ink);
+  padding: 1.1rem 1.25rem 0;
+}
+.kpi-value {
+  font-size: 1.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0.15rem 1.25rem 0.5rem;
+}
+.kpi tr-badge,
+.kpi tr-progress {
+  margin: 0 1.25rem 1.1rem;
+}
+.kpi tr-progress {
+  display: block;
+}
+.dash-main {
+  display: block;
+}
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  height: 9rem;
+  padding: 1.25rem 0.25rem 0.75rem;
+}
+.bars span {
+  flex: 1;
+  height: var(--h);
+  border-radius: 4px 4px 1px 1px;
+  background: linear-gradient(180deg, color-mix(in oklch, var(--tr-color-accent) 85%, white), var(--tr-color-accent) 40%, color-mix(in oklch, var(--tr-color-accent) 70%, black));
+  box-shadow: inset 1px 0 0 oklch(100% 0 0 / 0.35), 0 2px 6px oklch(0% 0 0 / 0.45);
+}
+.dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+}
+
+/* Chrome: files */
+.stage-chrome {
+  background:
+    radial-gradient(90% 70% at 30% 10%, oklch(96% 0.01 240), transparent 60%),
+    linear-gradient(180deg, oklch(88% 0.014 245), oklch(76% 0.02 250));
+}
+.window-inner {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+.files-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.files-search {
+  flex: 1;
+  min-width: 8rem;
+}
+.files {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 1rem;
+}
+.files-main {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+.upload {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Heritage: checkout */
+.stage-heritage {
+  background:
+    repeating-linear-gradient(90deg, oklch(0% 0 0 / 0.02) 0 2px, transparent 2px 7px),
+    linear-gradient(180deg, oklch(84% 0.03 80), oklch(74% 0.035 75));
+}
+.app-checkout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  max-width: 60rem;
+}
+.pay {
+  justify-self: stretch;
+}
+.pay::part(control) {
+  width: 100%;
+}
+.summary {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+.total {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.25rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--tr-color-edge);
+  font-size: 1.125rem;
+}
+
+/* Aurora: compose */
+.stage-aurora {
+  background:
+    radial-gradient(60% 70% at 15% 20%, oklch(65% 0.2 330 / 0.85), transparent 65%),
+    radial-gradient(55% 60% at 85% 30%, oklch(70% 0.16 200 / 0.85), transparent 65%),
+    radial-gradient(70% 70% at 50% 100%, oklch(60% 0.2 280 / 0.9), transparent 70%),
+    oklch(22% 0.06 290);
+  background-size: 140% 140%;
+  animation: aurora 18s ease-in-out infinite alternate;
+}
+@keyframes aurora {
+  to {
+    background-position: 100% 60%;
+  }
+}
+.compose {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+.compose-inner {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+.compose-head {
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* Extras */
+.extras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1.5rem;
+  max-width: 52rem;
+  align-items: start;
+}
+.extra {
+  display: block;
+}
+.extra > * {
+  margin: 1.25rem;
+}
+.extra-display {
+  display: block;
+  font-size: 1.6rem;
+}
+.leds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  font-size: 0.875rem;
+}
+.leds span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 760px) {
+  .app-settings,
+  .files,
+  .app-checkout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dash-bar,
+  .files-bar {
+    flex-wrap: wrap;
+  }
+}
+
+/* Matrix */
+.stage-matrix {
+  background: radial-gradient(100% 80% at 50% 0%, oklch(97% 0.006 85), transparent 70%), var(--tr-color-canvas);
+}
+.matrix {
+  display: grid;
+  gap: 2rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+.matrix h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tr-color-ink-muted);
+}
+.matrix-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+.swatch {
+  display: block;
+  width: 7.5rem;
+  height: 5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  --tr-panel-padding: 0;
+}
+.swatch::part(chassis) {
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+/* Agents */
+.stage-agents {
+  background: var(--page);
+  color: var(--page-ink);
+}
+.stage-agents .stage-head p {
+  color: var(--page-muted);
+}
+.code {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  border-radius: 14px;
+  background: oklch(10% 0.006 260);
+  color: oklch(88% 0.08 150);
+  font: 0.875rem/1.6 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  box-shadow: inset 0 2px 8px oklch(0% 0 0 / 0.6), 0 1px 0 oklch(100% 0 0 / 0.06);
+}
+
+.foot {
+  padding: 2rem 1rem 3rem;
+  text-align: center;
+  color: var(--page-muted);
+  font-size: 0.875rem;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-aurora {
+    animation: none;
+  }
+}
+/* "Ambient motion" switch off: everything that moves on its own stops (WCAG 2.2.2). */
+:root[data-still] .stage-aurora {
+  animation-play-state: paused;
+}
+
+/* ---------- narrow screens: grid tracks may shrink below their content's min-content ---------- */
+.app-dash,
+.files-main,
+.compose-head,
+.app-settings > *,
+.files > *,
+.app-checkout > * {
+  min-width: 0;
+}
+.app-dash,
+.files-main,
+.compose-head,
+.window-inner,
+.form,
+.summary {
+  grid-template-columns: minmax(0, 1fr);
+}
+.dash-bar,
+.files-bar {
+  max-width: 100%;
+}
+/* Phones: segmented keys drop their lamps and tighten up so labels keep their room. */
+@media (max-width: 420px) {
+  tr-segmented tr-option::part(indicator) {
+    display: none;
+  }
+  tr-segmented tr-option::part(row) {
+    padding-inline: 0.45em;
+  }
+}

@@ -1,0 +1,659 @@
+<title>Trompe Touch Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a working "settings" app made of tactile parts, one specimen card per control family,
+   each with a one-line note on what to try. Light comes from the top left. */
+:root {
+  --canvas: #d9dee4;
+  --surface: #eceff3;
+  --surface-hi: #f8f9fb;
+  --well: #cfd5dc;
+  --ink: #1b2330;
+  --ink-soft: #566173;
+  --accent: #0d7f6a;
+  --accent-ink: #ffffff;
+  --accent-hi: #19a386;
+  --danger: #c2412d;
+  --danger-btn: #c2412d;
+  --primary-top: #0e826b;
+  --lamp: #29d39a;
+  --edge: rgba(27, 35, 48, 0.16);
+  --hl: rgba(255, 255, 255, 0.85);
+  --sh: 27 35 48;
+  --sh-a: 0.2;
+  --focus: #1f6feb;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-head: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --r: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #15181d; --surface: #23272e; --surface-hi: #2d323a; --well: #111418;
+    --ink: #e7eaef; --ink-soft: #9aa3b2; --accent: #21a585; --accent-ink: #04140f; --accent-hi: #3cc9a5;
+    --danger: #ef6a52; --danger-btn: #cc4a33; --primary-top: #3cc9a5; --lamp: #3df0b0; --edge: rgba(0, 0, 0, 0.55); --hl: rgba(255, 255, 255, 0.09);
+    --sh: 0 0 0; --sh-a: 0.55; --focus: #6aa8ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas: #15181d; --surface: #23272e; --surface-hi: #2d323a; --well: #111418;
+  --ink: #e7eaef; --ink-soft: #9aa3b2; --accent: #21a585; --accent-ink: #04140f; --accent-hi: #3cc9a5;
+  --danger: #ef6a52; --danger-btn: #cc4a33; --primary-top: #3cc9a5; --lamp: #3df0b0; --edge: rgba(0, 0, 0, 0.55); --hl: rgba(255, 255, 255, 0.09);
+  --sh: 0 0 0; --sh-a: 0.55; --focus: #6aa8ff; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: radial-gradient(120% 80% at 20% 0%, var(--surface-hi), var(--canvas) 60%) fixed, var(--canvas);
+  color: var(--ink);
+  font: 15px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 96px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2 { font-family: var(--font-head); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); line-height: 1.1; }
+h2 { font-size: 1.05rem; }
+p { margin: 0; }
+.lede { color: var(--ink-soft); max-width: 62ch; margin-top: 8px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* ---------------------------------------------------------------- surfaces --- */
+/* Every moving part animates transform/opacity only. Shadows are fixed layers that cross-fade. */
+.panel {
+  position: relative; background: linear-gradient(180deg, var(--surface-hi), var(--surface));
+  border-radius: 18px; padding: 20px; display: grid; gap: 16px; align-content: start; min-width: 0;
+  box-shadow: inset 0 1px 0 var(--hl), 0 0 0 1px var(--edge), 0 1px 2px rgb(var(--sh) / calc(var(--sh-a) * .5)), 0 12px 28px -12px rgb(var(--sh) / var(--sh-a));
+}
+.panel header { display: grid; gap: 4px; }
+.note { color: var(--ink-soft); font-size: 13px; line-height: 1.45; }
+.note kbd { font: 500 11px var(--font-mono); padding: 1px 5px; border-radius: 4px; background: var(--well); color: var(--ink); }
+/* Three hand-balanced columns on wide screens; panels flow into a plain grid when narrower.
+   (Not CSS multi-column: fragmentation forces a full relayout of every column on any change.) */
+.grid { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.col { display: grid; gap: 20px; min-width: 0; }
+@media (max-width: 1020px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .col { display: contents; } }
+@media (max-width: 680px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* ----------------------------------------------------------------- buttons --- */
+.btn {
+  --lift: 1;
+  position: relative; isolation: isolate; border: 0; cursor: pointer; user-select: none;
+  font: 600 14px var(--font-body); color: var(--ink); height: 40px; padding: 0 18px; border-radius: 10px;
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface));
+  box-shadow: inset 0 1px 0 var(--hl), 0 0 0 1px var(--edge);
+  transform: translateY(0);
+  transition: transform var(--tr-motion-duration-return) var(--tr-motion-easing-return);
+}
+.btn::before, .btn::after { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none; transition: opacity var(--tr-motion-duration-return) ease-out; }
+/* Raised: a soft cast shadow below the cap. */
+.btn::before { box-shadow: 0 1px 1px rgb(var(--sh) / calc(var(--sh-a) * .7)), 0 4px 8px -3px rgb(var(--sh) / var(--sh-a)); }
+/* Pressed: the cap is in its housing; the shade is on the inside. */
+.btn::after { opacity: 0; box-shadow: inset 0 2px 4px rgb(var(--sh) / calc(var(--sh-a) * 1.1)); }
+.btn[data-tr-pressed] { transform: translateY(1.5px); transition-duration: var(--tr-motion-duration-press, 70ms); transition-timing-function: cubic-bezier(.3, 0, .6, 1); }
+.btn[data-tr-pressed]::before { opacity: 0; transition-duration: 60ms; }
+.btn[data-tr-pressed]::after { opacity: 1; transition-duration: 60ms; }
+/* Text on filled buttons keeps 4.5:1 against the lightest part of the gradient. */
+.btn.primary { color: var(--accent-ink); background: linear-gradient(180deg, var(--primary-top), color-mix(in oklab, var(--primary-top), black 10%)); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 1px rgb(0 0 0 / .25); }
+.btn.danger { color: #fff; background: linear-gradient(180deg, var(--danger-btn), color-mix(in oklab, var(--danger-btn), black 12%)); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgb(0 0 0 / .25); }
+.btn.icon { width: 40px; padding: 0; display: grid; place-items: center; border-radius: 50%; }
+.btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.btn[aria-pressed="true"] { transform: translateY(1px); }
+.btn[aria-pressed="true"]::before { opacity: .35; }
+.btn[aria-pressed="true"]::after { opacity: .7; }
+.lamp { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; background: var(--well); box-shadow: inset 0 1px 1px rgb(0 0 0 / .3); position: relative; }
+.lamp::after { content: ""; position: absolute; inset: -1px; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 6px 1px var(--lamp); opacity: 0; transition: opacity 180ms ease-out; }
+[aria-pressed="true"] .lamp::after, [aria-checked="true"] .lamp::after { opacity: 1; transition-duration: var(--tr-motion-duration-lamp, 90ms); }
+
+/* ------------------------------------------------------------------- cards --- */
+.cards { display: grid; gap: 10px; }
+.card {
+  position: relative; isolation: isolate; display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center;
+  padding: 12px 14px; border-radius: var(--r); cursor: pointer; user-select: none; text-align: left; border: 0; width: 100%; font: inherit; color: inherit;
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface)); box-shadow: inset 0 1px 0 var(--hl), 0 0 0 1px var(--edge);
+  transform: perspective(700px) rotateX(0) rotateY(0) scale(1);
+  transition: transform var(--tr-motion-duration-return) var(--tr-motion-easing-return);
+}
+.card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; box-shadow: 0 1px 1px rgb(var(--sh) / calc(var(--sh-a) * .6)), 0 6px 12px -6px rgb(var(--sh) / var(--sh-a)); transition: opacity 200ms ease-out; }
+/* The card tips a fraction of a degree toward where the finger landed, like a panel on soft mounts. */
+.card[data-tr-pressed] {
+  transform: perspective(700px) rotateX(calc(var(--tr-press-y, 0) * -2.2deg)) rotateY(calc(var(--tr-press-x, 0) * 2.2deg)) scale(.985);
+  transition-duration: 90ms; transition-timing-function: ease-out;
+}
+.card[data-tr-pressed]::before { opacity: .35; transition-duration: 90ms; }
+.card .glyph { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--well); box-shadow: inset 0 1px 2px rgb(0 0 0 / .18); }
+.card .glyph svg { width: 20px; height: 20px; fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.card b { display: block; font-weight: 600; }
+.card small { color: var(--ink-soft); font-size: 13px; }
+.chev { width: 16px; height: 16px; fill: none; stroke: var(--ink-soft); stroke-width: 2; }
+
+/* ----------------------------------------------------------------- switches --- */
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--edge); }
+.setting:last-child { border-bottom: 0; }
+.setting label { display: grid; cursor: pointer; }
+.setting small { color: var(--ink-soft); font-size: 13px; }
+.switch {
+  --w: 52px; --h: 30px; --cap: 24px; --travel: calc(var(--w) - var(--cap) - 6px);
+  --rest: 0;
+  position: relative; flex: none; width: var(--w); height: var(--h); border-radius: 99px; cursor: pointer; border: 0; padding: 0;
+  background: var(--well); box-shadow: inset 0 1px 3px rgb(0 0 0 / .32), inset 0 -1px 0 var(--hl), 0 1px 0 var(--hl);
+}
+.switch[aria-checked="true"] { --rest: 1; }
+.switch .fill { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, var(--accent), var(--accent-hi)); box-shadow: inset 0 1px 3px rgb(0 0 0 / .35); opacity: var(--rest); transition: opacity var(--tr-motion-duration-throw) ease-out; }
+.switch .thumb {
+  position: absolute; top: 3px; left: 3px; width: var(--cap); height: var(--cap); border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--surface-hi), var(--surface) 70%);
+  box-shadow: inset 0 1px 0 var(--hl), 0 0 0 .5px rgb(0 0 0 / .2), 0 1px 1px rgb(0 0 0 / .25), 0 3px 6px -1px rgb(0 0 0 / .3);
+  translate: calc(var(--tr-value-ratio, var(--rest)) * var(--travel)) 0;
+  transition: translate var(--tr-motion-duration-throw) var(--tr-motion-easing-throw);
+}
+.switch[data-dragging] .thumb { transition-duration: 50ms; transition-timing-function: linear; }
+.switch[data-dragging] .thumb, .switch:active .thumb { scale: 1.06 1; }
+
+/* ---------------------------------------------------------- checks + radios --- */
+.choices { display: grid; gap: 10px; }
+.check { display: flex; gap: 12px; align-items: center; cursor: pointer; user-select: none; width: fit-content; }
+.box {
+  position: relative; width: 22px; height: 22px; flex: none; border-radius: 6px; background: linear-gradient(180deg, var(--surface-hi), var(--surface));
+  box-shadow: inset 0 1px 0 var(--hl), 0 0 0 1px var(--edge), 0 1px 2px rgb(var(--sh) / var(--sh-a));
+  transition: transform var(--tr-motion-duration-return) var(--tr-motion-easing-return);
+}
+.check[data-tr-pressed] .box { transform: translateY(1px) scale(.92); transition-duration: 70ms; transition-timing-function: ease-out; }
+.box .ink { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, var(--accent-hi), var(--accent)); opacity: 0; transition: opacity 120ms ease-out; }
+.box svg { position: absolute; inset: 3px; width: 16px; height: 16px; fill: none; stroke: var(--accent-ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.box path { stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset 160ms ease-in; }
+.check[aria-checked="true"] .box .ink { opacity: 1; }
+.check[aria-checked="true"] .box path { stroke-dashoffset: 0; transition: stroke-dashoffset 220ms cubic-bezier(.2, .8, .3, 1) 40ms; }
+.radio .box { border-radius: 50%; }
+.radio .dot { position: absolute; inset: 6px; border-radius: 50%; background: var(--accent-ink); box-shadow: 0 1px 1px rgb(0 0 0 / .3); transform: scale(0); transition: transform 120ms ease-in; }
+.radio[aria-checked="true"] .dot { transform: scale(1); transition: transform var(--tr-motion-duration-return) var(--tr-motion-easing-return); }
+
+/* --------------------------------------------------------- segmented + tabs --- */
+.segmented {
+  position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 4px; border-radius: 12px;
+  background: var(--well); box-shadow: inset 0 1px 3px rgb(0 0 0 / .25), 0 1px 0 var(--hl);
+}
+.segmented .puck {
+  position: absolute; left: 0; top: 0; border-radius: 9px; pointer-events: none; opacity: 0;
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface));
+  box-shadow: inset 0 1px 0 var(--hl), 0 0 0 1px var(--edge), 0 1px 1px rgb(var(--sh) / calc(var(--sh-a) * .7)), 0 3px 6px -2px rgb(var(--sh) / var(--sh-a));
+}
+.segmented[data-tr-indicator] .puck { opacity: 1; }
+.segmented[data-dragging] .puck { scale: .97; transition: scale 120ms ease-out; }
+.segmented button {
+  position: relative; border: 0; background: none; font: 600 13px var(--font-body); color: var(--ink-soft); height: 34px; border-radius: 9px; cursor: pointer; z-index: 1;
+  transition: color 160ms ease-out;
+}
+.segmented button[aria-checked="true"] { color: var(--ink); }
+.tabs { position: relative; display: flex; gap: 4px; border-bottom: 1px solid var(--edge); }
+.tabs button { border: 0; background: none; font: 600 14px var(--font-body); color: var(--ink-soft); padding: 10px 12px 12px; cursor: pointer; border-radius: 8px 8px 0 0; }
+.tabs button[aria-selected="true"] { color: var(--ink); }
+.tabs .rail { position: absolute; left: 0; top: 0; pointer-events: none; }
+.tabs .rail::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.tabpanel { color: var(--ink-soft); font-size: 13.5px; min-height: 42px; }
+
+/* -------------------------------------------------------------- text field --- */
+.field { display: grid; gap: 6px; }
+.field label { font-weight: 600; font-size: 13px; }
+.input {
+  position: relative; border-radius: 10px; background: var(--well);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / .22), 0 1px 0 var(--hl);
+}
+.input::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 2px 6px rgb(0 0 0 / .3), 0 0 0 2px var(--focus); opacity: 0; transition: opacity 140ms ease-out; }
+.input:focus-within::after { opacity: 1; }
+.input[data-tr-alert]::after { opacity: 1; box-shadow: inset 0 2px 6px rgb(0 0 0 / .3), 0 0 0 2px var(--danger); }
+.input input { width: 100%; height: 42px; border: 0; background: none; padding: 0 12px; font: 15px var(--font-body); color: var(--ink); outline: none; }
+.err { color: var(--danger); font-size: 13px; min-height: 1.4em; }
+
+/* ------------------------------------------------------------------ slider --- */
+.slider { display: grid; gap: 8px; }
+.slider .top { display: flex; justify-content: space-between; font-size: 13px; }
+/* A live readout is a layout boundary, so updating it 60 times a second never relayouts the page. */
+.slider output { font: 500 12px/18px var(--font-mono); color: var(--ink-soft); font-variant-numeric: tabular-nums; display: inline-block; width: 7ch; height: 18px; text-align: right; contain: strict; }
+.track { position: relative; height: 28px; container-type: inline-size; cursor: pointer; border-radius: 14px; }
+.track .groove { position: absolute; left: 0; right: 0; top: 11px; height: 6px; border-radius: 3px; background: var(--well); box-shadow: inset 0 1px 2px rgb(0 0 0 / .35), 0 1px 0 var(--hl); overflow: hidden; }
+.track .fill { position: absolute; inset: 0; background: linear-gradient(90deg, var(--accent), var(--accent-hi)); transform-origin: left; transform: scaleX(var(--tr-value-ratio, 0)); }
+.track .cap {
+  position: absolute; top: 2px; left: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--surface-hi), var(--surface) 70%);
+  box-shadow: inset 0 1px 0 var(--hl), 0 0 0 .5px rgb(0 0 0 / .25), 0 1px 1px rgb(0 0 0 / .25), 0 3px 6px -1px rgb(0 0 0 / .3);
+  translate: calc(var(--tr-value-ratio, 0) * (100cqw - 24px)) 0;
+}
+.track[data-dragging] .cap { scale: 1.08; transition: scale 90ms ease-out; }
+.track .cap::after { content: ""; position: absolute; inset: 8px; border-radius: 50%; background: var(--well); box-shadow: inset 0 1px 1px rgb(0 0 0 / .3); }
+
+/* ------------------------------------------------------- menus and dialogs --- */
+.menu {
+  position: fixed; inset: auto; margin: 0; min-width: 200px; padding: 6px; border: 0; border-radius: 12px; color: var(--ink);
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface));
+  box-shadow: inset 0 1px 0 var(--hl), 0 0 0 1px var(--edge), 0 2px 4px rgb(var(--sh) / calc(var(--sh-a) * .6)), 0 18px 40px -12px rgb(var(--sh) / calc(var(--sh-a) * 1.6));
+}
+.menu [role="menuitem"] { display: flex; gap: 10px; align-items: center; width: 100%; border: 0; background: none; font: 500 14px var(--font-body); color: inherit; padding: 9px 10px; border-radius: 8px; cursor: pointer; text-align: left; }
+.menu [role="menuitem"]:hover, .menu [role="menuitem"]:focus-visible { background: var(--well); outline: none; }
+.menu [role="menuitem"][data-tr-pressed] { box-shadow: inset 0 1px 3px rgb(0 0 0 / .25); }
+.menu .sep { height: 1px; margin: 6px 4px; background: var(--edge); }
+.menu .danger { color: var(--danger); }
+dialog.sheet-dialog {
+  border: 0; padding: 24px; border-radius: 18px; max-width: min(420px, calc(100vw - 32px)); color: var(--ink);
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface));
+  box-shadow: inset 0 1px 0 var(--hl), 0 0 0 1px var(--edge), 0 30px 60px -20px rgb(0 0 0 / .5);
+}
+dialog.sheet-dialog::backdrop { background: rgb(15 20 28 / .45); backdrop-filter: blur(2px); }
+dialog .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+dialog h2 { margin-bottom: 6px; }
+
+/* ----------------------------------------------------------- phone frame --- */
+.phone {
+  position: relative; height: 330px; border-radius: 24px; overflow: hidden; background: var(--canvas);
+  box-shadow: inset 0 0 0 1px var(--edge), inset 0 2px 8px rgb(0 0 0 / .2);
+}
+.phone .content { padding: 16px; display: grid; gap: 10px; }
+.photo { height: 120px; border-radius: 14px; background: linear-gradient(135deg, #7fb7a4, #2f6f87 60%, #233c5c); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .15); }
+.scrim { position: absolute; inset: 0; background: rgb(10 14 20 / .5); opacity: 0; pointer-events: none; }
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 290px; border-radius: 22px 22px 0 0; padding: 10px 16px 16px;
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface)); touch-action: pan-x;
+  box-shadow: inset 0 1px 0 var(--hl), 0 -1px 0 var(--edge), 0 -10px 30px -10px rgb(0 0 0 / .4);
+  translate: 0 290px; will-change: translate;
+}
+.grabber { display: grid; place-items: center; height: 22px; cursor: grab; }
+.grabber::before { content: ""; width: 40px; height: 5px; border-radius: 3px; background: var(--well); box-shadow: inset 0 1px 1px rgb(0 0 0 / .3); }
+.sheet .targets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
+.sheet .target { display: grid; gap: 6px; justify-items: center; font-size: 12px; color: var(--ink-soft); border: 0; background: none; cursor: pointer; padding: 4px 0; }
+.sheet .target span:first-child { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(180deg, var(--surface-hi), var(--surface)); box-shadow: inset 0 1px 0 var(--hl), 0 0 0 1px var(--edge), 0 2px 4px rgb(var(--sh) / var(--sh-a)); transition: transform var(--tr-motion-duration-return) var(--tr-motion-easing-return); }
+.sheet .target[data-tr-pressed] span:first-child { transform: translateY(1px) scale(.94); transition: transform 70ms ease-out; }
+.sheet .list { margin-top: 14px; display: grid; gap: 8px; max-height: 120px; overflow: auto; }
+.sheet .list div { padding: 10px 12px; border-radius: 10px; background: var(--well); font-size: 13px; }
+
+.carousel { position: relative; overflow: hidden; border-radius: 16px; touch-action: pan-y; }
+.strip { display: flex; will-change: translate; }
+.slide { flex: 0 0 100%; height: 170px; display: grid; align-content: end; padding: 14px; color: #fff; font-weight: 600; user-select: none; }
+.slide:nth-child(1) { background: linear-gradient(135deg, #e08e5a, #b24a3a); }
+.slide:nth-child(2) { background: linear-gradient(135deg, #6fa7c9, #2e5f8a); }
+.slide:nth-child(3) { background: linear-gradient(135deg, #8bbf7a, #3d7a4c); }
+.slide:nth-child(4) { background: linear-gradient(135deg, #b9a1d8, #6a4f9c); }
+.slide small { font-weight: 400; opacity: .85; }
+.dots { display: flex; gap: 6px; justify-content: center; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--well); box-shadow: inset 0 1px 1px rgb(0 0 0 / .3); transition: background 160ms; }
+.dots i.on { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+/* -------------------------------------------------------------- top bar + HUD --- */
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; justify-content: space-between; }
+.bar .toggles { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+.mini { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.mini .switch { --w: 40px; --h: 24px; --cap: 18px; }
+.hud {
+  position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 5;
+  font: 500 11px/1.5 var(--font-mono); color: var(--ink-soft); padding: 8px 12px; border-radius: 10px;
+  background: color-mix(in oklab, var(--surface) 88%, transparent); backdrop-filter: blur(6px);
+  box-shadow: 0 0 0 1px var(--edge), 0 6px 16px -8px rgb(var(--sh) / var(--sh-a)); font-variant-numeric: tabular-nums;
+}
+.hud b { color: var(--ink); font-weight: 500; display: inline-block; min-width: 4ch; text-align: right; }
+@media (max-width: 520px) { .hud { left: max(16px, env(safe-area-inset-left, 0px)); } }
+@media (prefers-reduced-motion: reduce) { .card, .btn, .box { transition-duration: 0s; } }
+:root[data-tr-motion="reduce"] .card, :root[data-tr-motion="reduce"] .btn, :root[data-tr-motion="reduce"] .box, :root[data-tr-motion="reduce"] .thumb { transition-duration: 0s !important; }
+</style>
+
+<div class="wrap">
+  <div class="bar">
+    <div>
+      <h1>Touch Lab</h1>
+      <p class="lede">Every control on this page runs on Trompe's interaction layer: press travel, springs, drag physics, focus and keyboard handling. Try them with a mouse, a finger and the keyboard.</p>
+    </div>
+    <div class="toggles" aria-label="Lab settings">
+      <label class="mini"><button class="switch" role="switch" aria-checked="false" id="opt-sound"><span class="fill"></span><span class="thumb"></span></button>Sound</label>
+      <label class="mini"><button class="switch" role="switch" aria-checked="false" id="opt-haptics"><span class="fill"></span><span class="thumb"></span></button>Haptics</label>
+      <label class="mini"><button class="switch" role="switch" aria-checked="false" id="opt-motion"><span class="fill"></span><span class="thumb"></span></button>Reduce motion</label>
+      <div class="segmented" role="radiogroup" aria-label="Theme" id="theme" style="min-width:210px">
+        <span class="puck"></span>
+        <button role="radio" aria-checked="true">System</button><button role="radio" aria-checked="false">Light</button><button role="radio" aria-checked="false">Dark</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+  <div class="col">
+    <section class="panel">
+      <header><h2>Buttons</h2><p class="note">Tap as fast as you can: the press still shows for 90&nbsp;ms. Press, then drag off to cancel. Hold <kbd>Space</kbd> to hold it down.</p></header>
+      <div class="row">
+        <button class="btn primary" data-press>Save changes</button>
+        <button class="btn" data-press>Cancel</button>
+        <button class="btn icon" data-press aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      </div>
+      <div class="row">
+        <button class="btn" data-press data-latch aria-pressed="true"><span class="lamp"></span>Auto-save</button>
+        <button class="btn" data-press data-latch aria-pressed="false"><span class="lamp"></span>Offline</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <header><h2>Cards and rows</h2><p class="note">A card tips a fraction of a degree toward where your finger lands, and settles back on a spring.</p></header>
+      <div class="cards">
+        <button class="card" data-press><span class="glyph"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><span><b>Storage</b><small>38.2 GB of 64 GB used</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="card" data-press><span class="glyph"><svg viewBox="0 0 24 24"><path d="M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z"/></svg></span><span><b>Privacy</b><small>3 apps can see your location</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="card" data-press><span class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></span><span><b>Display</b><small>Auto brightness, Night Shift at 22:00</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <header><h2>Switches</h2><p class="note">Click, or grab the thumb and push it. It resists in its own half, then snaps over the centre and flips before you let go.</p></header>
+      <div>
+        <div class="setting"><label for="sw1"><span>Wi-Fi</span><small>Home network</small></label><button class="switch" role="switch" aria-checked="true" id="sw1"><span class="fill"></span><span class="thumb"></span></button></div>
+        <div class="setting"><label for="sw2"><span>Notifications</span><small>Banners and sounds</small></label><button class="switch" role="switch" aria-checked="false" id="sw2"><span class="fill"></span><span class="thumb"></span></button></div>
+        <div class="setting"><label for="sw3"><span>Low power mode</span><small>Reduces background activity</small></label><button class="switch" role="switch" aria-checked="false" id="sw3"><span class="fill"></span><span class="thumb"></span></button></div>
+      </div>
+    </section>
+  </div>
+  <div class="col">
+    <section class="panel">
+      <header><h2>Checkboxes and radios</h2><p class="note">The box dips under the press, the tick draws itself and the radio dot springs in.</p></header>
+      <div class="choices">
+        <div class="check" role="checkbox" tabindex="0" aria-checked="true" data-check><span class="box"><span class="ink"></span><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>Email receipts</div>
+        <div class="check" role="checkbox" tabindex="0" aria-checked="false" data-check><span class="box"><span class="ink"></span><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>Weekly summary</div>
+      </div>
+      <div class="choices" role="radiogroup" aria-label="Delivery" id="radios">
+        <div class="check radio" role="radio" aria-checked="true"><span class="box"><span class="ink"></span><span class="dot"></span></span>Standard, 3 to 5 days</div>
+        <div class="check radio" role="radio" aria-checked="false"><span class="box"><span class="ink"></span><span class="dot"></span></span>Express, next day</div>
+        <div class="check radio" role="radio" aria-checked="false"><span class="box"><span class="ink"></span><span class="dot"></span></span>Pick up in store</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <header><h2>Segmented control and tabs</h2><p class="note">The selector travels between options. Press the selected segment and slide across. Arrow keys move, <kbd>Home</kbd>/<kbd>End</kbd> jump, letters jump to an option.</p></header>
+      <div class="segmented" role="radiogroup" aria-label="Range" id="seg">
+        <span class="puck"></span>
+        <button role="radio" aria-checked="false">Day</button><button role="radio" aria-checked="true">Week</button><button role="radio" aria-checked="false">Month</button><button role="radio" aria-checked="false">Year</button>
+      </div>
+      <div>
+        <div class="tabs" role="tablist" aria-label="Account" id="tabs">
+          <span class="rail"></span>
+          <button role="tab" aria-selected="true" aria-controls="tp">General</button><button role="tab" aria-selected="false" aria-controls="tp">Security</button><button role="tab" aria-selected="false" aria-controls="tp">Billing</button>
+        </div>
+        <p class="tabpanel" role="tabpanel" id="tp" tabindex="0">Name, photo and language for your account.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <header><h2>Text field</h2><p class="note">Focus presses the field deeper into the panel. Submit an invalid address to see it shake (with reduced motion it flashes instead).</p></header>
+      <form class="field" id="form" novalidate>
+        <label for="email">Email</label>
+        <div class="input"><input id="email" type="email" value="jamie@example" autocomplete="off"></div>
+        <p class="err" id="err" aria-live="polite"></p>
+        <div class="row"><button class="btn primary" data-press type="submit">Update email</button></div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <header><h2>Sliders</h2><p class="note">Grab the cap anywhere without it jumping. Click the track to glide there. <kbd>Shift</kbd> for fine control, double-click to reset, arrows and the wheel work too.</p></header>
+      <div class="slider"><div class="top"><span id="l-bright">Brightness</span><output id="o-bright">70%</output></div><div class="track" id="s-bright" aria-labelledby="l-bright"><div class="groove"><div class="fill"></div></div><div class="cap"></div></div></div>
+      <div class="slider"><div class="top"><span id="l-text">Text size</span><output id="o-text">16 px</output></div><div class="track" id="s-text" aria-labelledby="l-text"><div class="groove"><div class="fill"></div></div><div class="cap"></div></div></div>
+    </section>
+  </div>
+  <div class="col">
+    <section class="panel">
+      <header><h2>Menus and dialogs</h2><p class="note">Surfaces lift off the page out of the button that opened them. Arrow keys move through the menu; <kbd>Esc</kbd> or a click outside closes it.</p></header>
+      <div class="row">
+        <button class="btn" data-press id="more" popovertarget="menu" aria-haspopup="menu">More actions</button>
+        <button class="btn danger" data-press id="del">Delete account</button>
+      </div>
+      <div class="menu" popover id="menu" role="menu" aria-label="More actions">
+        <button role="menuitem" data-press>Duplicate</button>
+        <button role="menuitem" data-press>Rename</button>
+        <button role="menuitem" data-press>Move to folder</button>
+        <div class="sep" role="separator"></div>
+        <button role="menuitem" data-press class="danger">Archive</button>
+      </div>
+      <p class="note" id="menu-out" aria-live="polite">&nbsp;</p>
+    </section>
+
+    <section class="panel">
+      <header><h2>Bottom sheet</h2><p class="note">Drag the sheet: it follows 1:1, stretches past the top, and a flick picks the next stop. The list inside scrolls first.</p></header>
+      <div class="phone" id="phone">
+        <div class="content">
+          <div class="photo"></div>
+          <div class="row"><button class="btn primary" data-press id="share">Share photo</button></div>
+        </div>
+        <div class="scrim" id="scrim"></div>
+        <div class="sheet" id="sheet" role="dialog" aria-label="Share">
+          <div class="grabber" aria-hidden="true"></div>
+          <div class="targets">
+            <button class="target" data-press><span></span><span>Messages</span></button>
+            <button class="target" data-press><span></span><span>Mail</span></button>
+            <button class="target" data-press><span></span><span>Notes</span></button>
+            <button class="target" data-press><span></span><span>Files</span></button>
+          </div>
+          <div class="list"><div>Copy link</div><div>Add to album</div><div>Print</div><div>Save to Files</div><div>Assign to contact</div><div>Use as wallpaper</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <header><h2>Carousel</h2><p class="note">Swipe or drag sideways; one page per flick, rubber band at the ends. Vertical swipes still scroll the page.</p></header>
+      <div class="carousel" id="carousel" tabindex="0" aria-roledescription="carousel" aria-label="Albums">
+        <div class="strip" id="strip">
+          <div class="slide">Lisbon<small>124 photos</small></div>
+          <div class="slide">Harbour<small>58 photos</small></div>
+          <div class="slide">Garden<small>203 photos</small></div>
+          <div class="slide">Studio<small>41 photos</small></div>
+        </div>
+      </div>
+      <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i></div>
+    </section>
+  </div>
+  </div>
+</div>
+
+<dialog class="sheet-dialog" id="dlg" aria-labelledby="dlg-t">
+  <h2 id="dlg-t">Delete your account?</h2>
+  <p class="note">Your 1,284 photos and 3 shared albums will be removed after 30 days. You can cancel during that time.</p>
+  <div class="actions"><button class="btn" data-press id="dlg-cancel">Keep account</button><button class="btn danger" data-press id="dlg-ok">Delete</button></div>
+</dialog>
+
+<div class="hud" id="hud" aria-hidden="true">frame <b id="h-ft">16.7</b> ms · worst <b id="h-worst">0.0</b> · janky <b id="h-jank">0</b> · moving <b id="h-tick">0</b></div>
+
+<script>/*BUNDLE*/</script>
+<script>
+(() => {
+  const ti = window.TrompeInteraction;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const root = document.documentElement;
+
+  // Motion tokens, baked from the same springs the controllers use.
+  const tok = { return: 'press', throw: 'throw', settle: 'detent', glide: 'glide' };
+  for (const [name, spring] of Object.entries(tok)) {
+    const e = ti.springEasing(spring, { tolerance: 0.004 });
+    root.style.setProperty(`--tr-motion-easing-${name}`, e.easing);
+    root.style.setProperty(`--tr-motion-duration-${name}`, `${e.duration}ms`);
+  }
+
+  // Presses on everything clickable.
+  for (const el of $$('[data-press]')) new ti.PressController(el);
+  for (const el of $$('[data-latch]')) el.addEventListener('click', () => el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true')));
+
+  // Switches: click toggles; the controller adds drag-to-throw.
+  const switches = new Map();
+  function makeSwitch(el, onChange) {
+    const checked = () => el.getAttribute('aria-checked') === 'true';
+    const toggle = () => {
+      el.setAttribute('aria-checked', String(!checked()));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      onChange?.(checked());
+    };
+    el.addEventListener('click', toggle);
+    new ti.ToggleController(el, { checked, toggle, thumb: () => $('.thumb', el) });
+    switches.set(el, toggle);
+  }
+  for (const el of $$('.switch')) {
+    if (el.id === 'opt-sound') makeSwitch(el, (on) => ti.feedback.configure({ sound: on }));
+    else if (el.id === 'opt-haptics') makeSwitch(el, (on) => ti.feedback.configure({ haptics: on }));
+    else if (el.id === 'opt-motion') makeSwitch(el, (on) => (on ? root.setAttribute('data-tr-motion', 'reduce') : root.removeAttribute('data-tr-motion')));
+    else makeSwitch(el);
+  }
+  // Labels around the lab switches activate them natively (a <button> is labelable).
+
+  // Checkboxes.
+  for (const el of $$('[data-check]')) {
+    new ti.PressController(el);
+    const flip = () => {
+      el.setAttribute('aria-checked', String(el.getAttribute('aria-checked') !== 'true'));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    el.addEventListener('click', flip);
+    el.addEventListener('keydown', (e) => { if (e.key === ' ') e.preventDefault(); });
+    el.addEventListener('keyup', (e) => { if (e.key === ' ') flip(); });
+  }
+
+  // Any radiogroup / segmented / tablist: one ChoiceController each.
+  function group(host, itemSel, attr, opts = {}) {
+    const items = () => $$(itemSel, host);
+    const selected = () => items().findIndex((i) => i.getAttribute(attr) === 'true');
+    const c = new ti.ChoiceController(host, {
+      items, selected,
+      orientation: opts.orientation ?? 'horizontal',
+      indicator: opts.indicator,
+      select: (i) => {
+        items().forEach((it, k) => it.setAttribute(attr, String(k === i)));
+        opts.onSelect?.(i);
+        c.update();
+      },
+    });
+    items().forEach((it, i) => it.addEventListener('click', () => {
+      if (i === selected()) return;
+      items().forEach((x, k) => x.setAttribute(attr, String(k === i)));
+      opts.onSelect?.(i);
+      c.update();
+    }));
+    return c;
+  }
+  group($('#seg'), '[role=radio]', 'aria-checked', { indicator: () => $('#seg .puck') });
+  group($('#theme'), '[role=radio]', 'aria-checked', {
+    indicator: () => $('#theme .puck'),
+    onSelect: (i) => (i === 0 ? root.removeAttribute('data-theme') : root.setAttribute('data-theme', i === 1 ? 'light' : 'dark')),
+  });
+  const panels = ['Name, photo and language for your account.', 'Password, two-step sign-in and the 4 devices signed in.', 'Plan, payment method and the last 12 invoices.'];
+  group($('#tabs'), '[role=tab]', 'aria-selected', { indicator: () => $('#tabs .rail'), onSelect: (i) => ($('#tp').textContent = panels[i]) });
+  const radios = group($('#radios'), '[role=radio]', 'aria-checked', { orientation: 'vertical' });
+  for (const r of $$('#radios [role=radio]')) new ti.PressController(r);
+
+  // Text field.
+  $('#form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#email').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v)) {
+      $('#err').textContent = 'Enter a full address, like jamie@example.com.';
+      ti.shake($('.input'));
+      ti.feedback.play('thunk', { intensity: 0.5 });
+      $('#email').focus();
+    } else {
+      $('#err').textContent = '';
+      $('#err').style.color = 'var(--accent)';
+      $('#err').textContent = 'Saved. We sent a confirmation to ' + v + '.';
+    }
+  });
+  $('#email').addEventListener('input', () => { $('#err').textContent = ''; $('#err').style.color = ''; });
+
+  // Sliders.
+  const bright = new ti.LinearController($('#s-bright'), { min: 0, max: 100, step: 1, value: 70, thumb: () => $('#s-bright .cap'), valueText: (v) => `${v}%` });
+  // Update the readout's text node in place: no node churn, and its box is a layout boundary.
+  const oBright = $('#o-bright').firstChild;
+  $('#s-bright').addEventListener('input', () => (oBright.data = bright.value + '%'));
+  const text = new ti.LinearController($('#s-text'), { min: 12, max: 24, step: 1, value: 16, detents: 'steps', detentStrength: 0.35, thumb: () => $('#s-text .cap'), valueText: (v) => `${v} pixels` });
+  const oText = $('#o-text').firstChild;
+  $('#s-text').addEventListener('input', () => (oText.data = text.value + ' px'));
+
+  // Menu: native popover for light dismiss and top layer; motion and roving focus from Trompe.
+  const menu = $('#menu');
+  const more = $('#more');
+  const menuItems = () => $$('[role=menuitem]', menu);
+  new ti.ChoiceController(menu, { items: menuItems, selected: () => -1, select: () => {}, orientation: 'vertical', activation: 'manual', slide: false });
+  menu.addEventListener('toggle', (e) => {
+    if (e.newState !== 'open') return;
+    const r = more.getBoundingClientRect();
+    const below = r.bottom + 6 + menu.offsetHeight < innerHeight;
+    menu.style.left = Math.min(r.left, innerWidth - menu.offsetWidth - 12) + 'px';
+    menu.style.top = (below ? r.bottom + 6 : r.top - 6 - menu.offsetHeight) + 'px';
+    ti.present(menu, { kind: 'menu', from: more });
+    menuItems()[0].focus();
+  });
+  for (const it of menuItems()) it.addEventListener('click', async () => {
+    $('#menu-out').textContent = it.textContent + ' chosen.';
+    if (await ti.dismiss(menu, { kind: 'menu' })) menu.hidePopover();
+    more.focus();
+  });
+
+  // Dialog.
+  const dlg = ti.dialogMotion($('#dlg'));
+  $('#del').addEventListener('click', (e) => dlg.open(e.currentTarget));
+  $('#dlg-cancel').addEventListener('click', () => dlg.close('cancel'));
+  $('#dlg-ok').addEventListener('click', () => dlg.close('delete'));
+
+  // Bottom sheet inside the phone frame.
+  const sheet = $('#sheet');
+  const scrim = $('#scrim');
+  const sheetCtl = new ti.DragSurfaceController(sheet, {
+    axis: 'y', index: 2,
+    snapPoints: () => [0, 150, 290],
+    handle: null,
+    onMove: (off) => (scrim.style.opacity = String(Math.max(0, 1 - off / 290))),
+    onSnap: (i) => {
+      scrim.style.pointerEvents = i < 2 ? 'auto' : 'none';
+      // Closed: out of the tab order and the accessibility tree.
+      sheet.inert = i === 2;
+    },
+  });
+  sheet.inert = true;
+  $('#share').addEventListener('click', () => (sheet.inert = false));
+  $('#share').addEventListener('click', () => sheetCtl.snapTo(1));
+  scrim.addEventListener('click', () => sheetCtl.snapTo(2));
+  sheet.addEventListener('keydown', (e) => { if (e.key === 'Escape') sheetCtl.snapTo(2); });
+
+  // Carousel.
+  const strip = $('#strip');
+  const car = $('#carousel');
+  const dots = $$('#dots i');
+  let w = car.clientWidth;
+  const carousel = new ti.DragSurfaceController(strip, {
+    axis: 'x', paging: true,
+    snapPoints: () => [0, -w, -2 * w, -3 * w],
+    onSnap: (i) => dots.forEach((d, k) => d.classList.toggle('on', k === i)),
+  });
+  new ResizeObserver(() => { w = car.clientWidth; carousel.snapTo(carousel.index, false); }).observe(car);
+  car.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') carousel.snapTo(carousel.index + 1);
+    if (e.key === 'ArrowLeft') carousel.snapTo(carousel.index - 1);
+  });
+
+  // Frame-time HUD: rolling average, worst frame and frames over 20 ms while anything moves.
+  let last = 0, avg = 16.7, worst = 0, jank = 0, lastPaint = 0;
+  const hud = { ft: $('#h-ft').firstChild, worst: $('#h-worst').firstChild, jank: $('#h-jank').firstChild, tick: $('#h-tick').firstChild };
+  let input = false;
+  addEventListener('pointerdown', () => { input = true; worst = 0; jank = 0; }, true);
+  addEventListener('pointerup', () => setTimeout(() => (input = false), 800), true);
+  function frame(t) {
+    if (last) {
+      const ft = t - last;
+      avg = avg * 0.9 + ft * 0.1;
+      if (input || ti.activeTickers()) {
+        worst = Math.max(worst, ft);
+        if (ft > 20) jank++;
+      }
+    }
+    last = t;
+    if (t - lastPaint > 250) {
+      lastPaint = t;
+      hud.ft.data = avg.toFixed(1);
+      hud.worst.data = worst.toFixed(1);
+      hud.jank.data = String(jank);
+      hud.tick.data = String(ti.activeTickers());
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>

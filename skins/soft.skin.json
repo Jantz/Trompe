@@ -1,0 +1,27 @@
+{
+  "name": "soft",
+  "description": "Contemporary soft-touch product design: warm off-white molded plastic, pillowed controls, a single coral accent, diffuse high light. Restrained realism for everyday apps.",
+  "colorScheme": "light",
+  "tokens": {
+    "color.canvas": "oklch(93% 0.012 70)",
+    "color.surface": "oklch(96.5% 0.01 70)",
+    "color.well": "oklch(90% 0.014 70)",
+    "color.ink": "oklch(28% 0.02 40)",
+    "color.ink-muted": "oklch(47% 0.02 40)",
+    "color.edge": "oklch(61% 0.02 50)",
+    "color.accent": "oklch(54% 0.17 32)",
+    "color.accent-ink": "oklch(99% 0.005 40)",
+    "color.shadow": "oklch(35% 0.05 40)",
+    "realism.default": 0.5,
+    "light.angle": "0deg",
+    "light.elevation": "68deg",
+    "radius.sm": "10px",
+    "radius.md": "16px",
+    "radius.lg": "26px"
+  },
+  "elements": {
+    "*": { "material": "plastic", "finish": "satin", "profile": "convex" },
+    "tr-panel": { "material": "plastic", "finish": "matte", "profile": "flat" },
+    "tr-knob": { "material": "plastic", "finish": "satin", "profile": "dome" }
+  }
+}

@@ -1,0 +1,19 @@
+/* Page chrome shared by the framework examples. The controls themselves are styled by Trompe. */
+:root { font: 16px/1.45 system-ui, sans-serif; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 48px 16px;
+  box-sizing: border-box;
+  background: var(--tr-color-canvas, #e9e6e0);
+  color: var(--tr-color-ink, #222);
+}
+/* tr-panel is a size container, so give it a definite width rather than shrink-wrapping it. */
+tr-panel { display: block; width: min(560px, 100%); margin: 0 auto; box-sizing: border-box; }
+h1 { margin: 0; font-size: 1.1rem; font-weight: 650; letter-spacing: 0.01em; }
+.controls { display: grid; grid-template-columns: 1fr auto; gap: 20px 28px; align-items: center; }
+.controls tr-slider { grid-column: 1 / -1; }
+.row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.state { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 20px 0 0; font: 13px/1.4 ui-monospace, monospace; }
+.state dt { color: var(--tr-color-ink-muted, #555); }
+.state dd { margin: 0; }

@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<script type="module" src="/src/index.ts"></script>
+<link rel="stylesheet" href="/src/generated/skins.css">
+<style>body{margin:0;background:var(--tr-color-canvas);color:var(--tr-color-ink);font-family:system-ui}
+.sec{padding:24px;background:var(--tr-color-canvas);color:var(--tr-color-ink);display:grid;grid-template-columns:1fr 1fr;gap:24px}
+p{margin:0 0 .5em}</style></head>
+<body>
+<script>
+const tabs = (attrs='') => `<tr-tabs label="Settings" ${attrs}><tr-tab>General</tr-tab><tr-tab selected>Privacy</tr-tab><tr-tab>Notifications <tr-badge slot="end" tone="accent">3</tr-badge></tr-tab><tr-tab disabled>Billing</tr-tab>
+<tr-tab-panel><p>General settings for the workspace.</p></tr-tab-panel><tr-tab-panel><p>Privacy controls: who can see your profile and activity.</p><tr-switch checked>Share analytics</tr-switch></tr-tab-panel><tr-tab-panel>Notifications</tr-tab-panel><tr-tab-panel>Billing</tr-tab-panel></tr-tabs>`;
+const skins = [['', 'light'], ['', 'dark'], ['studio',''], ['chrome',''], ['heritage',''], ['soft',''], ['aurora','']];
+for (const [skin, theme] of skins) {
+  document.write(`<div class="sec" ${skin?`data-tr-skin="${skin}"`:''} ${theme?`data-tr-theme="${theme}"`:''}>${tabs()}${tabs('variant="keys"')}${tabs('orientation="vertical"')}${tabs('realism="real" material="metal"')}</div>`);
+}
+</script>
+</body></html>

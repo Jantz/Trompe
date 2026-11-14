@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Bad</title><script type="module" src="./trompe.bundle.js"></script></head>
+<body data-tr-skin="chrom">
+  <tr-buton>Save</tr-buton>
+  <tr-button tone="primary" size="medium" toggle="false">Mute</tr-button>
+  <tr-button shape="circle"><svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg></tr-button>
+  <tr-slider value="40" lable="Volume"></tr-slider>
+  <tr-panel material="glass"><tr-panel material="glass"><tr-input label="Name"></tr-input></tr-panel></tr-panel>
+  <tr-button style="box-shadow: 0 2px 4px black; --_face: red; --tr-light-angle: 90deg">Shadowed</tr-button>
+  <div style="color: var(--tr-color-inc)">Text</div>
+  <tr-button><tr-switch>Nested</tr-switch></tr-button>
+  <tr-panel depth="1"></tr-panel><tr-panel depth="2"></tr-panel><tr-panel depth="3"></tr-panel><tr-panel depth="4"></tr-panel>
+  <style>tr-button::part(surface) { color: red; }</style>
+</body>
+</html>

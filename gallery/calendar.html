@@ -1,0 +1,1269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frost Calendar</title>
+<meta name="description" content="Frost: a calendar app built from edge-lit acrylic slabs on satin aluminium standoffs over pale concrete, with vitreous enamel event chips.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap">
+<link rel="stylesheet" href="kit/objects.css">
+<style>
+/* ===================================================================
+  Frost. Material world: thick frosted and clear acrylic slabs with
+  polished, edge-lit arrises, held off a pale concrete base by satin
+  aluminium standoffs; events are vitreous enamel set in a silver rim.
+  Every offset reads the kit light (--tr-shadow-x/y, --tr-light-angle).
+  =================================================================== */
+:root {
+  color-scheme: light;
+  --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --sl: var(--tr-shadow-len); --la: var(--tr-light-angle);
+  --ink: oklch(.27 .02 245); --ink-2: oklch(.42 .022 240); --ink-3: oklch(.495 .02 235);
+  --ice: oklch(.84 .1 212); --ice-hi: oklch(.97 .045 205); --ice-ink: oklch(.45 .13 240);
+  --amber: oklch(.8 .15 68); --amber-hi: oklch(.93 .09 80); --amber-ink: oklch(.5 .13 52);
+  --stone: oklch(.855 .006 75); --stone-lo: oklch(.76 .008 70);
+  --edge-near: oklch(.83 .03 198); --edge-far: oklch(.68 .045 204); --edge-dark: oklch(.52 .05 212 / .55);
+  --alu-hi: oklch(.97 .003 240); --alu: oklch(.84 .006 240); --alu-lo: oklch(.64 .01 240);
+  --e-cobalt: oklch(.5 .135 260); --e-cobalt-d: oklch(.38 .115 263);
+  --e-jade: oklch(.55 .085 172); --e-jade-d: oklch(.41 .07 176);
+  --e-saffron: oklch(.82 .115 82); --e-saffron-d: oklch(.69 .12 68);
+  --e-vermilion: oklch(.58 .145 34); --e-vermilion-d: oklch(.46 .135 31);
+  --e-plum: oklch(.5 .1 335); --e-plum-d: oklch(.37 .085 335);
+  /* Light-relative offsets (x y), shared by every shadow and rim. */
+  --o1: calc(var(--sx) * 1px) calc(var(--sy) * 1px); --o10x14: calc(var(--sx) * 10px) calc(var(--sy) * 14px); --o12x16: calc(var(--sx) * 12px) calc(var(--sy) * 16px); --o16x22: calc(var(--sx) * 16px) calc(var(--sy) * 22px); --o1_5: calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px); --o1_5x2: calc(var(--sx) * 1.5px) calc(var(--sy) * 2px); --o1x1_5: calc(var(--sx) * 1px) calc(var(--sy) * 1.5px); --o1x2: calc(var(--sx) * 1px) calc(var(--sy) * 2px); --o2: calc(var(--sx) * 2px) calc(var(--sy) * 2px); --o26x34: calc(var(--sx) * 26px) calc(var(--sy) * 34px); --o2_5: calc(var(--sx) * 2.5px) calc(var(--sy) * 2.5px); --o2_5x3_5: calc(var(--sx) * 2.5px) calc(var(--sy) * 3.5px); --o2x2_5: calc(var(--sx) * 2px) calc(var(--sy) * 2.5px); --o2x3: calc(var(--sx) * 2px) calc(var(--sy) * 3px); --o3: calc(var(--sx) * 3px) calc(var(--sy) * 3px); --o3_5: calc(var(--sx) * 3.5px) calc(var(--sy) * 3.5px); --o3x4: calc(var(--sx) * 3px) calc(var(--sy) * 4px); --o4: calc(var(--sx) * 4px) calc(var(--sy) * 4px); --o4x5: calc(var(--sx) * 4px) calc(var(--sy) * 5px); --o4x6: calc(var(--sx) * 4px) calc(var(--sy) * 6px); --o5: calc(var(--sx) * 5px) calc(var(--sy) * 5px); --o5x7: calc(var(--sx) * 5px) calc(var(--sy) * 7px); --o6: calc(var(--sx) * 6px) calc(var(--sy) * 6px); --o7: calc(var(--sx) * 7px) calc(var(--sy) * 7px); --o_5: calc(var(--sx) * .5px) calc(var(--sy) * .5px); --on1: calc(var(--sx) * -1px) calc(var(--sy) * -1px); --on1_5: calc(var(--sx) * -1.5px) calc(var(--sy) * -1.5px); --on2: calc(var(--sx) * -2px) calc(var(--sy) * -2px); --on_5: calc(var(--sx) * -.5px) calc(var(--sy) * -.5px); --on_8: calc(var(--sx) * -.8px) calc(var(--sy) * -.8px);
+  --ui: "Instrument Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --disp: "Archivo", "Instrument Sans", system-ui, sans-serif;
+  /* Frosting grain: white and dark specks, rasterised once. */
+  --tex-frost: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Cast concrete: broad cement mottle, fine aggregate grains, sparse air pits with a lit lip. */
+  --tex-mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='n' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0065' numOctaves='5' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .46 0 0 0 0 .44 0 0 0 0 .41 1.5 0 0 0 -.62'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tex-agg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='a' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.62' numOctaves='2' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .34 0 0 0 0 .33 0 0 0 0 .31 11 0 0 0 -7.1'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 .98 -12 0 0 0 4.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='.7'/%3E%3C/svg%3E");
+  --tex-pits: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='380' height='380'%3E%3Cfilter id='p' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.09' numOctaves='3' seed='23' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 40 0 0 0 -31' result='m'/%3E%3CfeOffset dx='1' dy='1' in='m' result='o'/%3E%3CfeColorMatrix in='o' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .8 0' result='lip'/%3E%3CfeColorMatrix in='m' values='0 0 0 0 .32 0 0 0 0 .3 0 0 0 0 .28 0 0 0 .85 0' result='hole'/%3E%3CfeMerge%3E%3CfeMergeNode in='lip'/%3E%3CfeMergeNode in='hole'/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+html { background: var(--stone); }
+body {
+  color: var(--ink); font-family: var(--ui);
+  background:
+  var(--tex-pits) 0 0 / 380px,
+  var(--tex-agg) 0 0 / 256px,
+  var(--tr-tex-noise) 0 0 / 180px,
+  var(--tex-mottle) 0 0 / 520px,
+  radial-gradient(140% 100% at calc(50% - var(--sx) * 70%) calc(30% - var(--sy) * 70%), oklch(.9 .005 80), var(--stone) 50%, var(--stone-lo));
+  background-blend-mode: normal, normal, soft-light, multiply, normal;
+}
+
+/* ------------------------------------------------------------------ */
+/* Stage + layout                                                      */
+/* ------------------------------------------------------------------ */
+.frost { container-type: inline-size; contain: layout paint; }
+.app {
+  font-size: clamp(13px, .5cqi + 7px, 15.5px); line-height: 1.35;
+  display: grid; grid-template-columns: 19.5em minmax(0, 1fr); grid-template-areas: "hdr hdr" "rail main";
+  gap: 1.7em 1.9em; max-width: 1500px; margin: 0 auto; padding: 2.4em 2.4em 5em;
+}
+.hdr { grid-area: hdr; }
+.rail { grid-area: rail; display: grid; gap: 1.9em; align-content: start; }
+.main { grid-area: main; }
+h1, h2, h3 { margin: 0; }
+
+/* Engraved-and-filled legend: graphite ink, the cut wall away from the light catches a hairline. */
+.eng { color: var(--ink); text-shadow: var(--o1) 0 oklch(1 0 0 / .75); }
+
+/* ------------------------------------------------------------------ */
+/* Slabs                                                               */
+/* ------------------------------------------------------------------ */
+.slab {
+  --lift: 1em; --r: 1.15em;
+  position: relative; border-radius: var(--r);
+  background:
+  var(--tex-frost) 0 0 / 160px,
+  linear-gradient(calc(var(--la) + 135deg), transparent 20%, oklch(1 0 0 / .3) 30%, oklch(1 0 0 / .06) 37%, transparent 46%),
+  radial-gradient(160% 140% at calc(50% - var(--sx) * 65%) calc(50% - var(--sy) * 65%), oklch(.975 .007 212 / .95), oklch(.945 .013 215 / .93) 58%, oklch(.915 .018 218 / .93));
+  box-shadow: var(--slab-rim), var(--slab-side);
+  outline: 1px solid oklch(1 0 0 / .6); outline-offset: -8px;
+}
+/* One recipe for every slab of 8 mm acrylic, seen from slightly above the light:
+   face rims (polished arris, lit chamfer, refracted far edge), then the side face extruded away from
+   the light. The edge pipes the LED light, so the side is a luminous cyan, darkest at the bottom arris. */
+.frost, dialog.editor {
+  --slab-rim:
+  inset 0 0 0 1px oklch(1 0 0 / .55),
+  inset var(--o1_5) 0 oklch(1 0 0 / .95),
+  inset var(--o4) 5px oklch(1 0 0 / .45),
+  inset var(--on1) 0 oklch(.64 .05 212 / .65),
+  inset calc(var(--sx) * -6px) calc(var(--sy) * -6px) 7px oklch(.6 .06 214 / .2),
+  inset 0 0 0 7px oklch(.62 .05 212 / .07);
+  --slab-side:
+  var(--o1) 0 oklch(.995 .02 200),
+  var(--o2) 0 oklch(.95 .055 200),
+  var(--o3) 0 oklch(.9 .075 202),
+  var(--o4) 0 oklch(.84 .085 205),
+  var(--o5) 0 oklch(.76 .08 208),
+  var(--o6) 0 oklch(.66 .07 212),
+  var(--o7) .5px oklch(.4 .05 220 / .85),
+  calc(var(--sx) * 8px) calc(var(--sy) * 8px) 2px oklch(.25 .03 225 / .3);
+}
+/* Cast shadow on the concrete. Light passes through the acrylic, so the shadow is a pale tinted
+   body with a soft penumbra; a second, tighter shadow pulled back under the slab is the ambient occlusion. */
+.slab::before {
+  content: ""; position: absolute; inset: .25em; z-index: -1; border-radius: inherit; pointer-events: none;
+  translate: calc(var(--sx) * var(--lift) * var(--sl)) calc(var(--sy) * var(--lift) * var(--sl));
+  background: oklch(.42 .03 218 / .16);
+  box-shadow:
+  0 0 2em .35em oklch(.27 .025 225 / .26),
+  calc(var(--sx) * var(--lift) * var(--sl) * -.7) calc(var(--sy) * var(--lift) * var(--sl) * -.7) 1.2em .3em oklch(.25 .02 225 / .2);
+}
+/* Caustic: the polished far edge focuses light into a bright cyan line just inside the shadow's far
+   edge, and the edge-lit glow spills onto the concrete beyond it. Emissive part ignores the light. */
+.slab::after {
+  content: ""; position: absolute; inset: .1em; z-index: -1; border-radius: inherit; pointer-events: none;
+  translate: calc(var(--sx) * var(--lift) * var(--sl) * 1.05) calc(var(--sy) * var(--lift) * var(--sl) * 1.05);
+  box-shadow:
+  inset calc(var(--sx) * -.28em) calc(var(--sy) * -.28em) .35em -.12em oklch(.99 .06 195 / .85),
+  inset calc(var(--sx) * -.7em) calc(var(--sy) * -.7em) 1em -.3em oklch(.95 .07 200 / .35),
+  calc(var(--sx) * .5em) calc(var(--sy) * .5em) 1.6em -.3em oklch(.88 .08 205 / .4);
+}
+.slab.clear {
+  background:
+  linear-gradient(calc(var(--la) + 135deg), transparent 20%, oklch(1 0 0 / .4) 28%, oklch(1 0 0 / .08) 34%, transparent 42%),
+  var(--tex-frost) 0 0 / 160px,
+  linear-gradient(calc(var(--la) + 180deg), oklch(.97 .008 208 / .88), oklch(.935 .016 210 / .82) 60%, oklch(.905 .022 212 / .84));
+}
+.slab.clear::before { background: oklch(.45 .03 215 / .07); }
+
+/* Satin aluminium standoff caps. The barrel shows through the slab as a soft grey disc. */
+.bolt {
+  --r: 0deg; position: absolute; z-index: 3; width: 1.3em; height: 1.3em; border-radius: 50%; pointer-events: none;
+  background:
+  radial-gradient(circle, transparent 54%, oklch(.5 .01 240 / .35) 57%, transparent 61%),
+  conic-gradient(from calc(var(--la) + 20deg), oklch(1 0 0 / .55), oklch(1 0 0 / 0) 45deg, oklch(0 0 0 / .1) 90deg, oklch(1 0 0 / 0) 140deg, oklch(1 0 0 / .45) 180deg, oklch(1 0 0 / 0) 225deg, oklch(0 0 0 / .1) 270deg, oklch(1 0 0 / 0) 320deg, oklch(1 0 0 / .55)),
+  radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), var(--alu-hi), var(--alu) 55%, var(--alu-lo));
+  box-shadow:
+  inset 0 0 0 .5px oklch(.45 .01 240 / .6),
+  inset var(--on1) .5px oklch(1 0 0 / .95),
+  inset var(--o1_5) 1px oklch(.35 .01 240 / .45),
+  var(--o1_5) 1px oklch(.2 .02 240 / .4),
+  var(--o4x5) 6px oklch(.2 .02 240 / .25),
+  0 0 0 .35em oklch(.55 .02 230 / .07);
+}
+.bolt::after {
+  content: ""; position: absolute; inset: 31%; transform: rotate(var(--r));
+  clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%);
+  background: linear-gradient(calc(var(--la) + 180deg - var(--r)), oklch(.3 .01 240), oklch(.62 .008 240));
+}
+.bolt.tl { left: .75em; top: .75em; } .bolt.tr { right: .75em; top: .75em; }
+.bolt.bl { left: .75em; bottom: .75em; } .bolt.br { right: .75em; bottom: .75em; }
+.bolt.ml { left: .8em; top: calc(50% - .65em); } .bolt.mr { right: .8em; top: calc(50% - .65em); }
+
+/* Brushed aluminium LED rail clamped along a slab's top edge. Light enters the glass below it. */
+.alu-rail {
+  position: relative; z-index: 2; display: flex; align-items: center; gap: .6em; min-height: 2.5em; padding: 0 1.1em;
+  border-radius: var(--r) var(--r) .2em .2em;
+  background:
+  var(--tr-tex-brushed) 0 0 / 480px 96px,
+  linear-gradient(calc(var(--la) + 180deg), var(--alu-hi), oklch(.88 .005 240) 45%, oklch(.76 .008 240));
+  background-blend-mode: soft-light, normal;
+  box-shadow:
+  inset 0 0 0 .5px oklch(.5 .01 240 / .5),
+  inset var(--on1) 0 oklch(1 0 0 / .9),
+  inset var(--o1) 1px oklch(.4 .01 240 / .35),
+  0 1px 0 oklch(.35 .02 230 / .55),
+  var(--o2x3) 3px oklch(.25 .02 230 / .28);
+}
+/* The LED glow entering the acrylic just under the rail. Emissive: ignores the scene light. */
+.lit { background: linear-gradient(oklch(.86 .09 210 / .5), oklch(.9 .07 210 / .14) 1.3em, transparent 3.6em) no-repeat; }
+.alu-rail .screw {
+  width: .62em; height: .62em; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), var(--alu-hi), var(--alu-lo));
+  box-shadow: inset 0 0 0 .5px oklch(.4 .01 240 / .6), var(--o_5) .5px oklch(0 0 0 / .35);
+  position: relative;
+}
+.alu-rail .screw::after { content: ""; position: absolute; inset: 44% 12%; background: oklch(.32 .01 240 / .8); transform: rotate(var(--r, 30deg)); border-radius: 1px; }
+.rail-label { font: 600 .74em/1 var(--disp); font-stretch: 112%; letter-spacing: .14em; text-transform: uppercase; color: oklch(.3 .012 240); text-shadow: var(--o_5) 0 oklch(1 0 0 / .6); }
+
+/* ------------------------------------------------------------------ */
+/* Header                                                              */
+/* ------------------------------------------------------------------ */
+.hdr { display: flex; align-items: center; gap: 1.1em; padding: .8em 2.6em; --lift: .7em; }
+.brand { display: flex; align-items: center; gap: .55em; margin-right: .6em; font: 700 .82em/1 var(--disp); font-stretch: 125%; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-2); }
+.brand i { width: .95em; height: .95em; border-radius: .22em; transform: rotate(45deg); background: linear-gradient(135deg, var(--ice-hi), var(--ice)); box-shadow: 0 0 .6em oklch(.85 .1 210 / .8), inset 0 0 0 1px oklch(1 0 0 / .8); }
+.title { font: 680 1.75em/1 var(--disp); font-stretch: 108%; letter-spacing: -.012em; min-width: 9.5em; white-space: nowrap; }
+.title span { font-weight: 400; color: var(--ink-3); }
+.nav { display: flex; gap: .5em; align-items: center; }
+.hdr .spacer { flex: 1; }
+
+/* ------------------------------------------------------------------ */
+/* Glass push keys: .sh (static seat + cast shadow) under a .cap that travels. */
+/* ------------------------------------------------------------------ */
+.gkey { --tr-press: 0; position: relative; display: inline-grid; border: 0; padding: 0; background: none; height: 2.75em; min-width: 2.75em; border-radius: .8em; cursor: pointer; color: var(--ink); font: 600 .95em/1 var(--ui); -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.gkey > span { grid-area: 1 / 1; border-radius: inherit; }
+.gkey .sh {
+  box-shadow: var(--o2_5x3_5) 6px oklch(.28 .03 225 / .3), var(--o4) 1px oklch(.3 .03 225 / .25);
+  opacity: calc(1 - var(--tr-press) * .8);
+}
+.gkey .cap {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: .5em; padding: 0 1em;
+  background:
+  linear-gradient(calc(var(--la) + 135deg), transparent 25%, oklch(1 0 0 / .5) 38%, transparent 52%),
+  linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .86), oklch(.965 .012 208 / .62) 55%, oklch(.9 .025 208 / .66));
+  box-shadow:
+  inset 0 0 0 1px oklch(1 0 0 / .55),
+  inset var(--on1_5) .5px oklch(1 0 0),
+  inset var(--o2) 2px oklch(.55 .05 210 / .4),
+  var(--o1_5) 0 var(--edge-near),
+  var(--o3) 0 var(--edge-far);
+  transform: translate(calc(var(--sx) * var(--tr-press) * 2.6px), calc(var(--sy) * var(--tr-press) * 2.6px)) scale(calc(1 - var(--tr-press) * .025));
+}
+.gkey .cap::after { /* hover: light wells up inside the block */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .18s;
+  background: radial-gradient(90% 120% at 50% 100%, oklch(.95 .06 205 / .7), transparent 70%);
+}
+.gkey:hover .cap::after { opacity: 1; }
+.gkey svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(var(--o1) 0 oklch(1 0 0 / .8)); }
+.gkey.icon .cap { padding: 0; }
+.gkey .led { width: .42em; height: .42em; border-radius: 50%; background: radial-gradient(circle at 40% 35%, var(--amber-hi), var(--amber) 60%, oklch(.6 .15 55)); box-shadow: 0 0 .5em var(--amber), 0 0 1em oklch(.8 .15 68 / .5); }
+.gkey[aria-disabled="true"] { cursor: not-allowed; }
+.gkey[aria-disabled="true"] .cap { color: oklch(.6 .015 235); }
+.gkey[aria-disabled="true"] .cap > * { opacity: .55; }
+.gkey[aria-disabled="true"] .sh { opacity: .5; }
+.gkey.danger .cap { color: var(--e-vermilion-d); }
+.gkey.danger[aria-disabled="true"] .cap { color: oklch(.58 .015 235); }
+.gkey[aria-disabled="true"] .cap { opacity: .7; }
+.gkey.danger:not([aria-disabled="true"]):hover .cap::after { background: radial-gradient(90% 120% at 50% 100%, oklch(.9 .08 30 / .5), transparent 70%); }
+
+/* Enamel key (primary): cobalt vitreous enamel domed in a polished aluminium bezel. */
+.ekey .cap {
+  color: white; text-shadow: 0 -1px 0 oklch(.25 .12 265 / .6); padding: 0 1.15em;
+  background:
+  radial-gradient(130% 120% at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 90%), oklch(1 0 0 / .42), oklch(1 0 0 / .08) 42%, transparent 50%),
+  linear-gradient(calc(var(--la) + 180deg), var(--e-cobalt), var(--e-cobalt-d));
+  box-shadow:
+  inset 0 0 0 1px oklch(.3 .13 265),
+  inset var(--on1_5) 1px oklch(.85 .08 255 / .7),
+  inset var(--o2) 3px oklch(.2 .1 265 / .55),
+  0 0 0 2px var(--alu),
+  var(--on_8) 0 2.4px oklch(1 0 0 / .95),
+  var(--o1_5) 0 2.5px var(--alu-lo);
+}
+.ekey .cap::after { background: radial-gradient(90% 120% at 50% 100%, oklch(.7 .15 255 / .55), transparent 70%); }
+.ekey svg { filter: none; }
+.ekey .sh { box-shadow: var(--o3x4) 8px oklch(.4 .12 262 / .38), var(--o4) 1px oklch(.3 .03 225 / .3); }
+
+/* Segmented view switch: glass keys latching in a milled groove. */
+.seg {
+  display: inline-flex; gap: .3em; padding: .32em; border-radius: 1.05em;
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(.78 .025 212 / .6), oklch(.93 .012 210 / .55));
+  box-shadow: inset var(--o2x2_5) 4px oklch(.28 .04 225 / .35), inset var(--on1) 0 oklch(1 0 0 / .85), inset 0 0 0 1px oklch(.6 .03 215 / .3);
+}
+.seg .gkey { height: 2.35em; min-width: 4.7em; font-size: .92em; }
+.seg .gkey .cap { flex-direction: column; gap: .28em; }
+.seg .gkey .cap::before { content: ""; width: 1.4em; height: 2px; border-radius: 2px; background: oklch(.6 .03 215 / .35); }
+.seg .gkey[aria-pressed="true"] .cap { color: var(--ice-ink); text-shadow: 0 0 .7em oklch(.82 .12 220 / .9); }
+.seg .gkey[aria-pressed="true"] .cap::after { opacity: 1; background: radial-gradient(80% 90% at 50% 0%, oklch(.9 .08 212 / .55), transparent 75%); }
+.seg .gkey[aria-pressed="true"] .sh { opacity: .35; }
+.seg .gkey[aria-pressed="true"] .cap::before { background: var(--ice); box-shadow: 0 0 .5em var(--ice), 0 0 1em oklch(.84 .1 212 / .6); }
+
+/* ------------------------------------------------------------------ */
+/* Mini month picker                                                   */
+/* ------------------------------------------------------------------ */
+.picker { padding: 0 0 1em; --lift: .9em; }
+.picker .alu-rail { justify-content: space-between; }
+.pwrap { position: relative; padding: 1em 1em 0; }
+.dow, .pgrid [role="row"] { display: grid; grid-template-columns: repeat(7, 1fr); }
+.dow { margin-bottom: .2em; }
+.dow span { text-align: center; font: 600 .68em/2 var(--ui); letter-spacing: .08em; color: var(--ink-3); }
+.pgrid { position: relative; }
+.pday {
+  position: relative; z-index: 1; display: grid; place-items: center; aspect-ratio: 1; min-height: 2.25em; border: 0; padding: 0; background: none; cursor: pointer;
+  font: 560 .92em/1 var(--disp); font-stretch: 95%; font-variant-numeric: tabular-nums; color: var(--ink); border-radius: 50%;
+  text-shadow: var(--o1) 0 oklch(1 0 0 / .7);
+}
+.pday b { font-weight: inherit; transition: transform .28s var(--tr-ease-spring); }
+.pday.out { color: var(--ink-3); opacity: .55; }
+.pday.wkend { color: var(--ink-2); }
+.pday:hover::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; background: radial-gradient(circle, oklch(.95 .05 205 / .8), transparent 70%); z-index: -1; }
+.pday.has::after { content: ""; position: absolute; bottom: 14%; width: .28em; height: .28em; border-radius: 50%; background: var(--ice); box-shadow: 0 0 .35em var(--ice); }
+.pday.today { color: var(--amber-ink); font-weight: 750; text-shadow: 0 0 .7em oklch(.85 .15 70 / .8); }
+.pday.today::after { background: var(--amber); box-shadow: 0 0 .4em var(--amber); }
+.pday[aria-selected="true"] b { transform: scale(1.32); }
+.pday:focus-visible { outline-offset: -1px; }
+/* The selection lens: a polished clear dome that slides between cells and magnifies the numeral. */
+.lens {
+  position: absolute; left: 0; top: 0; z-index: 2; width: 2.5em; height: 2.5em; border-radius: 50%; pointer-events: none;
+  background:
+  radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), oklch(1 0 0 / .95) 0, oklch(1 0 0 / .6) 5%, transparent 13%),
+  radial-gradient(circle, transparent 58%, oklch(.75 .04 210 / .18) 74%, oklch(1 0 0 / .55) 86%, transparent 92%),
+  radial-gradient(circle at calc(50% + var(--sx) * 22%) calc(50% + var(--sy) * 22%), oklch(.97 .05 200 / .55), transparent 45%);
+  box-shadow:
+  inset var(--on1_5) 1.5px oklch(1 0 0),
+  inset var(--o3) 4px oklch(.4 .06 215 / .4),
+  inset 0 0 0 1px oklch(.6 .04 210 / .35),
+  var(--o2x3) 3px oklch(.25 .03 225 / .28),
+  var(--o5x7) 10px oklch(.25 .03 225 / .16);
+}
+.lens::after { /* caustic: light focused by the dome lands on the slab on the shadow side */
+  content: ""; position: absolute; width: 60%; height: 60%; left: 20%; top: 20%; border-radius: 50%;
+  translate: calc(var(--sx) * 85%) calc(var(--sy) * 85%);
+  background: radial-gradient(circle, oklch(1 .03 200 / .75), oklch(.98 .05 200 / .2) 45%, transparent 70%);
+}
+
+/* ------------------------------------------------------------------ */
+/* Calendars + search                                                  */
+/* ------------------------------------------------------------------ */
+.cal-slab { padding: 2.3em 1.5em 2.2em; --lift: .8em; }
+.cal-slab h2 { font: 600 .72em/1 var(--disp); font-stretch: 112%; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); margin: 1.6em 0 .7em; }
+.search { position: relative; display: block; }
+.search svg { position: absolute; left: .85em; top: 50%; translate: 0 -50%; width: 1.1em; height: 1.1em; fill: none; stroke: var(--ink-2); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+.search input { padding-left: 2.5em; }
+.search-note { font-size: .78em; color: var(--ink-2); margin: .55em .2em 0; min-height: 1.3em; }
+.cals { list-style: none; margin: 0; padding: 0; display: grid; gap: .1em; }
+.cals label { display: flex; align-items: center; gap: .8em; min-height: 2.6em; padding: 0 .4em; border-radius: .6em; cursor: pointer; font-weight: 520; }
+.cals label:hover { background: oklch(1 0 0 / .3); }
+.cals .n { margin-left: auto; font: 500 .8em/1 var(--disp); font-variant-numeric: tabular-nums; color: var(--ink-3); }
+
+/* Enamel checkbox: an engraved socket; checked, a domed bead of enamel fills it. */
+.bead {
+  appearance: none; -webkit-appearance: none; margin: 0; flex: none; position: relative; width: 1.35em; height: 1.35em; border-radius: 50%; cursor: pointer;
+  background: radial-gradient(circle, oklch(from var(--c) l c h / .14) 50%, transparent 52%), linear-gradient(calc(var(--la) + 180deg), oklch(.8 .02 212 / .7), oklch(.96 .01 210 / .7));
+  box-shadow: inset var(--o1_5) 2px oklch(.25 .04 225 / .4), inset var(--on1) 0 oklch(1 0 0 / .9), inset 0 0 0 1.5px oklch(from var(--c) l c h / .55);
+}
+.bead::before {
+  content: ""; position: absolute; inset: 2px; border-radius: 50%; transform: scale(0); opacity: 0;
+  transition: transform .26s var(--tr-ease-spring), opacity .12s;
+  background:
+  radial-gradient(circle at calc(50% - var(--sx) * 28%) calc(50% - var(--sy) * 28%), oklch(1 0 0 / .9), oklch(1 0 0 / 0) 34%),
+  radial-gradient(circle at calc(50% - var(--sx) * 15%) calc(50% - var(--sy) * 15%), var(--c), var(--cd));
+  box-shadow: inset 0 0 0 1px var(--cd), var(--o1x1_5) 2px oklch(from var(--cd) l c h / .55);
+}
+.bead::after { /* printed tick, second cue besides the bead */
+  content: ""; position: absolute; left: 36%; top: 22%; width: 26%; height: 42%; border: solid var(--ci, white); border-width: 0 2px 2px 0; transform: rotate(42deg) scale(0); transition: transform .2s .05s var(--tr-ease-spring);
+}
+.bead:checked::before { transform: scale(1); opacity: 1; }
+.bead:checked::after { transform: rotate(42deg) scale(1); }
+.bead:focus-visible { outline-offset: 2px; }
+
+/* Enamel colours, per calendar. */
+.c-cobalt { --c: var(--e-cobalt); --cd: var(--e-cobalt-d); --ci: white; }
+.c-jade { --c: var(--e-jade); --cd: var(--e-jade-d); --ci: white; }
+.c-saffron { --c: var(--e-saffron); --cd: var(--e-saffron-d); --ci: oklch(.3 .06 60); }
+.c-vermilion { --c: var(--e-vermilion); --cd: var(--e-vermilion-d); --ci: white; }
+.c-plum { --c: var(--e-plum); --cd: var(--e-plum-d); --ci: white; }
+
+/* ------------------------------------------------------------------ */
+/* Sandblasted pockets: inputs, textarea, select button               */
+/* ------------------------------------------------------------------ */
+.well {
+  appearance: none; -webkit-appearance: none; display: block; width: 100%; min-width: 0; min-height: 2.75em; border: 0; margin: 0; padding: 0 .9em; border-radius: .7em;
+  font: 500 1em/1.3 var(--ui); color: var(--ink); outline: 2px solid transparent; outline-offset: 1px;
+  background:
+  var(--tex-frost) 0 0 / 160px,
+  linear-gradient(calc(var(--la) + 180deg), oklch(.87 .017 214 / .75), oklch(.955 .009 210 / .8) 40%, oklch(.97 .006 210 / .8));
+  box-shadow:
+  inset var(--o1_5x2) 3px oklch(.25 .04 225 / .3),
+  inset 0 0 0 1px oklch(.72 .025 214 / .55),
+  var(--o1) 0 oklch(1 0 0 / .9);
+}
+.well::placeholder { color: oklch(.55 .02 235); }
+.well:hover { background-color: oklch(1 0 0 / .25); }
+.well:focus-visible, .well:focus {
+  outline-color: var(--tr-focus);
+  box-shadow:
+  inset var(--o1_5x2) 3px oklch(.25 .04 225 / .25),
+  inset 0 0 0 1px oklch(.7 .12 230 / .8),
+  inset 0 0 .9em oklch(.85 .1 212 / .55),
+  var(--o1) 0 oklch(1 0 0 / .9);
+}
+.well[aria-invalid="true"] {
+  outline-color: var(--e-vermilion);
+  box-shadow: inset 0 0 0 1px var(--e-vermilion), inset 0 0 1em oklch(.8 .12 35 / .45), inset var(--o1_5x2) 3px oklch(.25 .04 225 / .25);
+}
+.well:disabled { color: oklch(.6 .015 235); cursor: not-allowed; background: linear-gradient(oklch(.93 .008 210 / .5), oklch(.95 .006 210 / .5)); box-shadow: inset 0 0 0 1px oklch(.75 .02 214 / .45); }
+textarea.well { padding: .65em .9em; min-height: 5.2em; resize: vertical; }
+input[type="date"].well, input[type="time"].well { font-variant-numeric: tabular-nums; padding-inline: .75em .6em; }
+.well::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
+input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; width: 1em; height: 1em; cursor: pointer; background: radial-gradient(circle, var(--ink-3) 0 45%, transparent 47%); }
+
+/* ------------------------------------------------------------------ */
+/* Main slab + views                                                   */
+/* ------------------------------------------------------------------ */
+.main { --lift: 1.6em; align-self: start; display: flex; flex-direction: column; min-width: 0; }
+.main .alu-rail { padding: 0; }
+.main .alu-rail > .rail-label:not(.wk-labels) { padding-left: 1.4em; }
+.wk-labels { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); }
+.wk-labels span { padding-left: 1.05em; }
+.wk-labels[hidden], #railText[hidden] { display: none; }
+.viewport { position: relative; flex: 1; border-radius: 0 0 var(--r) var(--r); overflow: hidden; }
+.view[hidden] { display: none; }
+.agenda { display: none; }
+
+/* Month grid. Engraved grid lines are lit from the top rail and fade with distance. */
+.mgrid { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(6, 7.3em); }
+.mgrid::before {
+  content: ""; position: absolute; inset: 0 -2px -2px 0; pointer-events: none; z-index: 0;
+  --gl: oklch(.995 .035 200); --gd: oklch(.56 .05 214 / .5); --gh: oklch(.86 .09 205 / .34);
+  background:
+  linear-gradient(to left, var(--gd) 0 1px, var(--gl) 1px 2.5px, var(--gh) 2.5px, transparent 7px) 0 0 / calc((100% - 2px) / 7) 100%,
+  linear-gradient(to right, var(--gh), transparent 4px) 0 0 / calc((100% - 2px) / 7) 100%,
+  linear-gradient(to top, var(--gd) 0 1px, var(--gl) 1px 2.5px, var(--gh) 2.5px, transparent 7px) 0 0 / 100% calc((100% - 2px) / 6),
+  linear-gradient(to bottom, var(--gh), transparent 4px) 0 0 / 100% calc((100% - 2px) / 6);
+  -webkit-mask: linear-gradient(#000, #000c 45%, #0008);
+  mask: linear-gradient(#000, #000c 45%, #0008);
+}
+.cell { position: relative; z-index: 1; min-width: 0; display: flex; flex-direction: column; gap: .22em; padding: .4em .45em .4em; cursor: pointer; }
+.cell.wkend { background: oklch(.9 .015 214 / .16); }
+.cell.out .dnum { color: var(--ink-3); opacity: .6; }
+.cell.sel { background: radial-gradient(120% 90% at 50% 0%, oklch(.94 .04 210 / .55), transparent 70%); }
+.cell.drop { background: radial-gradient(110% 110% at 50% 50%, oklch(.9 .08 210 / .55), oklch(.93 .05 210 / .2)); box-shadow: inset 0 0 0 1.5px oklch(.78 .11 215 / .9), inset 0 0 1.4em oklch(.85 .1 212 / .6); }
+.cell.today { box-shadow: inset 0 1.5px 0 oklch(.88 .14 75), inset 0 -1.5px 0 oklch(.88 .12 75 / .7), inset 1.5px 0 0 oklch(.88 .13 75 / .85), inset -1.5px 0 0 oklch(.88 .13 75 / .85), inset 0 0 1.6em .15em oklch(.87 .14 72 / .4);
+  background: radial-gradient(110% 90% at 50% 0%, oklch(.975 .06 86 / .75), oklch(.965 .04 84 / .25) 75%); }
+.dnum {
+  align-self: flex-start; display: grid; place-items: center; min-width: 1.85em; height: 1.85em; padding: 0 .3em; margin: 0 0 .05em; border: 0; border-radius: 1em; background: none; cursor: pointer;
+  font: 600 .95em/1 var(--disp); font-stretch: 96%; font-variant-numeric: tabular-nums; color: var(--ink);
+  text-shadow: var(--o1) 0 oklch(1 0 0 / .75);
+}
+.dnum:hover { background: oklch(1 0 0 / .45); }
+.today .dnum { color: oklch(.3 .07 55); text-shadow: none;
+  background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), var(--amber-hi), var(--amber) 70%);
+  box-shadow: 0 0 .8em oklch(.85 .15 72 / .9), inset 0 0 0 1px oklch(.7 .14 62 / .7); }
+.more { align-self: flex-start; border: 0; background: none; padding: .1em .35em; border-radius: .4em; font: 600 .74em/1.2 var(--ui); color: var(--ink-2); cursor: pointer; }
+.more:hover { background: oklch(1 0 0 / .45); color: var(--ink); }
+
+/* Enamel chips: glossy vitreous enamel in a thin silver cloison, sitting on the frosted glass. */
+.chip {
+  position: relative; display: flex; align-items: center; gap: .4em; width: 100%; min-width: 0; height: 1.72em; padding: 0 .55em; border: 0; border-radius: .46em; cursor: grab;
+  font: 600 .78em/1 var(--ui); color: var(--ci); text-align: left; white-space: nowrap; touch-action: none;
+  text-shadow: 0 -.5px 0 oklch(0 0 0 / .14);
+  background:
+  radial-gradient(130% 160% at calc(50% - var(--sx) * 20%) calc(50% - var(--sy) * 120%), oklch(1 0 0 / .4), oklch(1 0 0 / .07) 40%, transparent 48%),
+  radial-gradient(90% 120% at calc(50% + var(--sx) * 25%) calc(50% + var(--sy) * 110%), oklch(from var(--c) calc(l + .1) c h / .55), transparent 70%),
+  linear-gradient(oklch(from var(--c) calc(l + var(--sy) * .03) c h), oklch(from var(--cd) calc(l - var(--sy) * .03) c h));
+  box-shadow:
+  inset 0 0 0 .5px oklch(from var(--cd) calc(l - .1) c h / .9),
+  inset var(--o_5) 0 oklch(1 0 0 / .45),
+  0 0 0 1px oklch(.93 .004 240),
+  var(--on_5) 0 1px oklch(1 0 0 / .9),
+  var(--o1x1_5) 1.5px oklch(.28 .02 230 / .32),
+  var(--o2x3) 5px oklch(from var(--c) .5 c h / .14);
+  transition: transform .18s var(--tr-ease-out), opacity .2s;
+}
+.chip:hover { transform: translateY(-1px); }
+.chip .tm { font-weight: 500; opacity: .82; font-variant-numeric: tabular-nums; }
+.chip .tx { overflow: hidden; text-overflow: ellipsis; }
+.chip:focus-visible { outline-offset: 3px; }
+.chip.dim { opacity: .22; }
+.chip.lifting { opacity: .3; }
+.chip.ghost.ghost { position: fixed; z-index: 1000; pointer-events: none; margin: 0; cursor: grabbing;
+  box-shadow:
+  inset 0 0 0 1px oklch(from var(--cd) calc(l - .08) c h), inset var(--on1) .5px oklch(1 0 0 / .55),
+  0 0 0 1.25px oklch(.9 .005 240), var(--on_5) 0 1.5px oklch(1 0 0 / .9),
+  var(--o10x14) 18px oklch(.25 .03 230 / .3),
+  var(--o16x22) 26px oklch(from var(--c) l c h / .35);
+  transition: none; }
+body.dragging, body.dragging * { cursor: grabbing !important; }
+
+/* Week + day timeline */
+.tl { --hh: 2.95em; display: grid; grid-template-columns: 3.7em repeat(var(--n), minmax(0, 1fr)); }
+.tl-head { display: contents; }
+.tl-head > div { padding: .7em .5em .55em; display: flex; align-items: baseline; gap: .45em; border-bottom: 1px solid oklch(.99 .04 205); box-shadow: 0 1px 0 oklch(.6 .04 215 / .3); }
+.tl-head .d { font: 650 1.35em/1 var(--disp); font-variant-numeric: tabular-nums; }
+.tl-head .w { font: 600 .72em/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.tl-head .today .d { color: oklch(.3 .07 55); padding: .12em .3em; border-radius: .4em; background: radial-gradient(circle at 40% 35%, var(--amber-hi), var(--amber)); box-shadow: 0 0 .8em oklch(.85 .15 72 / .8); }
+.tl-allday { display: contents; }
+.tl-allday > div { min-height: 2.2em; padding: .3em .35em; display: grid; gap: .2em; align-content: start; border-bottom: 1px solid oklch(.99 .04 205); box-shadow: 0 1px 0 oklch(.6 .04 215 / .3); }
+.tl-allday .lab, .tl-hours span { font: 500 .7em/1 var(--ui); color: var(--ink-3); text-align: right; padding-right: .7em; }
+.tl-allday .lab { align-self: center; }
+.tl-body { display: contents; }
+.tl-hours { position: relative; height: calc(var(--hh) * 14); }
+.tl-hours span { position: absolute; right: 0; translate: 0 -50%; font-variant-numeric: tabular-nums; }
+.tl-col { position: relative; height: calc(var(--hh) * 14); border-left: 1px solid oklch(.995 .035 200); box-shadow: inset 1px 0 0 oklch(.56 .05 214 / .3), -3px 0 4px -2px oklch(.86 .09 205 / .5);
+  background: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px; }
+.tl-col.today { background: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px, linear-gradient(oklch(.96 .05 85 / .45), oklch(.96 .05 85 / .15)); }
+.tl.day .tl-col.today { background-image: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px; }
+.tl-col.drop { background: repeating-linear-gradient(to bottom, oklch(.995 .04 205) 0 1px, transparent 1px var(--hh)), oklch(.9 .08 210 / .4); }
+.chip.bar {
+  color: oklch(from var(--cd) .33 calc(c * .85) h); text-shadow: 0 .5px 0 oklch(1 0 0 / .45);
+  background:
+  linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .5), oklch(1 0 0 / .12) 1.6em, transparent 3em),
+  linear-gradient(calc(var(--la) + 180deg), oklch(from var(--c) .93 calc(c * .32) h / .96), oklch(from var(--c) .875 calc(c * .5) h / .96));
+  box-shadow:
+  inset .3em 0 0 var(--c), inset calc(.3em + 1px) 0 0 oklch(from var(--cd) l c h / .35),
+  inset 0 0 0 .5px oklch(from var(--cd) l c h / .45),
+  inset var(--o_5) 0 oklch(1 0 0 / .7),
+  0 0 0 1px oklch(.93 .004 240),
+  var(--on_5) 0 1px oklch(1 0 0 / .9),
+  var(--o1x2) 3px oklch(.28 .02 230 / .26),
+  var(--o3x4) 9px oklch(from var(--c) .5 c h / .12);
+  padding-left: .95em;
+}
+.chip.bar .tm { opacity: .78; }
+.bar { position: absolute; left: calc(var(--lane) * var(--lw) + 3px); width: calc(var(--lw) - 6px); height: auto; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: .25em; padding: .45em .55em; font-size: .78em; line-height: 1.15; white-space: normal; overflow: hidden; }
+.bar > * { flex: none; }
+.bar .tx { white-space: nowrap; max-width: 100%; }
+.tl.day .bar { width: min(calc(var(--lw) - 6px), 26em); font-size: .88em; padding: .6em .8em; }
+.tl.day .bar .nt { margin-top: .2em; }
+.bar.short { flex-direction: row; align-items: center; padding-block: 0; }
+.bar.short .tx { flex: 0 1 auto; min-width: 2.5em; overflow: hidden; text-overflow: ellipsis; }
+.bar.short .tm { flex: 0 1000 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bar .nt { font-weight: 450; opacity: .85; white-space: normal; }
+.now { position: absolute; left: -4px; right: 0; height: 2px; z-index: 3; background: var(--amber); box-shadow: 0 0 .5em var(--amber), 0 0 1.2em oklch(.8 .15 68 / .6); pointer-events: none; }
+.now::before { content: ""; position: absolute; left: -2px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, var(--amber-hi), var(--amber)); box-shadow: 0 0 .6em var(--amber); }
+
+/* Agenda (phone) */
+.ag-day { padding: .9em 1.1em .4em; }
+.ag-day + .ag-day { border-top: 1px solid oklch(.99 .04 205); box-shadow: inset 0 1px 0 oklch(.6 .04 215 / .25); }
+.ag-day h3 { display: flex; align-items: baseline; gap: .5em; margin-bottom: .5em; font: 650 1em/1.2 var(--disp); }
+.ag-day h3 small { font: 500 .8em/1 var(--ui); color: var(--ink-3); }
+.ag-day.today h3 { color: var(--amber-ink); }
+.ag-day.today h3::before { content: ""; width: .55em; height: .55em; border-radius: 50%; align-self: center; background: var(--amber); box-shadow: 0 0 .5em var(--amber); }
+.ag-row { display: grid; grid-template-columns: .55em 3.2em 1fr; align-items: center; gap: .8em; width: 100%; min-height: 3.2em; padding: .35em .4em; border: 0; border-radius: .7em; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ag-row:hover { background: oklch(1 0 0 / .35); }
+.ag-row .pip { width: .55em; height: 2.2em; border-radius: .3em; background: linear-gradient(calc(var(--la) + 180deg), var(--c), var(--cd)); box-shadow: 0 0 0 1px oklch(.9 .005 240), var(--o1x2) 3px oklch(from var(--c) l c h / .45), inset var(--on1) 0 oklch(1 0 0 / .5); }
+.ag-row .t { font: 500 .85em/1.2 var(--ui); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ag-row b { display: block; font-weight: 600; }
+.ag-row small { color: var(--ink-3); font-size: .8em; }
+.ag-row.dim { display: none; }
+.ag-empty { padding: 1.6em 1.2em; color: var(--ink-2); }
+
+/* ------------------------------------------------------------------ */
+/* Editor dialog                                                       */
+/* ------------------------------------------------------------------ */
+dialog.editor { border: 0; padding: 0; margin: auto; background: none; color: var(--ink); overflow: visible; width: min(36em, calc(100vw - 24px)); max-height: calc(100dvh - 24px); font: 400 clamp(13px, .35vw + 9px, 15px)/1.35 var(--ui); }
+dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(80% 80% at 50% 45%, oklch(.32 .02 230 / .3), oklch(.24 .02 230 / .5)); }
+.ed {
+  --r: 1.4em; position: relative; padding: 2.4em 2.4em 2em; border-radius: var(--r); max-height: calc(100dvh - 24px); overflow: hidden auto; overscroll-behavior: contain;
+  -webkit-backdrop-filter: blur(22px) saturate(1.3); backdrop-filter: blur(22px) saturate(1.3);
+  background:
+  linear-gradient(calc(var(--la) + 135deg), transparent 18%, oklch(1 0 0 / .4) 27%, oklch(1 0 0 / .08) 33%, transparent 42%),
+  var(--tex-frost) 0 0 / 160px,
+  linear-gradient(calc(var(--la) + 180deg), oklch(.985 .006 205 / .86), oklch(.95 .014 208 / .8) 60%, oklch(.925 .02 210 / .82));
+  box-shadow: var(--slab-rim), var(--slab-side), var(--o26x34) 48px oklch(.2 .03 230 / .34), var(--o6) 14px oklch(.2 .03 230 / .2);
+  outline: 1px solid oklch(1 0 0 / .6); outline-offset: -8px;
+}
+.ed .bolt { width: 1.2em; height: 1.2em; }
+.ed-top { display: flex; align-items: center; gap: .8em; margin-bottom: 1.2em; }
+.ed-top h2 { font: 600 .72em/1 var(--disp); font-stretch: 112%; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
+.ed-top .gkey { margin-left: auto; }
+.ed-title { font: 650 1.3em/1.2 var(--disp) !important; min-height: 2.4em !important; }
+.err { display: flex; align-items: center; gap: .4em; margin: .45em .2em 0; font-size: .82em; color: var(--e-vermilion-d); font-weight: 600; }
+.err[hidden] { display: none; }
+.err::before { content: "!"; display: grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 50%; font-size: .85em; color: white; background: radial-gradient(circle at 40% 35%, oklch(.75 .15 35), var(--e-vermilion-d)); }
+.row { display: grid; gap: .9em; margin-top: 1.05em; }
+.row.three { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: .7em; }
+.row.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; }
+.fld { display: grid; gap: .4em; min-width: 0; }
+.fld > span, .fld-label { font: 600 .72em/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+
+/* Glass slide switch with an inner coloured light. */
+.sw-row { display: flex; align-items: center; gap: .8em; min-height: 2.75em; }
+.gswitch {
+  --tr-value-ratio: 0; position: relative; flex: none; width: 3.9em; height: 2.1em; border-radius: 1.05em; cursor: pointer;
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(.78 .025 212 / .7), oklch(.94 .01 210 / .7));
+  box-shadow: inset var(--o2x2_5) 4px oklch(.25 .04 225 / .38), inset var(--on1) 0 oklch(1 0 0 / .9), inset 0 0 0 1px oklch(.6 .03 215 / .35);
+}
+.gswitch .glow { position: absolute; inset: .3em; border-radius: inherit; opacity: var(--tr-value-ratio);
+  background: linear-gradient(90deg, oklch(.75 .17 60), oklch(.85 .15 75));
+  box-shadow: 0 0 .7em oklch(.82 .16 70 / .9), inset 0 0 .4em oklch(1 .05 90 / .8); }
+.gswitch .thumb {
+  position: absolute; top: .22em; left: .22em; width: 1.66em; height: 1.66em; border-radius: 50%;
+  transform: translateX(calc(var(--tr-value-ratio) * 1.8em));
+  background:
+  radial-gradient(circle at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 30%), oklch(1 0 0 / .95), oklch(1 0 0 / .3) 30%, transparent 55%),
+  radial-gradient(circle at calc(50% + var(--sx) * 25%) calc(50% + var(--sy) * 25%), oklch(1 .04 85 / calc(var(--tr-value-ratio) * .8)), transparent 60%),
+  linear-gradient(calc(var(--la) + 180deg), oklch(.99 .006 205 / .9), oklch(.88 .03 205 / .75));
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / .7), inset var(--o2) 2px oklch(.5 .05 210 / .35), var(--o1_5) 0 var(--edge-near), var(--o3x4) 5px oklch(.25 .03 225 / .35);
+}
+.gswitch:focus-visible { outline-offset: 3px; }
+.sw-state { font: 600 .74em/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); min-width: 2em; }
+.gswitch[aria-checked="true"] + .sw-state { color: var(--amber-ink); }
+
+/* Calendar select: button + listbox popover on clear glass. */
+.selbtn { display: flex; align-items: center; gap: .65em; text-align: left; cursor: pointer; }
+.selbtn .dot, .opt .dot { width: .85em; height: .85em; border-radius: 50%; flex: none; background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), oklch(1 0 0 / .6), var(--c) 45%, var(--cd)); box-shadow: 0 0 0 1px oklch(.9 .005 240), var(--o1) 2px oklch(from var(--c) l c h / .5); }
+.selbtn svg { margin-left: auto; width: 1em; height: 1em; fill: none; stroke: var(--ink-2); stroke-width: 2; stroke-linecap: round; transition: transform .2s; }
+.selbtn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.sel { position: relative; }
+.listbox {
+  position: absolute; left: 0; right: 0; top: calc(100% + .5em); z-index: 20; margin: 0; padding: .4em; list-style: none; border-radius: .9em; outline: 2px solid transparent;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4); backdrop-filter: blur(20px) saturate(1.4);
+  background: var(--tex-frost) 0 0 / 160px, linear-gradient(calc(var(--la) + 180deg), oklch(.995 .005 205 / .94), oklch(.955 .014 205 / .9));
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / .7), inset var(--on1_5) .5px oklch(1 0 0), var(--o2) 0 var(--edge-near), var(--o3_5) 0 var(--edge-far), var(--o12x16) 26px oklch(.2 .03 230 / .3);
+  transform-origin: 50% 0;
+}
+.listbox[hidden] { display: none; }
+.listbox:focus-visible { outline-color: var(--tr-focus); }
+.opt { display: flex; align-items: center; gap: .7em; min-height: 2.6em; padding: 0 .8em; border-radius: .6em; cursor: pointer; font-weight: 520; }
+.opt[aria-selected="true"]::after { content: ""; margin-left: auto; width: .4em; height: .75em; border: solid var(--ice-ink); border-width: 0 2px 2px 0; transform: rotate(42deg) translate(-2px, -2px); }
+.opt.active { background: radial-gradient(120% 140% at 50% 100%, oklch(.9 .07 210 / .7), oklch(.95 .04 210 / .5)); box-shadow: inset 0 0 0 1px oklch(.78 .1 215 / .7); }
+
+/* Repeat: radios as engraved sockets taking a cobalt bead. */
+.radios { display: flex; flex-wrap: wrap; gap: .3em 1.1em; }
+.radios label { display: inline-flex; align-items: center; gap: .5em; min-height: 2.6em; cursor: pointer; font-weight: 520; }
+.radios .bead { --c: var(--e-cobalt); --cd: var(--e-cobalt-d); width: 1.25em; height: 1.25em; }
+.radios .bead::after { display: none; }
+.radios .bead::before { inset: 22%; }
+
+/* Glass slider (alert lead time). */
+.gslider { --tr-value-ratio: 0; container-type: inline-size; position: relative; height: 2.75em; cursor: pointer; border-radius: .6em; }
+.gslider .track { position: absolute; left: 0; right: 0; top: 50%; height: .62em; translate: 0 -50%; border-radius: 1em;
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(.78 .025 212 / .7), oklch(.94 .01 210 / .7));
+  box-shadow: inset var(--o1_5x2) 3px oklch(.25 .04 225 / .38), inset var(--on1) 0 oklch(1 0 0 / .9); }
+.gslider .ticks { position: absolute; left: .9em; right: .9em; top: calc(50% + .6em); height: .45em; background: repeating-linear-gradient(90deg, oklch(.45 .02 235 / .55) 0 1px, transparent 1px calc((100% - 1px) / 5)); }
+.gslider .fill { position: absolute; left: .15em; top: 50%; height: .3em; translate: 0 -50%; width: calc(100% - .3em); border-radius: 1em; transform-origin: 0 50%; transform: scaleX(var(--tr-value-ratio));
+  background: linear-gradient(90deg, oklch(.8 .1 215), var(--ice)); box-shadow: 0 0 .5em var(--ice); }
+.gslider .run { position: absolute; left: 0; top: 0; bottom: 0; width: 1.8em; transform: translateX(calc(var(--tr-value-ratio) * (100cqi - 1.8em))); pointer-events: none; }
+.gslider .knob { position: absolute; left: 0; top: 50%; width: 1.8em; height: 1.8em; translate: 0 -50%; border-radius: .55em; pointer-events: auto;
+  background: linear-gradient(calc(var(--la) + 135deg), transparent 25%, oklch(1 0 0 / .6) 40%, transparent 55%), linear-gradient(calc(var(--la) + 180deg), oklch(.99 .006 205 / .92), oklch(.88 .03 205 / .75));
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / .7), inset var(--o2) 2px oklch(.5 .05 210 / .35), var(--o1_5) 0 var(--edge-near), var(--o3) 0 var(--edge-far), var(--o4x6) 7px oklch(.25 .03 225 / .35); }
+.gslider .knob::after { content: ""; position: absolute; left: calc(50% - 1px); top: 22%; bottom: 22%; width: 2px; border-radius: 1px; background: var(--ice); box-shadow: 0 0 .4em var(--ice); }
+.gslider[data-dragging] .knob { scale: 1.06; }
+.gslider:focus-visible { outline-offset: 2px; }
+.alert-val { font: 600 1.2em/1 var(--ui); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.ed-foot { display: flex; align-items: center; gap: .7em; margin-top: 1.6em; padding-top: 1.3em; border-top: 1.5px solid oklch(.995 .035 200); box-shadow: inset 0 1px 0 oklch(.56 .05 214 / .4), 0 -3px 5px -3px oklch(.86 .09 205 / .5); }
+.ed-foot .grow { flex: 1; }
+
+.tg-caption { color: oklch(.3 .015 240); }
+.tg-caption ul { margin: 0; padding-left: 1.1em; opacity: .85; }
+
+/* ------------------------------------------------------------------ */
+/* Phone: picker + agenda, compact header                              */
+/* ------------------------------------------------------------------ */
+@container (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hdr" "picker" "main" "cals"; gap: 1.4em; padding: 1.1em 16px 2.2em; font-size: 15px; }
+  .rail { display: contents; }
+  .picker { grid-area: picker; } .cal-slab { grid-area: cals; padding: 1.9em 1.1em 1.7em; }
+  .hdr { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "title new" "nav nav"; gap: .8em 1em; padding: 1.2em 2.5em 1.2em; }
+  .hdr .brand, .hdr .seg, .hdr .spacer { display: none; }
+  .title { grid-area: title; font-size: 1.55em; min-width: 0; align-self: center; }
+  .hdr .ekey { grid-area: new; } .hdr .ekey .lbl { display: none; } .hdr .ekey .cap { padding: 0; width: 2.95em; }
+  .nav { grid-area: nav; } .nav #today { margin-left: auto; }
+  .gkey { height: 2.95em; min-width: 2.95em; font-size: 1em; }
+  .pday { min-height: 3em; aspect-ratio: auto; font-size: 1em; }
+  .lens { width: 2.85em; height: 2.85em; }
+  .cals { grid-template-columns: 1fr 1fr; column-gap: .6em; }
+  .cals label { min-height: 2.95em; }
+  .well { min-height: 2.95em; }
+  .cal-slab h2 { margin-top: 1.3em; }
+  .main .alu-rail .wk-labels { display: none; }
+  .main #railText { display: block; }
+  .main { --lift: 1em; } .slab { --lift: .75em; }
+  .viewport > .view { display: none; }
+  .agenda { display: block; }
+}
+@container (min-width: 761px) and (max-width: 1100px) {
+  .app { grid-template-columns: 16.5em minmax(0, 1fr); gap: 1.4em; padding-inline: 1.5em; }
+  .hdr { padding-inline: 2.2em; gap: .8em; } .brand { display: none; }
+  .title { min-width: 0; font-size: 1.5em; }
+}
+@media (max-width: 420px) { dialog.editor .row.three { grid-template-columns: 1fr 1fr; } dialog.editor .row.three .fld:first-child { grid-column: 1 / -1; } .ed { padding: 2.2em 1.25em 2.6em; } .row.two { grid-template-columns: 1fr; } }
+@starting-style { dialog.editor[open]::backdrop { opacity: 0; } }
+@media (prefers-reduced-transparency: reduce) { .ed, .listbox { backdrop-filter: none; -webkit-backdrop-filter: none; background: oklch(.97 .008 205); } }
+@media (forced-colors: active) { .slab, .chip, .well, .gkey .cap { border: 1px solid CanvasText; } .bead:checked { background: Highlight; } }
+</style>
+</head>
+<body>
+<main class="frost" id="frost">
+  <div class="app">
+    <header class="hdr slab clear">
+      <i class="bolt ml"></i><i class="bolt mr"></i>
+      <div class="brand" aria-hidden="true"><i></i>Frost</div>
+      <h1 class="title eng" id="title" aria-live="polite">November <span>2026</span></h1>
+      <div class="nav">
+        <button class="gkey icon" type="button" id="prev" aria-label="Previous month"><span class="sh"></span><span class="cap"><svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg></span></button>
+        <button class="gkey icon" type="button" id="next" aria-label="Next month"><span class="sh"></span><span class="cap"><svg viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg></span></button>
+        <button class="gkey" type="button" id="today"><span class="sh"></span><span class="cap"><i class="led"></i>Today</span></button>
+      </div>
+      <div class="spacer"></div>
+      <div class="seg" role="group" aria-label="View">
+        <button class="gkey" type="button" data-view="day"><span class="sh"></span><span class="cap">Day</span></button>
+        <button class="gkey" type="button" data-view="week"><span class="sh"></span><span class="cap">Week</span></button>
+        <button class="gkey" type="button" data-view="month"><span class="sh"></span><span class="cap">Month</span></button>
+      </div>
+      <button class="gkey ekey" type="button" id="new" aria-label="New event"><span class="sh"></span><span class="cap"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">New event</span></span></button>
+    </header>
+
+    <aside class="rail" aria-label="Navigation">
+      <section class="slab picker" aria-label="Date picker">
+        <div class="alu-rail"><i class="screw" style="--r:20deg"></i><span class="rail-label" id="pmonth">November 2026</span><i class="screw" style="--r:-55deg"></i></div>
+        <div class="pwrap lit">
+          <div class="dow" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="pgrid" id="pgrid" role="grid" aria-labelledby="pmonth"></div>
+          <i class="lens" id="lens" aria-hidden="true"></i>
+        </div>
+      </section>
+      <section class="slab clear cal-slab" aria-label="Search and calendars">
+        <i class="bolt tl"></i><i class="bolt tr"></i><i class="bolt bl"></i><i class="bolt br"></i>
+        <label class="search"><span class="tr-sr">Search events</span>
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+          <input class="well" type="search" id="q" placeholder="Search events" autocomplete="off">
+        </label>
+        <p class="search-note" id="qnote" aria-live="polite"></p>
+        <h2 id="calsh">Calendars</h2>
+        <ul class="cals" id="cals" aria-labelledby="calsh"></ul>
+      </section>
+    </aside>
+
+    <section class="slab main" id="main" aria-label="Calendar">
+      <div class="alu-rail"><div class="wk-labels rail-label" id="wkl" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><span class="rail-label" id="railText" hidden></span></div>
+      <div class="viewport lit" id="viewport">
+        <div class="view" id="vMonth"></div>
+        <div class="view" id="vTime" hidden></div>
+        <div class="agenda" id="agenda" aria-label="Agenda"></div>
+      </div>
+      <i class="bolt bl"></i><i class="bolt br"></i>
+    </section>
+  </div>
+  <p class="tr-sr" aria-live="polite" id="live"></p>
+</main>
+
+<dialog class="editor" id="editor" aria-labelledby="edh">
+  <form class="ed" id="edform" method="dialog" novalidate>
+    <i class="bolt tl"></i><i class="bolt tr"></i><i class="bolt bl"></i><i class="bolt br"></i>
+    <div class="ed-top">
+      <h2 id="edh">New event</h2>
+      <button class="gkey icon" type="button" id="edx" aria-label="Close"><span class="sh"></span><span class="cap"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7 7 17"/></svg></span></button>
+    </div>
+    <label class="fld"><span class="tr-sr">Title</span><input class="well ed-title" id="fTitle" placeholder="Event title" autocomplete="off" aria-describedby="eTitle"></label>
+    <p class="err" id="eTitle" hidden>Give the event a title.</p>
+    <div class="row three">
+      <label class="fld"><span>Date</span><input class="well" type="date" id="fDate" required></label>
+      <label class="fld"><span>Starts</span><input class="well" type="time" id="fStart" step="900"></label>
+      <label class="fld"><span>Ends</span><input class="well" type="time" id="fEnd" step="900" aria-describedby="eTime"></label>
+    </div>
+    <p class="err" id="eTime" hidden>End time must be after the start.</p>
+    <div class="row two">
+      <div class="fld"><span class="fld-label" id="adl">All day</span>
+        <div class="sw-row"><div class="gswitch" id="fAll" aria-labelledby="adl"><i class="glow"></i><i class="thumb"></i></div><span class="sw-state" id="fAllS" aria-hidden="true">Off</span></div>
+      </div>
+      <div class="fld sel"><span class="fld-label" id="cll">Calendar</span>
+        <button class="well selbtn" type="button" id="fCal" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="cll fCal"><i class="dot"></i><span id="fCalT">Studio</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+        <ul class="listbox" id="calList" role="listbox" tabindex="-1" aria-labelledby="cll" hidden></ul>
+      </div>
+    </div>
+    <fieldset class="row" style="border:0;padding:0;margin-inline:0">
+      <legend class="fld-label" style="padding:0;margin-bottom:.2em">Repeat</legend>
+      <div class="radios">
+        <label><input class="bead" type="radio" name="rep" value="none" checked>Never</label>
+        <label><input class="bead" type="radio" name="rep" value="daily">Daily</label>
+        <label><input class="bead" type="radio" name="rep" value="weekly">Weekly</label>
+        <label><input class="bead" type="radio" name="rep" value="monthly">Monthly</label>
+      </div>
+    </fieldset>
+    <div class="row">
+      <div class="fld"><span class="fld-label" id="all" style="display:flex;justify-content:space-between">Alert<span class="alert-val" id="fAlertV" style="letter-spacing:0;text-transform:none">15 min before</span></span>
+        <div class="gslider" id="fAlert" aria-labelledby="all"><i class="track"></i><i class="ticks"></i><i class="fill"></i><span class="run"><i class="knob" id="fAlertK"></i></span></div>
+      </div>
+    </div>
+    <label class="fld row"><span>Notes</span><textarea class="well" id="fNotes" rows="3" placeholder="Location, agenda, links"></textarea></label>
+    <div class="ed-foot">
+      <button class="gkey danger" type="button" id="edDel"><span class="sh"></span><span class="cap"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>Delete</span></button>
+      <span class="grow"></span>
+      <button class="gkey" type="button" id="edCancel"><span class="sh"></span><span class="cap">Cancel</span></button>
+      <button class="gkey ekey" type="button" id="edSave"><span class="sh"></span><span class="cap">Save</span></button>
+    </div>
+  </form>
+</dialog>
+
+<section class="tg-caption">
+  <h2>Frost, a calendar in edge-lit acrylic</h2>
+  <p>Every surface is a slab of acrylic: frosted for the month grid and date picker, clear for the header, side panel and editor. Each slab has a polished arris that catches the light on one side and a darker refracted edge on the other, an internal reflection line where the edge shows through the face, a luminous side face that pipes the LED light, frosting grain, and a soft cast shadow on the concrete with a caustic rim where the polished edge focuses light. Satin aluminium standoffs hold the slabs off the base; brushed LED rails clamp along the top edges and light the engraved grid lines from inside the glass. Today glows warm amber. Events are vitreous enamel in a silver cloison: opaque domed chips in the month, translucent enamel over silver with a solid enamel edge in the week and day timelines.</p>
+  <p>Turn the light dial in the top bar: every edge, shadow, caustic, gloss and engraving moves with it. Nothing uses images; three surfaces use a backdrop blur (the editor, the listbox and the gallery bar).</p>
+  <ul>
+    <li>Glass push keys with press travel, a latching Day / Week / Month group, enamel primary key.</li>
+    <li>Mini month grid: arrows, Home/End, PageUp/PageDown (Shift for years), Enter opens the day. A clear lens slides to the selected date and magnifies it.</li>
+    <li>Enamel bead checkboxes and radios, sandblasted text pockets, a custom listbox (arrows, Home/End, type-ahead, Esc), a glass slide switch with an amber inner light, a detented glass slider.</li>
+    <li>Drag an event chip to another day; with the keyboard, focus a chip and press <kbd>Alt</kbd> + arrows, or edit its date.</li>
+  </ul>
+</section>
+
+<script type="module">
+import { mountBar, PressController, ToggleController, LinearController, feedback, reduceMotion } from "./kit/objects.js";
+
+mountBar({ title: "Frost", subtitle: "Calendar · edge-lit acrylic, satin aluminium, vitreous enamel", tone: "light" });
+feedback.define("tink", { parts: [{ n: 0.003, f: 6400, q: 2.2, g: 0.32 }, { s: 3300, d: 0.07, g: 0.035 }], vib: 5 });
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pad = (n) => String(n).padStart(2, "0");
+const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const addMonths = (d, n) => { const t = new Date(d.getFullYear(), d.getMonth() + n, 1); t.setDate(Math.min(d.getDate(), new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate())); return t; };
+const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+const weekStart = (d) => addDays(d, -((d.getDay() + 6) % 7));
+const mins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const fmt = (d, o) => d.toLocaleDateString("en-GB", o);
+const animOK = () => !reduceMotion.matches;
+
+const CALS = [
+  { id: "work", name: "Studio", c: "cobalt" },
+  { id: "pers", name: "Personal", c: "jade" },
+  { id: "fam", name: "Family", c: "saffron" },
+  { id: "fit", name: "Training", c: "vermilion" },
+  { id: "trav", name: "Travel", c: "plum" },
+];
+const calOf = (id) => CALS.find((c) => c.id === id) || CALS[0];
+
+const today = new Date(); today.setHours(0, 0, 0, 0);
+let cursor = new Date(today), view = "month", query = "";
+const hidden = new Set();
+let nextId = 1;
+const dim = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+const dayN = (n) => iso(new Date(today.getFullYear(), today.getMonth(), Math.min(n, dim)));
+let events = [
+  [2, "Quarterly planning", "work", "09:30", "11:00", { notes: "Room 3, roadmap draft" }],
+  [3, "Pilates", "fit", "07:30", "08:30", { repeat: "weekly" }],
+  [4, "1:1 with Theo", "work", "11:00", "11:30", { repeat: "weekly" }],
+  [5, "Design review", "work", "14:00", "15:00", { notes: "Glass sample board" }],
+  [6, "Dinner with Ines", "pers", "19:30", "21:30"],
+  [9, "Dentist", "pers", "08:45", "09:30"],
+  [10, "Studio visit · Kiln Works", "work", "10:00", "12:00"],
+  [12, "Mara's recital", "fam", "18:00", "19:30"],
+  [13, "Supplier call", "work", "16:00", "16:30"],
+  [today.getDate(), "Long run", "fit", "07:00", "08:15"],
+  [today.getDate(), "Farmers market", "pers", "09:00", "10:30"],
+  [today.getDate(), "Lunch with Dad", "fam", "12:30", "14:00"],
+  [17, "Flight to Lisbon", "trav", "", "", { allDay: true }],
+  [18, "Lisbon offsite", "trav", "", "", { allDay: true }],
+  [18, "Material samples workshop", "work", "10:00", "13:00"],
+  [19, "Return flight", "trav", "", "", { allDay: true }],
+  [21, "Grandma's birthday", "fam", "", "", { allDay: true }],
+  [23, "Sprint demo", "work", "15:00", "16:00"],
+  [25, "Bike service", "fit", "12:30", "13:00"],
+  [26, "Book club", "pers", "19:00", "20:30"],
+  [27, "Invoices due", "work", "", "", { allDay: true }],
+  [28, "Pottery class", "pers", "10:00", "12:30"],
+  [30, "Month close", "work", "17:00", "18:00"],
+].map(([d, title, cal, start, end, x = {}]) => ({ id: nextId++, date: dayN(d), title, cal, start: start || "09:00", end: end || "10:00", allDay: !!x.allDay, repeat: x.repeat || "none", alert: 3, notes: x.notes || "" }));
+
+function occursOn(ev, d) {
+  const b = parse(ev.date);
+  if (d < b) return false;
+  switch (ev.repeat) {
+    case "daily": return true;
+    case "weekly": return Math.round((d - b) / 864e5) % 7 === 0;
+    case "monthly": return d.getDate() === b.getDate();
+    default: return sameDay(b, d);
+  }
+}
+const onDay = (d) => events.filter((e) => !hidden.has(e.cal) && occursOn(e, d)).sort((a, b) => (b.allDay - a.allDay) || mins(a.start) - mins(b.start));
+const matches = (e) => !query || (e.title + " " + e.notes).toLowerCase().includes(query);
+const timeText = (e) => e.allDay ? "All day" : `${e.start}–${e.end}`;
+const label = (e, d) => `${e.title}, ${fmt(d, { weekday: "long", day: "numeric", month: "long" })}, ${e.allDay ? "all day" : `${e.start} to ${e.end}`}, ${calOf(e.cal).name}`;
+
+function chipHTML(e, d, cls = "") {
+  const c = calOf(e.cal);
+  return `<button type="button" class="chip c-${c.c} ${cls}${matches(e) ? "" : " dim"}" data-id="${e.id}" data-date="${iso(d)}" aria-label="${esc(label(e, d))}. Enter to edit, Alt plus arrows to move." aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown">${e.allDay ? "" : `<span class="tm">${e.start}</span>`}<span class="tx">${esc(e.title)}</span></button>`;
+}
+
+/* ---------------- Rendering ---------------- */
+const vMonth = $("#vMonth"), vTime = $("#vTime"), agenda = $("#agenda"), pgrid = $("#pgrid"), lens = $("#lens");
+let shown = null; // first of displayed month, for slide direction
+
+function render(opts = {}) {
+  const m = cursor.toLocaleDateString("en-GB", { month: "long" }), y = cursor.getFullYear();
+  $("#title").innerHTML = `${m} <span>${y}</span>`;
+  $("#pmonth").textContent = `${m} ${y}`;
+  const unit = { month: "month", week: "week", day: "day" }[view];
+  $("#prev").setAttribute("aria-label", `Previous ${unit}`); $("#next").setAttribute("aria-label", `Next ${unit}`);
+  renderPicker(opts);
+  const ws = weekStart(cursor);
+  $("#wkl").hidden = view !== "month";
+  $("#railText").hidden = view === "month";
+  const th = addDays(ws, 3), wn = Math.ceil(((th - new Date(th.getFullYear(), 0, 1)) / 864e5 + 1) / 7);
+  $("#railText").textContent = view === "week" ? `Week ${wn} · ${fmt(ws, { day: "numeric", month: ws.getMonth() === addDays(ws, 6).getMonth() ? undefined : "short" })} – ${fmt(addDays(ws, 6), { day: "numeric", month: "long" })}` : view === "day" ? `${fmt(cursor, { weekday: "long", day: "numeric", month: "long" })} · ${onDay(cursor).length || "no"} event${onDay(cursor).length === 1 ? "" : "s"}` : `Agenda from ${fmt(cursor, { weekday: "short", day: "numeric", month: "short" })}`;
+  if (view === "month") renderMonth(); else renderTime();
+  renderAgenda();
+  renderCals();
+  const n = query ? events.filter((e) => !hidden.has(e.cal) && matches(e)).length : 0;
+  $("#qnote").textContent = query ? (n ? `${n} event${n > 1 ? "s" : ""} match “${$("#q").value}”` : "No events match") : "";
+}
+
+function renderPicker({ focus } = {}) {
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1), start = weekStart(first);
+  let html = "";
+  for (let r = 0; r < 6; r++) {
+    html += `<div role="row">`;
+    for (let c = 0; c < 7; c++) {
+      const d = addDays(start, r * 7 + c), sel = sameDay(d, cursor);
+      const cls = ["pday", d.getMonth() !== cursor.getMonth() && "out", c > 4 && "wkend", sameDay(d, today) && "today", onDay(d).length && "has"].filter(Boolean).join(" ");
+      html += `<button type="button" role="gridcell" class="${cls}" data-date="${iso(d)}" tabindex="${sel ? 0 : -1}" aria-selected="${sel}" aria-label="${fmt(d, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}${sameDay(d, today) ? ", today" : ""}${onDay(d).length ? `, ${onDay(d).length} events` : ""}"><b>${d.getDate()}</b></button>`;
+    }
+    html += `</div>`;
+  }
+  pgrid.innerHTML = html;
+  const cell = pgrid.querySelector('[aria-selected="true"]');
+  if (focus) cell.focus({ preventScroll: true });
+  requestAnimationFrame(() => placeLens(cell));
+}
+let lensAt = null;
+function placeLens(cell) {
+  const wrap = lens.parentElement.getBoundingClientRect(), r = cell.getBoundingClientRect();
+  const s = lens.offsetWidth, x = r.left - wrap.left + (r.width - s) / 2, y = r.top - wrap.top + (r.height - s) / 2;
+  const to = `translate(${x}px, ${y}px)`;
+  if (lensAt && lensAt.m === cursor.getMonth() && animOK()) {
+    lens.animate([{ transform: lensAt.t }, { transform: to }], { duration: 340, easing: "cubic-bezier(.25,1.35,.45,1)" });
+  } else if (lensAt && animOK()) {
+    lens.animate([{ transform: to, opacity: 0 }, { transform: to, opacity: 1 }], { duration: 220, easing: "ease-out" });
+  }
+  lens.style.transform = to;
+  lensAt = { t: to, m: cursor.getMonth() };
+}
+
+function renderMonth() {
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1), start = weekStart(first);
+  let html = `<div class="mgrid" role="grid" aria-label="${fmt(first, { month: "long", year: "numeric" })}">`;
+  for (let i = 0; i < 42; i++) {
+    const d = addDays(start, i), evs = onDay(d);
+    if (i % 7 === 0) html += `<div role="row" style="display:contents">`;
+    const cls = ["cell", d.getMonth() !== cursor.getMonth() && "out", i % 7 > 4 && "wkend", sameDay(d, today) && "today", sameDay(d, cursor) && "sel"].filter(Boolean).join(" ");
+    const max = evs.length > 3 ? 2 : 3;
+    html += `<div role="gridcell" class="${cls}" data-date="${iso(d)}" data-drop><button type="button" class="dnum" aria-label="${fmt(d, { weekday: "long", day: "numeric", month: "long" })}${sameDay(d, today) ? ", today" : ""}, ${evs.length || "no"} event${evs.length === 1 ? "" : "s"}. Open day">${d.getDate()}</button>`;
+    html += evs.slice(0, max).map((e) => chipHTML(e, d)).join("");
+    if (evs.length > max) html += `<button type="button" class="more" data-date="${iso(d)}">+${evs.length - max} more</button>`;
+    html += `</div>`;
+    if (i % 7 === 6) html += `</div>`;
+  }
+  vMonth.innerHTML = html + `</div>`;
+}
+
+const H0 = 7, H1 = 21;
+function renderTime() {
+  const days = view === "week" ? Array.from({ length: 7 }, (_, i) => addDays(weekStart(cursor), i)) : [cursor];
+  let head = `<div></div>`, all = `<div class="lab">all-day</div>`, cols = "";
+  let hours = `<div class="tl-hours" aria-hidden="true">` + Array.from({ length: H1 - H0 }, (_, i) => i ? `<span style="top:${(i / (H1 - H0) * 100).toFixed(3)}%">${pad(H0 + i)}:00</span>` : "").join("") + `</div>`;
+  for (const d of days) {
+    const t = sameDay(d, today), evs = onDay(d);
+    head += `<div class="${t ? "today" : ""}"><span class="d">${d.getDate()}</span><span class="w">${fmt(d, { weekday: view === "day" ? "long" : "short" })}</span></div>`;
+    all += `<div data-drop data-date="${iso(d)}">${evs.filter((e) => e.allDay).map((e) => chipHTML(e, d)).join("")}</div>`;
+    const timed = evs.filter((e) => !e.allDay), lanes = [];
+    for (const e of timed) { let l = lanes.findIndex((end) => end <= mins(e.start)); if (l < 0) l = lanes.length; lanes[l] = mins(e.end); e._lane = l; }
+    const lw = `calc(100% / ${Math.max(1, lanes.length)})`;
+    cols += `<div class="tl-col${t ? " today" : ""}" data-drop data-date="${iso(d)}" role="group" aria-label="${fmt(d, { weekday: "long", day: "numeric", month: "long" })}">`;
+    for (const e of timed) {
+      const top = (mins(e.start) - H0 * 60) / 60, h = Math.max(0.5, (mins(e.end) - mins(e.start)) / 60), k = 100 / (H1 - H0);
+      cols += chipHTML(e, d, h < 0.8 ? "bar short" : "bar").replace('class="chip', `style="top:calc(${(top * k).toFixed(3)}% + 2px);height:calc(${(h * k).toFixed(3)}% - 4px);--lane:${e._lane};--lw:${lw}" class="chip`)
+        .replace(/<span class="tm">([^<]*)<\/span><span class="tx">([^<]*)<\/span>/, `<span class="tx">$2</span><span class="tm">${e.start}–${e.end}</span>${view === "day" && e.notes ? `<span class="nt">${esc(e.notes)}</span>` : ""}`);
+    }
+    if (t) { const n = new Date(), m = n.getHours() * 60 + n.getMinutes(); if (m > H0 * 60 && m < H1 * 60) cols += `<i class="now" style="top:${((m - H0 * 60) / 60 / (H1 - H0) * 100).toFixed(3)}%"></i>`; }
+    cols += `</div>`;
+  }
+  vTime.innerHTML = `<div class="tl ${view}" style="--n:${days.length}"><div class="tl-head">${head}</div><div class="tl-allday">${all}</div><div class="tl-body">${hours}${cols}</div></div>`;
+}
+
+function renderAgenda() {
+  const y = cursor.getFullYear(), m = cursor.getMonth(), n = new Date(y, m + 1, 0).getDate();
+  let html = "";
+  for (let i = cursor.getDate(); i <= n; i++) {
+    const d = new Date(y, m, i), evs = onDay(d), t = sameDay(d, today), s = sameDay(d, cursor);
+    if (!evs.length && !t && !s) continue;
+    html += `<section class="ag-day${t ? " today" : ""}" data-date="${iso(d)}"><h3>${fmt(d, { weekday: "long", day: "numeric" })}<small>${t ? "Today" : fmt(d, { month: "short" })}</small></h3>`;
+    html += evs.length ? evs.map((e) => { const c = calOf(e.cal); return `<button type="button" class="ag-row c-${c.c}${matches(e) ? "" : " dim"}" data-id="${e.id}" data-date="${iso(d)}"><i class="pip"></i><span class="t">${e.allDay ? "All day" : `${e.start}<br>${e.end}`}</span><span><b>${esc(e.title)}</b><small>${c.name}${e.repeat !== "none" ? ` · repeats ${e.repeat}` : ""}</small></span></button>`; }).join("")
+      : `<p class="ag-empty" style="padding:.2em .4em .8em;margin:0">Nothing scheduled.</p>`;
+    html += `</section>`;
+  }
+  agenda.innerHTML = html;
+}
+
+function renderCals() {
+  const ul = $("#cals");
+  if (!ul.children.length) {
+    ul.innerHTML = CALS.map((c) => `<li><label><input class="bead c-${c.c}" type="checkbox" data-cal="${c.id}" checked>${c.name}<span class="n" data-n="${c.id}"></span></label></li>`).join("");
+    ul.addEventListener("change", (e) => {
+      const id = e.target.dataset.cal; if (!id) return;
+      e.target.checked ? hidden.delete(id) : hidden.add(id);
+      feedback.play("snap", { intensity: 0.7 });
+      say(`${calOf(id).name} ${e.target.checked ? "shown" : "hidden"}`);
+      render();
+    });
+  }
+  const y = cursor.getFullYear(), m = cursor.getMonth(), n = new Date(y, m + 1, 0).getDate();
+  for (const c of CALS) {
+    let k = 0; for (let i = 1; i <= n; i++) k += events.filter((e) => e.cal === c.id && occursOn(e, new Date(y, m, i))).length;
+    ul.querySelector(`[data-n="${c.id}"]`).textContent = k;
+  }
+}
+
+const live = $("#live");
+const say = (t) => { live.textContent = ""; requestAnimationFrame(() => (live.textContent = t)); };
+
+/* ---------------- Navigation ---------------- */
+function setCursor(d, { focus = false, slide = 0 } = {}) {
+  const monthChanged = d.getMonth() !== cursor.getMonth() || d.getFullYear() !== cursor.getFullYear();
+  const dir = slide || (monthChanged ? Math.sign(d - cursor) : 0);
+  cursor = d;
+  render({ focus });
+  const v = view === "month" ? vMonth : vTime;
+  if (animOK() && ((view === "month" && monthChanged) || (view !== "month" && slide))) {
+    v.animate([{ transform: `translateX(${dir * 2.5}%)`, opacity: 0.2 }, { transform: "none", opacity: 1 }], { duration: 300, easing: "cubic-bezier(.2,.8,.2,1)" });
+  }
+}
+const step = (n) => view === "month" ? addMonths(cursor, n) : addDays(cursor, n * (view === "week" ? 7 : 1));
+const keyCtl = (el, fn, o = {}) => new PressController(el, { sound: "click", ...o, onActivate: () => fn() });
+keyCtl($("#prev"), () => setCursor(step(-1), { slide: -1 }));
+keyCtl($("#next"), () => setCursor(step(1), { slide: 1 }));
+keyCtl($("#today"), () => { setCursor(new Date(today), { slide: Math.sign(today - cursor) || 0 }); say("Today"); });
+keyCtl($("#new"), () => openEditor(null, cursor));
+
+const segs = {};
+for (const b of document.querySelectorAll(".seg [data-view]")) {
+  const v = b.dataset.view;
+  segs[v] = new PressController(b, { mode: "latching", group: "view", pressed: v === view, sound: "latch", onChange: (on) => on && setView(v) });
+}
+function setView(v) {
+  if (v === view) return;
+  const from = view === "month" ? vMonth : vTime;
+  view = v;
+  const to = view === "month" ? vMonth : vTime;
+  for (const [k, c] of Object.entries(segs)) if ((k === v) !== c.pressed) { c.setPressed(k === v, k !== v); c._rest(); }
+  render();
+  if (from !== to) { from.hidden = true; to.hidden = false; }
+  if (animOK()) to.animate([{ opacity: 0, transform: "scale(.985) translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.8,.2,1)" });
+  say(`${v[0].toUpperCase() + v.slice(1)} view`);
+}
+
+/* Mini picker: grid keyboard pattern. */
+pgrid.addEventListener("click", (e) => {
+  const b = e.target.closest(".pday"); if (!b) return;
+  feedback.play("tink"); setCursor(parse(b.dataset.date), { focus: e.detail === 0 });
+  scrollAgenda();
+});
+pgrid.addEventListener("keydown", (e) => {
+  let d = null;
+  switch (e.key) {
+    case "ArrowLeft": d = addDays(cursor, -1); break;
+    case "ArrowRight": d = addDays(cursor, 1); break;
+    case "ArrowUp": d = addDays(cursor, -7); break;
+    case "ArrowDown": d = addDays(cursor, 7); break;
+    case "Home": d = weekStart(cursor); break;
+    case "End": d = addDays(weekStart(cursor), 6); break;
+    case "PageUp": d = addMonths(cursor, e.shiftKey ? -12 : -1); break;
+    case "PageDown": d = addMonths(cursor, e.shiftKey ? 12 : 1); break;
+    case "Enter": case " ": e.preventDefault(); feedback.play("click"); if (matchMedia("(min-width: 800px)").matches) setView("day"); else scrollAgenda(); return;
+    default: return;
+  }
+  e.preventDefault();
+  feedback.play("tink", { intensity: 0.6 });
+  setCursor(d, { focus: true });
+});
+function scrollAgenda() {
+  if (getComputedStyle(agenda).display === "none") return;
+  agenda.querySelector(`[data-date="${iso(cursor)}"]`)?.scrollIntoView({ behavior: animOK() ? "smooth" : "auto", block: "nearest" });
+}
+
+/* Search */
+$("#q").addEventListener("input", (e) => { query = e.target.value.trim().toLowerCase(); render(); });
+
+/* ---------------- Grid interactions: click, open day, drag to move ---------------- */
+const viewport = $("#viewport");
+let dragged = false;
+viewport.addEventListener("click", (e) => {
+  if (dragged) { dragged = false; return; }
+  const chip = e.target.closest(".chip, .ag-row");
+  if (chip) { openEditor(+chip.dataset.id, parse(chip.dataset.date)); return; }
+  const more = e.target.closest(".more, .dnum");
+  if (more) { const d = parse(more.closest("[data-date]").dataset.date); feedback.play("click"); cursor = d; setView("day"); render(); return; }
+  const cell = e.target.closest(".cell");
+  if (cell) { feedback.play("tick"); openEditor(null, parse(cell.dataset.date)); }
+});
+viewport.addEventListener("keydown", (e) => {
+  const chip = e.target.closest(".chip"); if (!chip || !e.altKey) return;
+  const n = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key]; if (!n) return;
+  e.preventDefault();
+  const id = +chip.dataset.id, to = addDays(parse(chip.dataset.date), n);
+  moveEvent(id, parse(chip.dataset.date), to);
+  const nc = viewport.querySelector(`.chip[data-id="${id}"][data-date="${iso(to)}"]`);
+  nc?.focus();
+});
+viewport.addEventListener("pointerdown", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip || e.button !== 0) return;
+  const x0 = e.clientX, y0 = e.clientY, r = chip.getBoundingClientRect();
+  let ghost = null, over = null, lx = x0, lt = performance.now();
+  chip.setPointerCapture(e.pointerId);
+  const move = (ev) => {
+    if (!ghost) {
+      if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 6) return;
+      ghost = chip.cloneNode(true); ghost.classList.add("ghost"); ghost.removeAttribute("id");
+      Object.assign(ghost.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px" });
+      document.body.append(ghost); document.body.classList.add("dragging");
+      chip.classList.add("lifting");
+      if (animOK()) ghost.animate([{ transform: "none" }, { transform: "scale(1.06) rotate(-1.5deg)" }], { duration: 180, easing: "cubic-bezier(.2,1.3,.4,1)", fill: "forwards" });
+      else ghost.style.transform = "scale(1.06) rotate(-1.5deg)";
+      feedback.play("tick", { intensity: 0.6 });
+    }
+    ghost.style.translate = `${ev.clientX - x0}px ${ev.clientY - y0}px`;
+    const t = performance.now(), speed = Math.abs(ev.clientX - lx) / Math.max(1, t - lt); lx = ev.clientX; lt = t;
+    if (speed > 0.25) feedback.play("slide", { intensity: Math.min(1, speed * 0.6), minGapMs: 70 });
+    const el = document.elementFromPoint(ev.clientX, ev.clientY)?.closest("[data-drop]");
+    if (el !== over) { over?.classList.remove("drop"); over = el; over?.classList.add("drop"); }
+  };
+  const up = (ev) => {
+    chip.removeEventListener("pointermove", move); chip.removeEventListener("pointerup", up); chip.removeEventListener("pointercancel", up);
+    if (!ghost) return;
+    dragged = true; setTimeout(() => (dragged = false), 0);
+    over?.classList.remove("drop"); document.body.classList.remove("dragging");
+    const id = +chip.dataset.id, from = parse(chip.dataset.date);
+    if (ev.type !== "pointercancel" && over && over.dataset.date !== chip.dataset.date) {
+      ghost.remove();
+      moveEvent(id, from, parse(over.dataset.date));
+    } else {
+      const g = ghost;
+      chip.classList.remove("lifting");
+      if (animOK()) g.animate([{ translate: g.style.translate }, { translate: "0 0" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }).finished.then(() => g.remove());
+      else g.remove();
+      feedback.play("tick", { intensity: 0.5 });
+    }
+  };
+  chip.addEventListener("pointermove", move); chip.addEventListener("pointerup", up); chip.addEventListener("pointercancel", up);
+});
+
+function moveEvent(id, from, to) {
+  const ev = events.find((e) => e.id === id); if (!ev) return;
+  ev.date = iso(addDays(parse(ev.date), Math.round((to - from) / 864e5)));
+  render();
+  feedback.play("thunk");
+  dropIn(id, to);
+  say(`Moved ${ev.title} to ${fmt(to, { weekday: "long", day: "numeric", month: "long" })}`);
+}
+function dropIn(id, d) {
+  if (!animOK()) return;
+  for (const el of document.querySelectorAll(`.chip[data-id="${id}"][data-date="${iso(d)}"], .ag-row[data-id="${id}"][data-date="${iso(d)}"]`))
+    el.animate([{ transform: "translateY(-.6em) scale(1.08)", opacity: 0 }, { transform: "translateY(1px) scale(.98)", opacity: 1, offset: .7 }, { transform: "none", opacity: 1 }], { duration: 380, easing: "cubic-bezier(.3,.7,.3,1)" });
+}
+
+/* ---------------- Editor ---------------- */
+const dlg = $("#editor"), F = (id) => $("#" + id);
+let editing = null, cal = "work";
+const allDay = new ToggleController(F("fAll"), { axis: "x", sound: "latch", onChange: (v) => syncAllDay() });
+function syncAllDay() {
+  const on = F("fAll").value === 1;
+  F("fStart").disabled = on; F("fEnd").disabled = on;
+  F("fAllS").textContent = on ? "On" : "Off";
+}
+const ALERTS = [0, 5, 10, 15, 30, 60];
+const alertTxt = (i) => ALERTS[i] === 0 ? "At start time" : ALERTS[i] === 60 ? "1 hour before" : `${ALERTS[i]} min before`;
+const alertCtl = new LinearController(F("fAlert"), { min: 0, max: 5, step: 1, value: 3, detentStrength: 0.7, thumb: () => F("fAlertK"), track: () => F("fAlert"), inset: 0, valueText: alertTxt, sound: "detent", onInput: (v) => (F("fAlertV").textContent = alertTxt(v)) });
+
+function setCal(id) {
+  cal = id; const c = calOf(id);
+  F("fCal").className = `well selbtn c-${c.c}`; F("fCalT").textContent = c.name;
+}
+function openEditor(id, d) {
+  const ev = id != null ? events.find((e) => e.id === id) : null;
+  editing = ev;
+  F("edh").textContent = ev ? "Edit event" : "New event";
+  F("fTitle").value = ev?.title ?? "";
+  F("fDate").value = ev ? ev.date : iso(d || cursor);
+  F("fStart").value = ev?.start ?? "10:00"; F("fEnd").value = ev?.end ?? "11:00";
+  allDay.set(ev?.allDay ? 1 : 0, false); syncAllDay();
+  dlg.querySelector(`[name=rep][value="${ev?.repeat ?? "none"}"]`).checked = true;
+  alertCtl.set(ev?.alert ?? 3, { animate: false, emit: false }); F("fAlertV").textContent = alertTxt(alertCtl.value);
+  F("fNotes").value = ev?.notes ?? "";
+  setCal(ev?.cal ?? (hidden.has("work") ? CALS.find((c) => !hidden.has(c.id))?.id ?? "work" : "work"));
+  for (const k of ["fTitle", "fEnd"]) F(k).removeAttribute("aria-invalid");
+  F("eTitle").hidden = F("eTime").hidden = true;
+  const del = F("edDel"); del.setAttribute("aria-disabled", String(!ev)); del.disabled = !ev;
+  closeList(false);
+  dlg.showModal();
+  alertCtl.o.inset = F("fAlertK").offsetWidth / 2;
+  if (animOK()) {
+    dlg.firstElementChild.animate([{ opacity: 0, transform: "translateY(14px) scale(.97)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: "cubic-bezier(.2,1.1,.4,1)" });
+  }
+  F("fTitle").focus();
+}
+async function closeEditor() {
+  if (!dlg.open) return;
+  if (animOK()) await dlg.firstElementChild.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(8px) scale(.98)" }], { duration: 150, easing: "ease-in" }).finished;
+  dlg.close();
+}
+keyCtl(F("edx"), closeEditor);
+keyCtl(F("edCancel"), closeEditor);
+keyCtl(F("edDel"), () => {
+  if (!editing) return;
+  events = events.filter((e) => e !== editing);
+  feedback.play("clack"); say(`Deleted ${editing.title}`);
+  closeEditor().then(render);
+});
+keyCtl(F("edSave"), save);
+F("edform").addEventListener("submit", (e) => { e.preventDefault(); save(); });
+F("fTitle").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); save(); } });
+F("fTitle").addEventListener("input", () => { if (F("fTitle").value.trim()) { F("fTitle").removeAttribute("aria-invalid"); F("eTitle").hidden = true; } });
+dlg.addEventListener("cancel", (e) => { if (!F("calList").hidden) { e.preventDefault(); closeList(true); return; } e.preventDefault(); closeEditor(); });
+dlg.addEventListener("click", (e) => { if (e.target === dlg) closeEditor(); });
+
+function save() {
+  const title = F("fTitle").value.trim(), all = F("fAll").value === 1;
+  let bad = null;
+  F("fTitle").toggleAttribute("aria-invalid", !title); F("eTitle").hidden = !!title;
+  if (!title) bad = F("fTitle");
+  const timeBad = !all && mins(F("fEnd").value || "00:00") <= mins(F("fStart").value || "00:00");
+  F("fEnd").toggleAttribute("aria-invalid", timeBad); F("eTime").hidden = !timeBad;
+  if (timeBad) bad ??= F("fEnd");
+  if (!F("fDate").value) bad ??= F("fDate");
+  if (bad) {
+    for (const el of dlg.querySelectorAll("[aria-invalid]")) el.setAttribute("aria-invalid", "true");
+    bad.focus(); feedback.play("clack", { intensity: 0.6 });
+    if (animOK()) bad.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5px)" }, { transform: "translateX(4px)" }, { transform: "translateX(-2px)" }, { transform: "none" }], { duration: 300 });
+    return;
+  }
+  const data = { title, date: F("fDate").value, start: F("fStart").value, end: F("fEnd").value, allDay: all, cal, repeat: dlg.querySelector("[name=rep]:checked").value, alert: alertCtl.value, notes: F("fNotes").value.trim() };
+  let ev = editing;
+  if (ev) Object.assign(ev, data); else { ev = { id: nextId++, ...data }; events.push(ev); }
+  hidden.delete(ev.cal); const box = document.querySelector(`[data-cal="${ev.cal}"]`); if (box) box.checked = true;
+  closeEditor().then(() => {
+    cursor = parse(ev.date); render();
+    feedback.play("click"); dropIn(ev.id, parse(ev.date));
+    say(`Saved ${ev.title}`);
+  });
+}
+
+/* Calendar listbox */
+const btn = F("fCal"), list = F("calList");
+let active = 0;
+list.innerHTML = CALS.map((c, i) => `<li class="opt c-${c.c}" role="option" id="opt-${c.id}" data-i="${i}" aria-selected="false"><i class="dot"></i>${c.name}</li>`).join("");
+function paintList() {
+  list.querySelectorAll(".opt").forEach((o, i) => { o.classList.toggle("active", i === active); o.setAttribute("aria-selected", String(CALS[i].id === cal)); });
+  list.setAttribute("aria-activedescendant", "opt-" + CALS[active].id);
+}
+function openList() {
+  active = CALS.findIndex((c) => c.id === cal); paintList();
+  list.hidden = false; btn.setAttribute("aria-expanded", "true"); list.focus();
+  feedback.play("tick");
+  if (animOK()) list.animate([{ opacity: 0, transform: "translateY(-6px) scale(.98)" }, { opacity: 1, transform: "none" }], { duration: 200, easing: "cubic-bezier(.2,1.2,.4,1)" });
+}
+function closeList(refocus) { if (list.hidden) return; list.hidden = true; btn.setAttribute("aria-expanded", "false"); if (refocus) btn.focus(); }
+function choose(i) { setCal(CALS[i].id); feedback.play("click"); closeList(true); }
+btn.addEventListener("click", () => (list.hidden ? openList() : closeList(true)));
+btn.addEventListener("keydown", (e) => { if (["ArrowDown", "ArrowUp"].includes(e.key)) { e.preventDefault(); openList(); } });
+list.addEventListener("click", (e) => { const o = e.target.closest(".opt"); if (o) choose(+o.dataset.i); });
+list.addEventListener("pointermove", (e) => { const o = e.target.closest(".opt"); if (o && +o.dataset.i !== active) { active = +o.dataset.i; paintList(); } });
+list.addEventListener("keydown", (e) => {
+  const n = CALS.length;
+  switch (e.key) {
+    case "ArrowDown": active = Math.min(n - 1, active + 1); break;
+    case "ArrowUp": active = Math.max(0, active - 1); break;
+    case "Home": active = 0; break;
+    case "End": active = n - 1; break;
+    case "Enter": case " ": e.preventDefault(); choose(active); return;
+    case "Escape": e.preventDefault(); e.stopPropagation(); closeList(true); return;
+    case "Tab": closeList(false); return;
+    default: {
+      if (e.key.length === 1 && /\S/.test(e.key)) { const k = CALS.findIndex((c, j) => j > active && c.name[0].toLowerCase() === e.key.toLowerCase()); const f = k >= 0 ? k : CALS.findIndex((c) => c.name[0].toLowerCase() === e.key.toLowerCase()); if (f >= 0) active = f; else return; }
+      else return;
+    }
+  }
+  e.preventDefault(); feedback.play("tick", { intensity: 0.5 }); paintList();
+});
+document.addEventListener("pointerdown", (e) => { if (!list.hidden && !e.target.closest(".sel")) closeList(false); });
+dlg.addEventListener("change", (e) => { if (e.target.name === "rep") feedback.play("click", { intensity: 0.7 }); });
+
+/* Standoff screws: hex sockets at random angles. */
+for (const b of document.querySelectorAll(".bolt")) b.style.setProperty("--r", Math.round(Math.random() * 60) + "deg");
+
+window.frost = { get events() { return events; }, get view() { return view; }, get cursor() { return iso(cursor); }, hidden };
+render();
+addEventListener("resize", () => placeLens(pgrid.querySelector('[aria-selected="true"]')));
+</script>
+</body>
+</html>

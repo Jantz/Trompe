@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><script type="module" src="/src/index.ts"></script>
+<style>body{margin:0;padding:28px;background:var(--tr-color-canvas);color:var(--tr-color-ink);font-family:system-ui}
+.rack{display:grid;grid-template-columns:400px 1fr;gap:24px;max-width:1100px}
+.knobs{display:flex;gap:18px;flex-wrap:wrap}
+.bank{display:flex;gap:14px;justify-content:space-between}
+form{display:grid;gap:12px}
+.legend{font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+</style></head>
+<body data-tr-theme="dark">
+<div class="rack">
+  <tr-panel screws material="metal" finish="brushed" realism="real" style="grid-row:span 2">
+    <span slot="header" class="legend">Mix bus</span>
+    <div class="bank">
+      <tr-slider orientation="vertical" label="1" value="72" hide-value marks="+12,+6,0,-6,-12,-24,-48" min="-48" max="12" material="rubber"></tr-slider>
+      <tr-slider orientation="vertical" label="2" value="58" hide-value ticks="7" material="rubber"></tr-slider>
+      <tr-slider orientation="vertical" label="3" value="64" hide-value ticks="7" material="rubber"></tr-slider>
+      <tr-slider orientation="vertical" label="4" value="40" hide-value ticks="7" material="rubber"></tr-slider>
+      <tr-slider orientation="vertical" label="Mst" value="80" hide-value ticks="7" style="--tr-slider-cap-color:oklch(55% 0.19 25);--tr-slider-cap-line-color:white"></tr-slider>
+    </div>
+  </tr-panel>
+  <tr-panel screws material="rubber" realism="real">
+    <span slot="header" class="legend">Filter</span>
+    <div class="knobs">
+      <tr-knob label="Cutoff" variant="skirt" material="rubber" value="64" size="lg" marks="0,2,4,6,8,10"></tr-knob>
+      <tr-knob label="Reso" variant="skirt" material="rubber" value="30" marks="0,,,,,10"></tr-knob>
+      <tr-knob label="Drive" value="55" material="metal" finish="spun"></tr-knob>
+      <tr-knob label="Shape" variant="pointer" min="1" max="5" ticks="5" marks="1,2,3,4,5" value="3" material="plastic" realism="real"></tr-knob>
+      <tr-knob label="Pan" arc="center" min="-50" max="50" value="-12" material="chrome"></tr-knob>
+    </div>
+  </tr-panel>
+  <tr-panel bezel screws material="metal" realism="real">
+    <form>
+      <tr-input label="Preset name" value="Warm pad" required></tr-input>
+      <div class="row"><tr-switch checked>Sync</tr-switch><tr-switch material="metal">Hold</tr-switch><tr-button tone="accent">Save</tr-button></div>
+    </form>
+  </tr-panel>
+</div>
+</body></html>

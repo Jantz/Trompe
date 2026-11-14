@@ -1,0 +1,1134 @@
+{
+  "$description": "Trompe design tokens in W3C Design Tokens Community Group (DTCG) format. Every token becomes a CSS custom property named --tr-<path joined by dashes>, e.g. color.surface -> --tr-color-surface. Tokens with $extensions['dev.trompe'].dark have a dark-theme value; the generated CSS uses light-dark() so the active color-scheme picks the value.",
+  "color": {
+    "$type": "color",
+    "canvas": {
+      "$value": "oklch(93% 0.008 85)",
+      "$description": "Page background behind all surfaces.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(22% 0.008 260)"
+        }
+      }
+    },
+    "surface": {
+      "$value": "oklch(95% 0.007 85)",
+      "$description": "Default color of a raised surface (panels, neutral buttons) before material is applied.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(30% 0.01 260)"
+        }
+      }
+    },
+    "well": {
+      "$value": "oklch(89% 0.009 85)",
+      "$description": "Color of recessed areas: input wells, slider grooves, switch tracks.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(18% 0.008 260)"
+        }
+      }
+    },
+    "ink": {
+      "$value": "oklch(25% 0.015 260)",
+      "$description": "Primary text and icon color.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(93% 0.008 85)"
+        }
+      }
+    },
+    "ink-muted": {
+      "$value": "oklch(45% 0.015 260)",
+      "$description": "Secondary text, labels, placeholder-adjacent text. Meets 4.5:1 on surface.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(76% 0.01 85)"
+        }
+      }
+    },
+    "edge": {
+      "$value": "oklch(62% 0.012 260)",
+      "$description": "Boundary of every interactive control. Meets 3:1 against canvas and surface so controls never rely on shadow alone.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(58% 0.012 260)"
+        }
+      }
+    },
+    "accent": {
+      "$value": "oklch(54% 0.16 45)",
+      "$description": "Brand/action color (warm amber-orange by default, like an indicator lamp). Set --tr-color-accent to re-theme. Light value keeps accent-ink text at 4.5:1.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(70% 0.15 55)"
+        }
+      }
+    },
+    "accent-ink": {
+      "$value": "oklch(99% 0.005 85)",
+      "$description": "Text/icon color on accent surfaces.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(20% 0.02 55)"
+        }
+      }
+    },
+    "danger": {
+      "$value": "oklch(50% 0.19 25)",
+      "$description": "Destructive action and error text color. Meets 4.5:1 as text on canvas and surface.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(68% 0.17 25)"
+        }
+      }
+    },
+    "danger-ink": {
+      "$value": "oklch(99% 0.005 25)",
+      "$description": "Text/icon color on danger surfaces.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(20% 0.03 25)"
+        }
+      }
+    },
+    "success": {
+      "$value": "oklch(50% 0.13 150)",
+      "$description": "Positive status (completed, up, healthy). Meets 4.5:1 as text on canvas.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(74% 0.15 150)"
+        }
+      }
+    },
+    "success-ink": {
+      "$value": "oklch(99% 0.01 150)",
+      "$description": "Text/icon color on success surfaces.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(20% 0.04 150)"
+        }
+      }
+    },
+    "warning": {
+      "$value": "oklch(80% 0.15 80)",
+      "$description": "Caution status. A bright amber surface: pair with warning-ink, and use ink, not warning, for warning text on canvas.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(80% 0.15 80)"
+        }
+      }
+    },
+    "warning-ink": {
+      "$value": "oklch(25% 0.05 70)",
+      "$description": "Text/icon color on warning surfaces.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(22% 0.05 70)"
+        }
+      }
+    },
+    "focus": {
+      "$value": "oklch(55% 0.2 255)",
+      "$description": "Keyboard focus ring color.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(75% 0.15 250)"
+        }
+      }
+    },
+    "shadow": {
+      "$value": "oklch(25% 0.03 260)",
+      "$description": "Base color of cast and ambient shadows. Alpha is applied by components from realism and depth.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(5% 0.01 260)"
+        }
+      }
+    },
+    "highlight": {
+      "$value": "oklch(100% 0 0)",
+      "$description": "Base color of specular highlights and bevel light edges.",
+      "$extensions": {
+        "dev.trompe": {
+          "dark": "oklch(100% 0 0)"
+        }
+      }
+    }
+  },
+  "light": {
+    "angle": {
+      "$type": "angle",
+      "$value": "330deg",
+      "$description": "Direction the global light comes FROM, in CSS gradient convention: 0deg = top, 90deg = right, clockwise. All shadows and highlights agree on it. Registered with @property so it can be animated or overridden per subtree."
+    },
+    "elevation": {
+      "$type": "angle",
+      "$value": "55deg",
+      "$description": "Height of the light above the surface. Lower = longer shadows. 90deg = straight overhead (no offset)."
+    },
+    "environment": {
+      "$type": "angle",
+      "$value": "180deg",
+      "$description": "Direction mirror finishes reflect from: 180deg puts the bright sky at the top and the dark horizon below the middle, like chrome outdoors. The light angle tilts it slightly."
+    }
+  },
+  "realism": {
+    "$type": "number",
+    "$description": "The realism dial, 0..1. Scales shadows, gradients, grain and specular highlights. 0 = flat (edges only), 1 = full material realism. Set the realism attribute (flat|soft|tactile|real) on any element, or --tr-realism to any number.",
+    "default": {
+      "$value": 0.65,
+      "$description": "Active realism. Emitted as --tr-realism.",
+      "$extensions": {
+        "dev.trompe": {
+          "cssName": "--tr-realism"
+        }
+      }
+    },
+    "flat": {
+      "$value": 0,
+      "$description": "No shadows or textures. Edges and colors only."
+    },
+    "soft": {
+      "$value": 0.35,
+      "$description": "Subtle tactile depth. Good for productivity apps."
+    },
+    "tactile": {
+      "$value": 0.65,
+      "$description": "Clear physical affordances. The default."
+    },
+    "real": {
+      "$value": 1,
+      "$description": "Full material realism: grain, brushed metal, specular glints."
+    }
+  },
+  "depth": {
+    "$description": "Depth is how far a surface sits above (positive) or below (negative) its parent, as an integer level -2..4 set with the depth attribute. The physical offset grows non-linearly: offset = pow(|level|, curve) * unit * light length, so every level reads as clearly higher than the last.",
+    "unit": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$description": "Physical offset of depth level 1 under a 45deg light."
+    },
+    "curve": {
+      "$type": "number",
+      "$value": 1.6,
+      "$description": "Exponent applied to the level. 1 = linear; higher = upper levels separate more."
+    },
+    "well": {
+      "$type": "number",
+      "$value": -2,
+      "$description": "Well: deeply recessed (input wells, grooves).",
+      "$extensions": {
+        "dev.trompe": {
+          "level": -2
+        }
+      }
+    },
+    "pressed": {
+      "$type": "number",
+      "$value": -1,
+      "$description": "Pressed: a control pushed in.",
+      "$extensions": {
+        "dev.trompe": {
+          "level": -1
+        }
+      }
+    },
+    "flush": {
+      "$type": "number",
+      "$value": 0,
+      "$description": "Flush with its parent.",
+      "$extensions": {
+        "dev.trompe": {
+          "level": 0
+        }
+      }
+    },
+    "raised": {
+      "$type": "number",
+      "$value": 1,
+      "$description": "Raised: resting buttons and caps.",
+      "$extensions": {
+        "dev.trompe": {
+          "level": 1
+        }
+      }
+    },
+    "lifted": {
+      "$type": "number",
+      "$value": 2,
+      "$description": "Lifted: cards and panels.",
+      "$extensions": {
+        "dev.trompe": {
+          "level": 2
+        }
+      }
+    },
+    "floating": {
+      "$type": "number",
+      "$value": 3,
+      "$description": "Floating: popovers and menus.",
+      "$extensions": {
+        "dev.trompe": {
+          "level": 3
+        }
+      }
+    },
+    "overlay": {
+      "$type": "number",
+      "$value": 4,
+      "$description": "Overlay: dialogs and modals.",
+      "$extensions": {
+        "dev.trompe": {
+          "level": 4
+        }
+      }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "sm": {
+      "$value": "6px",
+      "$description": "Small controls, tags."
+    },
+    "md": {
+      "$value": "10px",
+      "$description": "Buttons, inputs."
+    },
+    "lg": {
+      "$value": "16px",
+      "$description": "Panels and cards."
+    },
+    "pill": {
+      "$value": "999px",
+      "$description": "Fully rounded ends (switch tracks, pill buttons)."
+    }
+  },
+  "space": {
+    "$type": "dimension",
+    "1": {
+      "$value": "4px"
+    },
+    "2": {
+      "$value": "8px"
+    },
+    "3": {
+      "$value": "12px"
+    },
+    "4": {
+      "$value": "16px"
+    },
+    "5": {
+      "$value": "24px"
+    },
+    "6": {
+      "$value": "32px"
+    },
+    "7": {
+      "$value": "48px"
+    },
+    "8": {
+      "$value": "64px"
+    }
+  },
+  "control": {
+    "$type": "dimension",
+    "$description": "Control heights per size, in em of the control's own font size, so a whole interface scales by changing font-size on a container (for example with container query units). On coarse pointers all sizes grow to at least the touch target.",
+    "sm": {
+      "$value": "2.25em"
+    },
+    "md": {
+      "$value": "2.5em"
+    },
+    "lg": {
+      "$value": "2.75em"
+    },
+    "touch": {
+      "$value": "44px",
+      "$description": "Minimum hit area on coarse pointers."
+    }
+  },
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "$value": "ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", sans-serif",
+      "$description": "UI text."
+    },
+    "family-mono": {
+      "$type": "fontFamily",
+      "$value": "ui-monospace, \"SF Mono\", Menlo, Consolas, monospace",
+      "$description": "Readouts, values, code."
+    },
+    "size": {
+      "$type": "dimension",
+      "sm": {
+        "$value": "0.875em"
+      },
+      "md": {
+        "$value": "1em"
+      },
+      "lg": {
+        "$value": "1.125em"
+      },
+      "$description": "Component font sizes relative to the inherited font size. Trompe scales with font-size like native controls."
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 450
+      },
+      "strong": {
+        "$value": 600
+      }
+    }
+  },
+  "motion": {
+    "duration": {
+      "$type": "duration",
+      "press": {
+        "$value": "70ms",
+        "$description": "Pressing a control in."
+      },
+      "release": {
+        "$value": "160ms",
+        "$description": "A control springing back (colour, opacity and short release transitions)."
+      },
+      "return": {
+        "$value": "354ms",
+        "$description": "A pressed cap returning on its spring, with a small overshoot. Baked from the 'press' spring; pair with --tr-motion-easing-return."
+      },
+      "travel": {
+        "$value": "220ms",
+        "$description": "A thumb or cap travelling (switch throw)."
+      },
+      "throw": {
+        "$value": "244ms",
+        "$description": "A switch thumb or selector snapping over to its new position. Baked from the 'throw' spring; pair with --tr-motion-easing-throw."
+      },
+      "settle": {
+        "$value": "187ms",
+        "$description": "A part dropping into a notch or snap point. Baked from the 'detent' spring; pair with --tr-motion-easing-settle."
+      },
+      "glide": {
+        "$value": "471ms",
+        "$description": "A value travelling to a target set by code or keyboard, no overshoot. Baked from the 'glide' spring; pair with --tr-motion-easing-glide."
+      },
+      "lift": {
+        "$value": "240ms",
+        "$description": "A menu, popover or dialog lifting off the page."
+      },
+      "lamp": {
+        "$value": "90ms",
+        "$description": "An LED or indicator lamp lighting (off is twice as long, like a cooling filament)."
+      },
+      "press-min": {
+        "$value": "90ms",
+        "$description": "Shortest visible press. A quick tap is held down at least this long so it is always seen."
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "press": {
+        "$value": "cubic-bezier(0.3, 0, 0.6, 1)"
+      },
+      "spring": {
+        "$value": "linear(0, 0.25 8%, 0.82 22%, 1.06 34%, 1.08 40%, 1.02 55%, 0.99 70%, 1)",
+        "$description": "Slight overshoot, like a sprung mechanism. Uses the CSS linear() easing function.",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true
+          }
+        }
+      },
+      "return": {
+        "$value": "linear(0, 0.0062 1.13%, 0.0292 2.54%, 0.0657 3.95%, 0.1127 5.37%, 0.2147 7.91%, 0.4688 13.56%, 0.5772 16.1%, 0.6854 18.93%, 0.7695 21.47%, 0.8403 24.01%, 0.9035 26.84%, 0.9519 29.66%, 0.99 32.77%, 1.0266 38.14%, 1.0384 44.35%, 1.003 72.6%, 1)",
+        "$description": "A pressed cap returning on its spring, with a small overshoot. Spring 'press' {\"duration\":0.22,\"bounce\":0.28} baked to CSS linear() by springEasing().",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true,
+            "spring": "press"
+          }
+        }
+      },
+      "throw": {
+        "$value": "linear(0, 0.0065 1.23%, 0.0244 2.46%, 0.0514 3.69%, 0.0984 5.33%, 0.2001 8.2%, 0.4268 13.93%, 0.5338 16.8%, 0.6301 19.67%, 0.7139 22.54%, 0.7845 25.41%, 0.8499 28.69%, 0.9004 31.97%, 0.9382 35.25%, 0.9655 38.52%, 0.9863 42.21%, 1.0085 51.23%, 1)",
+        "$description": "A switch thumb or selector snapping over to its new position. Spring 'throw' {\"duration\":0.16,\"bounce\":0.18} baked to CSS linear() by springEasing().",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true,
+            "spring": "throw"
+          }
+        }
+      },
+      "settle": {
+        "$value": "linear(0, 0.0052 1.07%, 0.0194 2.14%, 0.0411 3.21%, 0.0843 4.81%, 0.1752 7.49%, 0.4021 13.37%, 0.5186 16.58%, 0.6219 19.79%, 0.6961 22.46%, 0.7596 25.13%, 0.8222 28.34%, 0.8716 31.55%, 0.9151 35.29%, 0.9462 39.04%, 0.9702 43.32%, 0.996 52.94%, 1.0029 65.24%, 1)",
+        "$description": "A part dropping into a notch or snap point. Spring 'detent' {\"duration\":0.12,\"bounce\":0.12} baked to CSS linear() by springEasing().",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true,
+            "spring": "detent"
+          }
+        }
+      },
+      "glide": {
+        "$value": "linear(0, 0.0045 1.06%, 0.0202 2.34%, 0.0816 5.1%, 0.1582 7.64%, 0.4591 16.77%, 0.5563 20.17%, 0.6355 23.35%, 0.7073 26.75%, 0.7669 30.15%, 0.8183 33.76%, 0.8615 37.58%, 0.8998 42.04%, 0.9303 46.92%, 0.9542 52.44%, 0.9716 58.6%, 0.9914 73.67%, 1)",
+        "$description": "A value travelling to a target set by code or keyboard, no overshoot. Spring 'glide' {\"duration\":0.32,\"bounce\":0} baked to CSS linear() by springEasing().",
+        "$extensions": {
+          "dev.trompe": {
+            "cssOnly": true,
+            "spring": "glide"
+          }
+        }
+      }
+    }
+  },
+  "material": {
+    "$description": "Materials are parameter bundles describing a substance. Components are geometry that only read these parameters, so any component can be any material. Apply with the material attribute (on a component) or data-tr-material (on any container). Each parameter is also a CSS variable, --tr-m-<param>, that you can set directly for custom materials.",
+    "plastic": {
+      "$description": "Smooth molded plastic with a soft satin sheen. The default.",
+      "base": {
+        "$type": "color",
+        "$value": "var(--tr-color-surface)",
+        "$description": "Base color of the substance."
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "var(--tr-color-ink)",
+        "$description": "Text and icon color on this material. Checked for contrast against base and both ends of its gradients."
+      },
+      "specular": {
+        "$type": "number",
+        "$value": 0.55,
+        "$description": "Strength of highlights facing the light, 0..1."
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.5,
+        "$description": "Spread of highlights. 0 = mirror-sharp, 1 = fully diffuse."
+      },
+      "metalness": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "0..1. Metals tint their highlights with the base color and darken their shading."
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of linear brushed hairlines, 0..1."
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of concentric spun-metal reflections on round parts, 0..1."
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Clear-coat strength, 0..1: a crisp window reflection toward the light and a caustic glow opposite."
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Environment reflection, 0..1: chrome-like sky / horizon / ground bands that follow the light."
+      },
+      "grain": {
+        "$type": "number",
+        "$value": 0.04,
+        "$description": "Opacity of surface noise texture, 0..1."
+      },
+      "translucency": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "How much of what is behind shows through, 0..1. Glass blurs it."
+      },
+      "bevel": {
+        "$type": "dimension",
+        "$value": "1px",
+        "$description": "Width of the light-catching rim at the edge."
+      }
+    },
+    "metal": {
+      "$description": "Brushed aluminium: anisotropic hairlines, tinted crisp highlights. Round parts get a spun finish.",
+      "base": {
+        "$type": "color",
+        "$value": "oklch(83% 0.006 250)",
+        "$extensions": {
+          "dev.trompe": {
+            "dark": "oklch(60% 0.008 250)"
+          }
+        },
+        "$description": "Base color of the substance."
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "oklch(22% 0.01 250)",
+        "$extensions": {
+          "dev.trompe": {
+            "dark": "oklch(14% 0.01 250)"
+          }
+        },
+        "$description": "Text and icon color on this material. Checked for contrast against base and both ends of its gradients."
+      },
+      "specular": {
+        "$type": "number",
+        "$value": 0.9,
+        "$description": "Strength of highlights facing the light, 0..1."
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.3,
+        "$description": "Spread of highlights. 0 = mirror-sharp, 1 = fully diffuse."
+      },
+      "metalness": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "0..1. Metals tint their highlights with the base color and darken their shading."
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "Strength of linear brushed hairlines, 0..1."
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of concentric spun-metal reflections on round parts, 0..1."
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Clear-coat strength, 0..1: a crisp window reflection toward the light and a caustic glow opposite."
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0.12,
+        "$description": "Environment reflection, 0..1: chrome-like sky / horizon / ground bands that follow the light."
+      },
+      "grain": {
+        "$type": "number",
+        "$value": 0.05,
+        "$description": "Opacity of surface noise texture, 0..1."
+      },
+      "translucency": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "How much of what is behind shows through, 0..1. Glass blurs it."
+      },
+      "bevel": {
+        "$type": "dimension",
+        "$value": "1px",
+        "$description": "Width of the light-catching rim at the edge."
+      }
+    },
+    "chrome": {
+      "$description": "Polished chrome: a mirror that reflects a sky, a dark horizon and the ground, aligned with the light.",
+      "base": {
+        "$type": "color",
+        "$value": "oklch(78% 0.012 250)",
+        "$extensions": {
+          "dev.trompe": {
+            "dark": "oklch(66% 0.012 250)"
+          }
+        },
+        "$description": "Base color of the substance."
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "oklch(18% 0.01 250)",
+        "$extensions": {
+          "dev.trompe": {
+            "dark": "oklch(14% 0.01 250)"
+          }
+        },
+        "$description": "Text and icon color on this material. Checked for contrast against base and both ends of its gradients."
+      },
+      "specular": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "Strength of highlights facing the light, 0..1."
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.05,
+        "$description": "Spread of highlights. 0 = mirror-sharp, 1 = fully diffuse."
+      },
+      "metalness": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "0..1. Metals tint their highlights with the base color and darken their shading."
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of linear brushed hairlines, 0..1."
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of concentric spun-metal reflections on round parts, 0..1."
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0.25,
+        "$description": "Clear-coat strength, 0..1: a crisp window reflection toward the light and a caustic glow opposite."
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "Environment reflection, 0..1: chrome-like sky / horizon / ground bands that follow the light."
+      },
+      "grain": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Opacity of surface noise texture, 0..1."
+      },
+      "translucency": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "How much of what is behind shows through, 0..1. Glass blurs it."
+      },
+      "bevel": {
+        "$type": "dimension",
+        "$value": "1px",
+        "$description": "Width of the light-catching rim at the edge."
+      }
+    },
+    "glass": {
+      "$description": "Frosted glass that blurs what is behind it (material=\"glass\" on the component). Opaque when prefers-reduced-transparency is set.",
+      "base": {
+        "$type": "color",
+        "$value": "oklch(98% 0.005 230 / 0.5)",
+        "$extensions": {
+          "dev.trompe": {
+            "dark": "oklch(40% 0.01 250 / 0.5)"
+          }
+        },
+        "$description": "Base color of the substance."
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "var(--tr-color-ink)",
+        "$description": "Text and icon color on this material. Checked for contrast against base and both ends of its gradients."
+      },
+      "specular": {
+        "$type": "number",
+        "$value": 0.8,
+        "$description": "Strength of highlights facing the light, 0..1."
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.15,
+        "$description": "Spread of highlights. 0 = mirror-sharp, 1 = fully diffuse."
+      },
+      "metalness": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "0..1. Metals tint their highlights with the base color and darken their shading."
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of linear brushed hairlines, 0..1."
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of concentric spun-metal reflections on round parts, 0..1."
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0.6,
+        "$description": "Clear-coat strength, 0..1: a crisp window reflection toward the light and a caustic glow opposite."
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Environment reflection, 0..1: chrome-like sky / horizon / ground bands that follow the light."
+      },
+      "grain": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Opacity of surface noise texture, 0..1."
+      },
+      "translucency": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "How much of what is behind shows through, 0..1. Glass blurs it."
+      },
+      "bevel": {
+        "$type": "dimension",
+        "$value": "1px",
+        "$description": "Width of the light-catching rim at the edge."
+      }
+    },
+    "paper": {
+      "$description": "Matte paper or card stock with visible fibre grain and almost no sheen.",
+      "base": {
+        "$type": "color",
+        "$value": "oklch(97% 0.012 90)",
+        "$extensions": {
+          "dev.trompe": {
+            "dark": "oklch(34% 0.012 80)"
+          }
+        },
+        "$description": "Base color of the substance."
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "var(--tr-color-ink)",
+        "$description": "Text and icon color on this material. Checked for contrast against base and both ends of its gradients."
+      },
+      "specular": {
+        "$type": "number",
+        "$value": 0.1,
+        "$description": "Strength of highlights facing the light, 0..1."
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "Spread of highlights. 0 = mirror-sharp, 1 = fully diffuse."
+      },
+      "metalness": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "0..1. Metals tint their highlights with the base color and darken their shading."
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of linear brushed hairlines, 0..1."
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of concentric spun-metal reflections on round parts, 0..1."
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Clear-coat strength, 0..1: a crisp window reflection toward the light and a caustic glow opposite."
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Environment reflection, 0..1: chrome-like sky / horizon / ground bands that follow the light."
+      },
+      "grain": {
+        "$type": "number",
+        "$value": 0.16,
+        "$description": "Opacity of surface noise texture, 0..1."
+      },
+      "translucency": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "How much of what is behind shows through, 0..1. Glass blurs it."
+      },
+      "bevel": {
+        "$type": "dimension",
+        "$value": "0px",
+        "$description": "Width of the light-catching rim at the edge."
+      }
+    },
+    "rubber": {
+      "$description": "Soft-touch dark rubber: matte, slightly grainy, with a dull broad sheen.",
+      "base": {
+        "$type": "color",
+        "$value": "oklch(32% 0.008 260)",
+        "$extensions": {
+          "dev.trompe": {
+            "dark": "oklch(26% 0.008 260)"
+          }
+        },
+        "$description": "Base color of the substance."
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "oklch(94% 0.005 85)",
+        "$description": "Text and icon color on this material. Checked for contrast against base and both ends of its gradients."
+      },
+      "specular": {
+        "$type": "number",
+        "$value": 0.25,
+        "$description": "Strength of highlights facing the light, 0..1."
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.9,
+        "$description": "Spread of highlights. 0 = mirror-sharp, 1 = fully diffuse."
+      },
+      "metalness": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "0..1. Metals tint their highlights with the base color and darken their shading."
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of linear brushed hairlines, 0..1."
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Strength of concentric spun-metal reflections on round parts, 0..1."
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Clear-coat strength, 0..1: a crisp window reflection toward the light and a caustic glow opposite."
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "Environment reflection, 0..1: chrome-like sky / horizon / ground bands that follow the light."
+      },
+      "grain": {
+        "$type": "number",
+        "$value": 0.1,
+        "$description": "Opacity of surface noise texture, 0..1."
+      },
+      "translucency": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "How much of what is behind shows through, 0..1. Glass blurs it."
+      },
+      "bevel": {
+        "$type": "dimension",
+        "$value": "1px",
+        "$description": "Width of the light-catching rim at the edge."
+      }
+    }
+  },
+  "finish": {
+    "$description": "Finishes override how a material reflects light without changing its color: set the finish attribute (component) or data-tr-finish (container). Each is a bundle of --tr-f-<param> variables that take precedence over the material's own values.",
+    "matte": {
+      "$description": "No sheen at all.",
+      "specular": {
+        "$type": "number",
+        "$value": 0.1
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 1
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0
+      }
+    },
+    "satin": {
+      "$description": "Soft broad sheen.",
+      "specular": {
+        "$type": "number",
+        "$value": 0.5
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.55
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0
+      }
+    },
+    "gloss": {
+      "$description": "Clear-coated: crisp window reflection and caustic glow, like lacquer or candy plastic.",
+      "specular": {
+        "$type": "number",
+        "$value": 0.9
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.15
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 1
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0
+      }
+    },
+    "mirror": {
+      "$description": "Polished mirror reflecting sky, horizon and ground.",
+      "specular": {
+        "$type": "number",
+        "$value": 1
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.05
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0.25
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 1
+      }
+    },
+    "brushed": {
+      "$description": "Linear brushed hairlines.",
+      "specular": {
+        "$type": "number",
+        "$value": 0.8
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.35
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 1
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 0
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0
+      }
+    },
+    "spun": {
+      "$description": "Concentric spun reflections, for round caps and knobs.",
+      "specular": {
+        "$type": "number",
+        "$value": 0.8
+      },
+      "roughness": {
+        "$type": "number",
+        "$value": 0.35
+      },
+      "brush": {
+        "$type": "number",
+        "$value": 0
+      },
+      "spin": {
+        "$type": "number",
+        "$value": 1
+      },
+      "gloss": {
+        "$type": "number",
+        "$value": 0
+      },
+      "mirror": {
+        "$type": "number",
+        "$value": 0
+      }
+    }
+  },
+  "profile": {
+    "$description": "Profiles describe the cross-section of a surface: how it curves under the light. Set the profile attribute (component) or data-tr-profile (container). Bundles of --tr-p-<param> variables.",
+    "flat": {
+      "$description": "Flat face with only a rim.",
+      "curve": {
+        "$type": "number",
+        "$value": 0,
+        "$description": "-1 (dished) .. 0 (flat) .. 1 (spherical)."
+      },
+      "chamfer": {
+        "$type": "dimension",
+        "$value": "0px",
+        "$description": "Width of the chamfered edge band."
+      }
+    },
+    "convex": {
+      "$description": "Pillowed face that bulges toward the viewer.",
+      "curve": {
+        "$type": "number",
+        "$value": 0.55,
+        "$description": "-1 (dished) .. 0 (flat) .. 1 (spherical)."
+      },
+      "chamfer": {
+        "$type": "dimension",
+        "$value": "0px",
+        "$description": "Width of the chamfered edge band."
+      }
+    },
+    "concave": {
+      "$description": "Dished face, like a fingertip dimple on a key or fader cap.",
+      "curve": {
+        "$type": "number",
+        "$value": -0.55,
+        "$description": "-1 (dished) .. 0 (flat) .. 1 (spherical)."
+      },
+      "chamfer": {
+        "$type": "dimension",
+        "$value": "0px",
+        "$description": "Width of the chamfered edge band."
+      }
+    },
+    "dome": {
+      "$description": "Strongly spherical, for round buttons and knobs.",
+      "curve": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "-1 (dished) .. 0 (flat) .. 1 (spherical)."
+      },
+      "chamfer": {
+        "$type": "dimension",
+        "$value": "0px",
+        "$description": "Width of the chamfered edge band."
+      }
+    },
+    "bevel": {
+      "$description": "Flat face with a wide chamfered edge, like machined metal or a bezel.",
+      "curve": {
+        "$type": "number",
+        "$value": 0.1,
+        "$description": "-1 (dished) .. 0 (flat) .. 1 (spherical)."
+      },
+      "chamfer": {
+        "$type": "dimension",
+        "$value": "4px",
+        "$description": "Width of the chamfered edge band."
+      }
+    }
+  }
+}
