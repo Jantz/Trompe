@@ -182,7 +182,12 @@ export class TrToolbar extends TrompeElement {
     const items = this.items;
     if (!items.length) return;
     if (!this.current || !items.includes(this.current)) this.current = items[0]!;
-    for (const el of items) el.setAttribute('tabindex', el === this.current ? '0' : '-1');
+    for (const el of items) {
+      // Composite widgets (segmented, radio group, tabs) keep their own roving tab stop inside;
+      // a tabindex on their host would add a bare, unnamed stop in front of it.
+      if (isComposite(el)) el.removeAttribute('tabindex');
+      else el.setAttribute('tabindex', el === this.current ? '0' : '-1');
+    }
   };
 
   private itemOf(target: EventTarget | null): HTMLElement | undefined {
@@ -231,6 +236,10 @@ export class TrToolbar extends TrompeElement {
     this.syncTabStops();
     target.focus();
   };
+}
+
+function isComposite(el: Element): boolean {
+  return /^(radiogroup|tablist|listbox|grid|tree|menubar)$/.test(el.getAttribute('role') ?? '');
 }
 
 define('tr-toolbar', TrToolbar);

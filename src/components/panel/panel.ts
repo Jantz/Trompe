@@ -236,9 +236,11 @@ export class TrPanel extends TrompeElement {
           background: CanvasText;
           forced-color-adjust: none;
         }
+        /* The bezel ring opts out; the well opts back in, so slotted content follows the user's palette. */
         .well {
           background: Canvas;
-          forced-color-adjust: none;
+          color: CanvasText;
+          forced-color-adjust: auto;
         }
         .screw {
           background: CanvasText;

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { mount } from './helpers';
+import { importAlone, mount } from './helpers';
 
 const set = (attrs = '') => `<tr-tabs id="t" label="Settings" ${attrs}>
   <tr-tab>General</tr-tab><tr-tab>Privacy</tr-tab><tr-tab disabled>Billing</tr-tab><tr-tab>Alerts</tr-tab>
@@ -105,5 +105,10 @@ test.describe('tr-tabs', () => {
       `<div style="display:grid;gap:20px;width:560px">${set()}${set('variant="keys"').replace('id="t"', '')}${set('orientation="vertical" material="metal"').replace('id="t"', '')}</div>`,
     );
     await expect(page.locator('#root')).toHaveScreenshot('tabs-matrix.png');
+  });
+
+  test('importing tabs alone defines tr-tab and tr-tab-panel', async ({ page }) => {
+    const defined = await importAlone(page, '/src/components/tabs/tabs.ts', ['tr-tabs', 'tr-tab', 'tr-tab-panel']);
+    expect(defined).toEqual({ 'tr-tabs': true, 'tr-tab': true, 'tr-tab-panel': true });
   });
 });

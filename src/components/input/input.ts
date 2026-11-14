@@ -281,7 +281,8 @@ export class TrInput extends FormControl {
 
   @query('input') private input!: HTMLInputElement;
 
-  private defaultValue = '';
+  /** The value a form reset restores. Captured on first connect only, so moving the field keeps it. */
+  private defaultValue: string | null = null;
   private slots = { start: false, end: false, hint: false };
 
   constructor() {
@@ -293,7 +294,7 @@ export class TrInput extends FormControl {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    this.defaultValue = this.getAttribute('value') ?? this.value;
+    if (this.defaultValue === null) this.defaultValue = this.getAttribute('value') ?? this.value;
   }
 
   /** The inner field's validity, as on a native input. */
@@ -380,7 +381,7 @@ export class TrInput extends FormControl {
   }
 
   formResetCallback(): void {
-    this.value = this.defaultValue;
+    this.value = this.defaultValue ?? '';
     this.removeAttribute('data-user-invalid');
   }
 

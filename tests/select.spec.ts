@@ -136,4 +136,30 @@ test.describe('tr-select / tr-option', () => {
     await page.getByRole('option', { name: 'Date' }).hover();
     await expect(page).toHaveScreenshot('select-matrix.png', { fullPage: true });
   });
+
+  test('form reset restores the original state after the control is moved', async ({ page }) => {
+    await mount(page, `<form id="f"><div id="a"><tr-select id="x" name="s" label="S"><tr-option>x</tr-option><tr-option>y</tr-option></tr-select></div><div id="b"></div></form>`);
+    await page.evaluate(() => ((document.getElementById('x') as any).value = 'y'));
+    const after = await page.evaluate(async () => {
+      const el = document.getElementById('x') as any;
+      document.getElementById('b')!.append(el);
+      (document.getElementById('f') as HTMLFormElement).reset();
+      await el.updateComplete;
+      return el.value;
+    });
+    expect(after).toBe('x');
+  });
+
+  test('a value property set before insertion wins over a selected option', async ({ page }) => {
+    await mount(page, '');
+    const value = await page.evaluate(async () => {
+      const s = document.createElement('tr-select');
+      s.innerHTML = '<tr-option value="a" selected>A</tr-option><tr-option value="b">B</tr-option>';
+      s.value = 'b';
+      document.getElementById('root')!.append(s);
+      await s.updateComplete;
+      return s.value;
+    });
+    expect(value).toBe('b');
+  });
 });

@@ -73,4 +73,18 @@ test.describe('tr-display', () => {
     );
     await expect(page.locator('#root')).toHaveScreenshot('display-matrix.png');
   });
+
+  test('the marquee ticker restarts when the display is re-attached', async ({ page }) => {
+    await mount(page, `<div id="a"><tr-display id="d" type="vfd" glyphs="14seg" digits="4" marquee marquee-speed="20" value="NOW PLAYING"></tr-display></div><div id="b"></div>`);
+    const ticking = () =>
+      page.evaluate(async () => {
+        const d = document.getElementById('d') as any;
+        const before = d.tick;
+        await new Promise((r) => setTimeout(r, 200));
+        return d.ticker !== 0 && d.tick !== before;
+      });
+    expect(await ticking()).toBe(true);
+    await page.evaluate(() => document.getElementById('b')!.append(document.getElementById('d')!));
+    expect(await ticking()).toBe(true);
+  });
 });

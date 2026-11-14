@@ -2,6 +2,8 @@ import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 import type { TrListItem } from './list-item.js';
+// Importing the list defines its items too.
+import './list-item.js';
 
 /**
  * A list of content rows for settings, records or files. Rows sit in a recessed tray (`inset`,
@@ -13,6 +15,8 @@ import type { TrListItem } from './list-item.js';
  * type-ahead finds a row by its first letters. Single selection follows focus; with `multiple`,
  * Space toggles the focused row and Shift+Up/Down extends. A selected row sinks into the tray
  * and shows a check mark, so selection never relies on color.
+ * In a selectable list, rows are options: don't put buttons or other controls inside them
+ * (an option can't contain interactive content). Use a plain list for rows with actions.
  *
  * @summary Content list, or selectable listbox, of tr-list-item rows.
  * @tag tr-list

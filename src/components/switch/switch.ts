@@ -173,7 +173,8 @@ export class TrSwitch extends FormControl {
   /** Size of the switch. */
   @property({ reflect: true }) size: Size = 'md';
 
-  private defaultChecked = false;
+  /** The state a form reset restores. Captured on first connect only (`checked` reflects). */
+  private defaultChecked: boolean | null = null;
   private hasLabel = false;
 
   constructor() {
@@ -185,7 +186,7 @@ export class TrSwitch extends FormControl {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    this.defaultChecked = this.hasAttribute('checked');
+    if (this.defaultChecked === null) this.defaultChecked = this.hasAttribute('checked');
   }
 
   protected override render() {
@@ -212,7 +213,7 @@ export class TrSwitch extends FormControl {
   }
 
   formResetCallback(): void {
-    this.checked = this.defaultChecked;
+    this.checked = this.defaultChecked ?? false;
   }
 
   formStateRestoreCallback(state: string): void {

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { mount } from './helpers';
+import { importAlone, mount } from './helpers';
 
 const plain = `<tr-list label="Account">
   <tr-list-item>Email<span slot="description">ada@example.com</span><tr-button slot="end" size="sm">Change</tr-button></tr-list-item>
@@ -71,5 +71,9 @@ test.describe('tr-list', () => {
   test('visual: inset and selectable card', async ({ page }) => {
     await mount(page, `<div style="display:grid;gap:16px;width:420px">${plain}${box('value="plan" variant="card"')}</div>`);
     await expect(page.locator('#root')).toHaveScreenshot('list-matrix.png');
+  });
+
+  test('importing list alone defines tr-list-item', async ({ page }) => {
+    expect(await importAlone(page, '/src/components/list/list.ts', ['tr-list', 'tr-list-item'])).toEqual({ 'tr-list': true, 'tr-list-item': true });
   });
 });

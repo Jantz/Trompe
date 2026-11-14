@@ -2,6 +2,8 @@ import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 import type { Orientation } from '../../internal/types.js';
+// Importing the nav defines its items too.
+import './nav-item.js';
 
 /**
  * A navigation landmark: a sidebar panel (vertical, default) or a top bar (horizontal) holding

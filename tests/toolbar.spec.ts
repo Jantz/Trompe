@@ -93,4 +93,11 @@ test.describe('tr-toolbar', () => {
     );
     await expect(page.locator('#root')).toHaveScreenshot('toolbar-matrix.png');
   });
+  test('a segmented control inside adds no extra tab stop of its own', async ({ page }) => {
+    await mount(page, `<tr-toolbar label="Tools"><tr-button>Bold</tr-button><tr-segmented label="View"><tr-option>List</tr-option><tr-option>Grid</tr-option></tr-segmented></tr-toolbar>`);
+    expect(await page.locator('tr-segmented').getAttribute('tabindex')).toBeNull();
+    await page.getByRole('button', { name: 'Bold' }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('radio', { name: 'List' })).toBeFocused();
+  });
 });

@@ -38,6 +38,22 @@ const WIDGET_ROLES = new Set(['button', 'checkbox', 'combobox', 'gridcell', 'lin
 /** Interactive = a widget role, or a form-associated control (text fields delegate focus inward). */
 const isInteractive = (el) => (el.role ? WIDGET_ROLES.has(el.role) : formAssociated(el));
 
+/**
+ * The package specifier that loads (and defines) an element, e.g. `trompe/components/radio-group`.
+ * Checked against package.json "exports" so the docs never print a path that does not resolve.
+ */
+function importPath(el) {
+  const rel = el.modulePath.replace(/^(src|dist)\//, '').replace(/\.(ts|js)$/, '');
+  const name = rel.split('/').at(-1);
+  const key = `./components/${name}`;
+  const entry = pkg.exports[key] ?? pkg.exports['./components/*'];
+  const target = (typeof entry === 'string' ? entry : entry?.default)?.replaceAll('*', name);
+  if (target !== `./dist/${rel}.js`) {
+    throw new Error(`build-llms: trompe/components/${name} resolves to ${target}, not ./dist/${rel}.js (<${el.tagName}>). Add an explicit "${key}" entry to package.json "exports".`);
+  }
+  return `trompe/components/${name}`;
+}
+
 function attrLine(a) {
   const type = cleanType(a.type);
   const def = a.default !== undefined ? ` = ${a.default}` : '';
@@ -54,7 +70,7 @@ function elementSection(el, full) {
   else tags.push('non-interactive, no role');
   if (formAssociated(el)) tags.push('form-associated');
   if (isStub(el)) tags.push('placeholder: not documented yet');
-  const out = [`### <${el.tagName}>${el.summary ? ` — ${oneLine(el.summary)}` : ''}`, '', `${tags.join(', ')}. Import: \`trompe/components/${el.modulePath.split('/').at(-2)}\` (class ${el.name}).`];
+  const out = [`### <${el.tagName}>${el.summary ? ` — ${oneLine(el.summary)}` : ''}`, '', `${tags.join(', ')}. Import: \`${importPath(el)}\` (class ${el.name}).`];
   if (el.description) out.push('', full ? el.description : oneLine(el.description));
 
   const attrs = (el.attributes ?? []).filter((a) => full || !SHARED.includes(a.name));

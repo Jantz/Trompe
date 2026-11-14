@@ -533,6 +533,9 @@ export class TrDisplay extends TrompeElement {
       this.ro ??= new ResizeObserver(() => this.measure());
       queueMicrotask(() => this.observe());
     }
+    // disconnectedCallback stops the marquee ticker; restart it when the display comes back
+    // (the first connect starts it from updated()).
+    if (this.hasUpdated) this.syncTicker();
   }
 
   override disconnectedCallback(): void {

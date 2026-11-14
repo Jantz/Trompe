@@ -99,7 +99,17 @@ export class TrSegmented extends FormControl {
   ];
 
   /** Value of the latched key, or '' for none. */
-  @property() value = '';
+  @property()
+  get value(): string {
+    return this._value;
+  }
+  set value(v: string) {
+    this._value = v;
+    this.valueSet = true;
+  }
+  private _value = '';
+  /** Whether `value` was ever assigned (attribute or property), so a [selected]/[checked] child never overrides it. */
+  private valueSet = false;
 
   /** Requires a choice for the form to be valid. */
   @property({ type: Boolean, reflect: true }) required = false;
@@ -110,7 +120,12 @@ export class TrSegmented extends FormControl {
   /** Stretches the control to the width of its container, sharing it equally between keys. */
   @property({ type: Boolean, reflect: true, attribute: 'full-width' }) fullWidth = false;
 
-  private defaultValue = '';
+  /** Accessible name of the group (not shown). Sets aria-label unless you set your own. */
+  @property({ reflect: true }) label = '';
+
+  private ownsLabel = false;
+
+  private defaultValue: string | null = null;
   private observer = new MutationObserver(() => this.sync());
 
   constructor() {
@@ -124,11 +139,13 @@ export class TrSegmented extends FormControl {
   override connectedCallback(): void {
     super.connectedCallback();
     this.observer.observe(this, { childList: true, attributes: true, subtree: true, attributeFilter: ['disabled', 'value'] });
-    if (!this.hasAttribute('value')) {
-      const sel = this.options.find((o) => o.hasAttribute('selected'));
-      if (sel) this.value = sel.value;
+    if (!this.valueSet) {
+      // Read attributes, not TrOption properties: the children may not be upgraded yet (innerHTML).
+      const sel = [...this.children].find((c) => c.localName === 'tr-option' && c.hasAttribute('selected'));
+      if (sel) this.value = sel.getAttribute('value') ?? (sel.getAttribute('label') || sel.textContent || '').replace(/\s+/g, ' ').trim();
     }
-    this.defaultValue = this.value;
+    // Captured once: reconnecting (moving the control) must not turn the current value into the default.
+    if (this.defaultValue === null) this.defaultValue = this.value;
   }
 
   override disconnectedCallback(): void {
@@ -162,13 +179,22 @@ export class TrSegmented extends FormControl {
 
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    if (changed.has('label')) {
+      if (this.label && (this.ownsLabel || !this.hasAttribute('aria-label'))) {
+        this.aria('aria-label', this.label);
+        this.ownsLabel = true;
+      } else if (!this.label && this.ownsLabel) {
+        this.aria('aria-label', null);
+        this.ownsLabel = false;
+      }
+    }
     this.aria('aria-required', this.required ? 'true' : null);
     this.aria('aria-orientation', 'horizontal');
     this.sync();
   }
 
   formResetCallback(): void {
-    this.value = this.defaultValue;
+    this.value = this.defaultValue ?? '';
   }
 
   formStateRestoreCallback(state: string): void {

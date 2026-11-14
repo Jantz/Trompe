@@ -271,7 +271,8 @@ export class TrTextarea extends FormControl {
 
   @query('textarea') private textarea!: HTMLTextAreaElement;
 
-  private defaultValue = '';
+  /** The value a form reset restores. Captured on first connect only, so moving the field keeps it. */
+  private defaultValue: string | null = null;
   private hasHintSlot = false;
 
   constructor() {
@@ -282,7 +283,7 @@ export class TrTextarea extends FormControl {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    this.defaultValue = this.getAttribute('value') ?? this.value;
+    if (this.defaultValue === null) this.defaultValue = this.getAttribute('value') ?? this.value;
   }
 
   /** The field's validity, as on a native textarea. */
@@ -369,7 +370,7 @@ export class TrTextarea extends FormControl {
   }
 
   formResetCallback(): void {
-    this.value = this.defaultValue;
+    this.value = this.defaultValue ?? '';
     this.removeAttribute('data-user-invalid');
   }
 

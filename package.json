@@ -11,6 +11,34 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./components/tab": {
+      "types": "./dist/components/tabs/tab.d.ts",
+      "default": "./dist/components/tabs/tab.js"
+    },
+    "./components/tab-panel": {
+      "types": "./dist/components/tabs/tab-panel.d.ts",
+      "default": "./dist/components/tabs/tab-panel.js"
+    },
+    "./components/list-item": {
+      "types": "./dist/components/list/list-item.d.ts",
+      "default": "./dist/components/list/list-item.js"
+    },
+    "./components/nav-item": {
+      "types": "./dist/components/nav/nav-item.d.ts",
+      "default": "./dist/components/nav/nav-item.js"
+    },
+    "./components/radio-group": {
+      "types": "./dist/components/radio/radio-group.d.ts",
+      "default": "./dist/components/radio/radio-group.js"
+    },
+    "./components/option": {
+      "types": "./dist/components/select/option.d.ts",
+      "default": "./dist/components/select/option.js"
+    },
+    "./components/menu-item": {
+      "types": "./dist/components/menu/menu-item.d.ts",
+      "default": "./dist/components/menu/menu-item.js"
+    },
     "./components/*": {
       "types": "./dist/components/*/*.d.ts",
       "default": "./dist/components/*/*.js"

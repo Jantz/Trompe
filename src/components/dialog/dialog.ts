@@ -1,5 +1,6 @@
 import { css, html, nothing, type PropertyValues } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
+import { pendingSubmitter } from '../../internal/submitter.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
 
@@ -394,8 +395,14 @@ export class TrDialog extends TrompeElement {
   /** APG: focus [autofocus], else the first tabbable control in the body or footer, else the close button. */
   private focusInitial(): void {
     const auto = this.querySelector<HTMLElement>('[autofocus]');
-    const lightTabbable = [...this.querySelectorAll<HTMLElement>(`${TABBABLE}, tr-button, tr-input, tr-switch, tr-checkbox, tr-select`)].find(
-      (el) => !el.closest('[slot="heading"], [slot="header"]') && el.getClientRects().length > 0 && el.tabIndex >= 0,
+    // Hosts that delegate focus (tr-input, tr-textarea) keep tabIndex -1 but still take focus.
+    const delegates = (el: HTMLElement) => !!el.shadowRoot?.delegatesFocus && !el.matches(':disabled, [disabled]');
+    const focusable = `${TABBABLE}, tr-button, tr-switch, tr-checkbox, tr-select`;
+    const lightTabbable = [...this.querySelectorAll<HTMLElement>('*')].find(
+      (el) =>
+        ((el.tabIndex >= 0 && el.matches(focusable)) || delegates(el)) &&
+        !el.closest('[slot="heading"], [slot="header"]') &&
+        el.getClientRects().length > 0,
     );
     const close = this.renderRoot.querySelector<HTMLElement>('.close');
     const target = auto ?? lightTabbable ?? close ?? this.dialog;
@@ -439,6 +446,9 @@ export class TrDialog extends TrompeElement {
   };
 
   private onNativeClose = (): void => {
+    // The native close event is a queued task: if the dialog was reopened meanwhile
+    // (close() then open = true), it is a stale report and must not close it again.
+    if (this.dialog.open) return;
     this.open = false;
     const active = deepActive();
     const lost = !active || active === document.body || this.contains(active) || this.renderRoot.contains(active);
@@ -475,7 +485,8 @@ export class TrDialog extends TrompeElement {
     const form = e.target as HTMLFormElement;
     if (form.getAttribute('method')?.toLowerCase() !== 'dialog') return;
     e.preventDefault();
-    const submitter = e.submitter as HTMLButtonElement | null;
+    // A tr-button cannot be a native submitter (e.submitter is null): it records itself instead.
+    const submitter = (e.submitter as HTMLButtonElement | null) ?? pendingSubmitter(form);
     this.close(submitter?.value ?? '');
   };
 }

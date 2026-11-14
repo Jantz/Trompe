@@ -152,4 +152,17 @@ test.describe('tr-input', () => {
     await mount(page, `${block}<div data-tr-theme="dark">${block}</div>`);
     await expect(page.locator('#root')).toHaveScreenshot('input-matrix.png');
   });
+
+  test('form reset restores the original state after the control is moved', async ({ page }) => {
+    await mount(page, `<form id="f"><div id="a"><tr-input id="x" label="N" name="n"></tr-input></div><div id="b"></div></form>`);
+    await page.fill('#x input', 'typed');
+    const after = await page.evaluate(async () => {
+      const el = document.getElementById('x') as any;
+      document.getElementById('b')!.append(el);
+      (document.getElementById('f') as HTMLFormElement).reset();
+      await el.updateComplete;
+      return el.value;
+    });
+    expect(after).toBe('');
+  });
 });

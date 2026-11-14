@@ -184,4 +184,23 @@ test.describe('tr-menu', () => {
     await page.locator('tr-menu-item[value=wrap]').evaluate((i: any) => (i.checked = true));
     await expect(page).toHaveScreenshot('menu-open.png');
   });
+
+  test('removing an open menu resets and unwires its trigger', async ({ page }) => {
+    await mount(page, `<tr-button id="b">File</tr-button><tr-menu id="m"><tr-menu-item>New</tr-menu-item></tr-menu>`);
+    await page.click('#b');
+    await expect(page.locator('#b')).toHaveAttribute('aria-expanded', 'true');
+    await page.evaluate(() => {
+      (window as any).menu = document.getElementById('m');
+      (window as any).menu.remove();
+    });
+    const b = page.locator('#b');
+    await expect(b).not.toHaveAttribute('aria-expanded');
+    await expect(b).not.toHaveAttribute('aria-controls');
+    await expect(b).not.toHaveAttribute('aria-haspopup');
+    expect(await page.evaluate(() => (window as any).menu.open)).toBe(false);
+  });
+  test('an item with a submenu is named by its own label only', async ({ page }) => {
+    await mount(page, `<tr-button id="b">Open</tr-button><tr-menu anchor="b" aria-label="Actions"><tr-menu-item>Copy</tr-menu-item><tr-menu-item>Share<tr-menu><tr-menu-item>Email</tr-menu-item><tr-menu-item>Link</tr-menu-item></tr-menu></tr-menu-item></tr-menu>`);
+    expect(await page.locator('tr-menu-item', { hasText: 'Share' }).first().getAttribute('aria-label')).toBe('Share');
+  });
 });

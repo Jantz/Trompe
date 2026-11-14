@@ -141,6 +141,8 @@ export class TrMenu extends TrompeElement {
   @property({ reflect: true }) placement?: Placement;
 
   private trigger: HTMLElement | null = null;
+  /** ARIA attributes wire() added to the trigger (not ones the author set), removed by unwire(). */
+  private addedAria: string[] = [];
   private unplace: (() => void) | null = null;
   private pendingFocus: 'first' | 'last' | 'none' = 'first';
   private point: { x: number; y: number } | null = null;
@@ -181,6 +183,12 @@ export class TrMenu extends TrompeElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
+    // The browser hides a removed popover without a toggle event: close properly so the trigger
+    // is reset (aria-expanded="false") before it is unwired.
+    if (this.open) {
+      this.open = false;
+      this.finishClose();
+    }
     this.unwire();
     this.unplace?.();
     this.unplace = null;
@@ -338,9 +346,13 @@ export class TrMenu extends TrompeElement {
     if (!t) return;
     this.trigger = t;
     if (parent && !this.slot) this.slot = 'submenu';
-    t.setAttribute('aria-haspopup', 'menu');
-    t.setAttribute('aria-expanded', String(this.open));
-    t.setAttribute('aria-controls', this.id);
+    const set = (name: string, value: string) => {
+      if (!t.hasAttribute(name)) this.addedAria.push(name);
+      t.setAttribute(name, value);
+    };
+    set('aria-haspopup', 'menu');
+    set('aria-expanded', String(this.open));
+    set('aria-controls', this.id);
     if (!this.hasAttribute('aria-label') && !this.hasAttribute('aria-labelledby')) {
       if (parent) this.setAttribute('aria-label', parent.text);
       else this.setAttribute('aria-labelledby', ensureId(t, 'tr-menu-trigger'));
@@ -358,6 +370,10 @@ export class TrMenu extends TrompeElement {
     t.removeEventListener('click', this.onTriggerClick);
     t.removeEventListener('keydown', this.onTriggerKeyDown);
     t.removeEventListener('pointerdown', this.onTriggerPointerDown);
+    for (const name of this.addedAria) {
+      if (name !== 'aria-controls' || t.getAttribute(name) === this.id) t.removeAttribute(name);
+    }
+    this.addedAria = [];
     this.trigger = null;
   }
 

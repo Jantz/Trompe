@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { mount } from './helpers';
+import { importAlone, mount } from './helpers';
 
 const group = (attrs = '') => `<form id="f"><tr-radio-group id="g" label="Plan" name="plan" ${attrs}>
   <tr-radio value="free">Free</tr-radio><tr-radio value="pro">Pro</tr-radio><tr-radio value="team" disabled>Team</tr-radio><tr-radio value="ent">Enterprise</tr-radio>
@@ -96,5 +96,37 @@ test.describe('tr-radio-group / tr-radio', () => {
       <tr-radio-group aria-label="Flat" realism="flat" value="a"><tr-radio value="a">Flat on</tr-radio><tr-radio value="b">Flat off</tr-radio></tr-radio-group></div>`;
     await mount(page, `${row}<div data-tr-theme="dark">${row}</div>`);
     await expect(page.locator('#root')).toHaveScreenshot('radio-matrix.png');
+  });
+
+  test('importing radio or radio-group alone defines both', async ({ page, context }) => {
+    expect(await importAlone(page, '/src/components/radio/radio.ts', ['tr-radio', 'tr-radio-group'])).toEqual({ 'tr-radio': true, 'tr-radio-group': true });
+    const other = await context.newPage();
+    expect(await importAlone(other, '/src/components/radio/radio-group.ts', ['tr-radio', 'tr-radio-group'])).toEqual({ 'tr-radio': true, 'tr-radio-group': true });
+  });
+
+  test('a value property set before insertion wins over a checked radio', async ({ page }) => {
+    await mount(page, '');
+    const value = await page.evaluate(async () => {
+      const g = document.createElement('tr-radio-group');
+      g.innerHTML = '<tr-radio value="a" checked>A</tr-radio><tr-radio value="b">B</tr-radio>';
+      g.value = 'b';
+      document.getElementById('root')!.append(g);
+      await g.updateComplete;
+      return { value: g.value, checked: g.radios.filter((r) => r.checked).map((r) => r.value) };
+    });
+    expect(value).toEqual({ value: 'b', checked: ['b'] });
+  });
+
+  test('form reset restores the original value after the group is moved', async ({ page }) => {
+    await mount(page, `<form id="f"><div id="a"><tr-radio-group id="g" name="g" label="G"><tr-radio value="a" checked>A</tr-radio><tr-radio value="b">B</tr-radio></tr-radio-group></div><div id="b"></div></form>`);
+    await page.getByRole('radio', { name: 'B' }).click();
+    const value = await page.evaluate(async () => {
+      const g = document.getElementById('g') as any;
+      document.getElementById('b')!.append(g);
+      (document.getElementById('f') as HTMLFormElement).reset();
+      await g.updateComplete;
+      return g.value;
+    });
+    expect(value).toBe('a');
   });
 });

@@ -70,4 +70,18 @@ test.describe('tr-switch', () => {
     await mount(page, `${row}<div data-tr-theme="dark">${row}</div>`);
     await expect(page.locator('#root')).toHaveScreenshot('switch-matrix.png');
   });
+
+  test('form reset restores the original state after the control is moved', async ({ page }) => {
+    await mount(page, `<form id="f"><div id="a"><tr-switch id="x" name="s" checked>S</tr-switch></div><div id="b"></div></form>`);
+    await page.click('#x');
+    await expect(page.locator('#x')).not.toHaveAttribute('checked');
+    const after = await page.evaluate(async () => {
+      const el = document.getElementById('x') as any;
+      document.getElementById('b')!.append(el);
+      (document.getElementById('f') as HTMLFormElement).reset();
+      await el.updateComplete;
+      return el.checked;
+    });
+    expect(after).toBe(true);
+  });
 });

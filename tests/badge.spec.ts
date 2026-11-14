@@ -54,4 +54,18 @@ test.describe('tr-badge', () => {
     );
     await expect(page.locator('#root')).toHaveScreenshot('badge-matrix.png');
   });
+
+  test('enamel resolves its gloss (no custom-property cycle)', async ({ page }) => {
+    await mount(page, `<tr-badge id="a" variant="enamel" tone="accent">3</tr-badge><tr-badge id="b" variant="enamel" finish="gloss">4</tr-badge>`);
+    const r = await page.evaluate(() =>
+      ['a', 'b'].map((id) => {
+        const cs = getComputedStyle(document.getElementById(id)!.shadowRoot!.querySelector('.badge')!);
+        return { gloss: cs.getPropertyValue('--_gloss').trim(), bg: cs.backgroundImage };
+      }),
+    );
+    for (const { gloss, bg } of r) {
+      expect(gloss).not.toBe('');
+      expect(bg).not.toBe('none');
+    }
+  });
 });

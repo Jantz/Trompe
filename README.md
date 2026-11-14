@@ -38,7 +38,7 @@ import 'trompe/components/button';
 | Input | How to set it | Values |
 | --- | --- | --- |
 | Light | `--tr-light-angle`, `--tr-light-elevation` on any element | angle the light comes from (0deg = top, clockwise), height above the surface |
-| Realism | `realism` attribute, `data-tr-realism` on a container, or `--tr-realism` | `flat`, `soft`, `tactile` (default), `real`, or any number 0..1 |
+| Realism | `realism` attribute or `data-tr-realism` on a container (presets), or `--tr-realism` (any number 0..1) | `flat`, `soft`, `tactile` (default), `real`; for an in-between value set `--tr-realism: 0.5` in CSS |
 | Depth | `depth` attribute | `-2` well, `-1` pressed, `0` flush, `1` raised, `2` lifted, `3` floating, `4` overlay |
 | Material | `material` attribute or `data-tr-material` | `plastic`, `metal`, `chrome`, `glass`, `paper`, `rubber` |
 | Finish | `finish` attribute or `data-tr-finish` | `matte`, `satin`, `gloss`, `mirror`, `brushed`, `spun` |

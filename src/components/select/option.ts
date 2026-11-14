@@ -109,11 +109,14 @@ export class TrOption extends TrompeElement {
       :host([data-mode='segment']) {
         flex: 1 1 0;
         display: flex;
+        /* Keys share a narrow tray and ellipsize their labels rather than overflow it. */
+        min-width: 0;
       }
       :host([data-mode='segment']) .row {
         --_tr-z: 1;
         --_curve: var(--tr-p-curve, 0.3);
         flex: 1;
+        min-width: 0;
         justify-content: center;
         gap: 0.5em;
         min-height: var(--_seg-h, 2.25em);

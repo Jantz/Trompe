@@ -153,6 +153,9 @@ h3 {
   gap: 1rem 1.25rem;
   align-items: end;
 }
+.form-grid > * {
+  min-width: 0;
+}
 .form-head {
   display: flex;
   align-items: center;
@@ -258,7 +261,7 @@ h3 {
   font-size: 0.8125rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--tr-color-ink-muted);
+  color: var(--tr-color-ink);
   padding: 1.1rem 1.25rem 0;
 }
 .kpi-value {
@@ -513,4 +516,30 @@ h3 {
   .stage-aurora {
     animation: none;
   }
+}
+/* "Ambient motion" switch off: everything that moves on its own stops (WCAG 2.2.2). */
+:root[data-still] .stage-aurora {
+  animation-play-state: paused;
+}
+
+/* ---------- narrow screens: grid tracks may shrink below their content's min-content ---------- */
+.app-dash,
+.files-main,
+.compose-head,
+.app-settings > *,
+.files > *,
+.app-checkout > * {
+  min-width: 0;
+}
+.app-dash,
+.files-main,
+.compose-head,
+.window-inner,
+.form,
+.summary {
+  grid-template-columns: minmax(0, 1fr);
+}
+.dash-bar,
+.files-bar {
+  max-width: 100%;
 }

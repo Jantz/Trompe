@@ -140,4 +140,28 @@ test.describe('tr-dialog', () => {
     await page.locator('#name').evaluate((el) => (el as HTMLElement).blur());
     await expect(page).toHaveScreenshot('dialog-open.png');
   });
+
+  test('a method="dialog" form submitted by tr-button closes with its value', async ({ page }) => {
+    await mount(page, `<tr-dialog id="d" open><h2 slot="heading">Delete?</h2><form method="dialog"><tr-button type="submit" id="ok" value="confirm">OK</tr-button></form></tr-dialog>`);
+    await page.evaluate(() => {
+      const d = document.getElementById('d') as any;
+      d.addEventListener('close', () => ((window as any).rv = d.returnValue));
+    });
+    await page.click('#ok');
+    // The close event follows the native dialog's close task.
+    await expect.poll(() => page.evaluate(() => (window as any).rv)).toBe('confirm');
+    await expect(page.locator('#d')).not.toHaveAttribute('open');
+  });
+
+  test('initial focus lands on a tr-input (delegated focus) before the footer', async ({ page }) => {
+    const markup = (attrs: string) =>
+      `<tr-dialog id="d"><h2 slot="heading">Name</h2><tr-input id="i" label="Name" ${attrs}></tr-input><tr-textarea id="t" label="Notes"></tr-textarea><tr-button slot="footer" id="ok">OK</tr-button></tr-dialog>`;
+    await mount(page, markup(''));
+    await page.evaluate(() => (document.getElementById('d') as any).show());
+    await expect(page.locator('#i input')).toBeFocused();
+    // A disabled delegating host is skipped: the next one (tr-textarea) gets focus.
+    await mount(page, markup('disabled'));
+    await page.evaluate(() => (document.getElementById('d') as any).show());
+    await expect(page.locator('#t textarea')).toBeFocused();
+  });
 });

@@ -237,7 +237,10 @@ export class TrNavItem extends TrompeElement {
         : nothing}`;
     const item =
       this.href != null && !this.hasChildren
-        ? html`<a part="item" class="item" href=${this.href} target=${ifDefined(this.target)} rel=${ifDefined(this.rel)} aria-current=${this.current ? 'page' : nothing}>${content}</a>`
+        ? this.disabled
+          ? // A disabled link keeps its role and name but cannot be focused or followed.
+            html`<a part="item" class="item" role="link" aria-disabled="true" aria-current=${this.current ? 'page' : nothing}>${content}</a>`
+          : html`<a part="item" class="item" href=${this.href} target=${ifDefined(this.target)} rel=${ifDefined(this.rel)} aria-current=${this.current ? 'page' : nothing}>${content}</a>`
         : html`<button
             part="item"
             class="item"

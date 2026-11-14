@@ -2,6 +2,8 @@ import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
+// Importing a radio defines its group too (and the group imports the radio).
+import './radio-group.js';
 
 /**
  * One choice inside a `tr-radio-group`: a round socket sunk into the surface. When selected a

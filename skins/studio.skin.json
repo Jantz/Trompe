@@ -8,7 +8,7 @@
     "color.well": "oklch(11% 0.005 260)",
     "color.ink": "oklch(93% 0.008 80)",
     "color.ink-muted": "oklch(74% 0.01 80)",
-    "color.edge": "oklch(48% 0.008 260)",
+    "color.edge": "oklch(50% 0.008 260)",
     "color.accent": "oklch(78% 0.16 65)",
     "color.accent-ink": "oklch(20% 0.03 60)",
     "color.shadow": "oklch(3% 0 0)",

@@ -1,5 +1,6 @@
-import { css, html } from 'lit';
+import { css, html, unsafeCSS } from 'lit';
 import { property } from 'lit/decorators.js';
+import { materialDefaults } from '../../generated/tokens.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 
 /**
@@ -94,7 +95,8 @@ export class TrBadge extends TrompeElement {
         --_base: var(--_tone);
         --_ink: var(--_tone-ink);
         --_edge: color-mix(in oklch, var(--_tone), var(--_sh) 30%);
-        --_gloss: max(var(--_gloss), 0.55);
+        /* read the gloss upstream, as surface.ts resolves it: var(--_gloss) here would be a cycle */
+        --_gloss: max(var(--tr-f-gloss, var(--tr-m-gloss, ${unsafeCSS((materialDefaults as Record<string, string>).gloss)})), 0.55);
         --_curve: 0.5;
       }
       :host([variant='enamel'][tone='neutral']) .badge {

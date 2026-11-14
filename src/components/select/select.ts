@@ -222,7 +222,17 @@ export class TrSelect extends FormControl {
   @property({ reflect: true }) label = '';
 
   /** Value of the chosen option, or '' when nothing is chosen. */
-  @property() value = '';
+  @property()
+  get value(): string {
+    return this._value;
+  }
+  set value(v: string) {
+    this._value = v;
+    this.valueSet = true;
+  }
+  private _value = '';
+  /** Whether `value` was ever assigned (attribute or property), so a [selected]/[checked] child never overrides it. */
+  private valueSet = false;
 
   /** Text shown while nothing is chosen. With a placeholder, no option is chosen by default. */
   @property() placeholder = '';
@@ -239,7 +249,7 @@ export class TrSelect extends FormControl {
   @query('.listbox') private listbox!: HTMLElement;
   @query('.trigger') private trigger!: HTMLElement;
 
-  private defaultValue = '';
+  private defaultValue: string | null = null;
   private activeIndex = -1;
   private typeBuffer = '';
   private typeTimer = 0;
@@ -260,11 +270,12 @@ export class TrSelect extends FormControl {
     super.connectedCallback();
     this.aria('aria-haspopup', 'listbox');
     this.observer.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['value', 'label', 'disabled'] });
-    if (!this.hasAttribute('value')) {
+    if (!this.valueSet) {
       const sel = this.options.find((o) => o.hasAttribute('selected'));
       if (sel) this.value = sel.value;
     }
-    this.defaultValue = this.value;
+    // Captured once: reconnecting (moving the control) must not turn the current value into the default.
+    if (this.defaultValue === null) this.defaultValue = this.value;
   }
 
   override disconnectedCallback(): void {
@@ -340,7 +351,7 @@ export class TrSelect extends FormControl {
   }
 
   formResetCallback(): void {
-    this.value = this.defaultValue;
+    this.value = this.defaultValue ?? '';
     this.removeAttribute('data-user-invalid');
   }
 
@@ -361,7 +372,7 @@ export class TrSelect extends FormControl {
       const first = opts.find((o) => !o.disabled);
       if (first) {
         this.value = first.value;
-        if (!this.hasUpdated || this.defaultValue === '') this.defaultValue = first.value;
+        if (!this.hasUpdated || !this.defaultValue) this.defaultValue = first.value;
       }
     }
     const sel = this.selectedOption;

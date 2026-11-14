@@ -4,6 +4,9 @@ import { TrompeElement, define } from '../../internal/trompe-element.js';
 import type { Orientation, Size } from '../../internal/types.js';
 import type { TrTab } from './tab.js';
 import type { TrTabPanel } from './tab-panel.js';
+// Importing the tabs defines tr-tab and tr-tab-panel too.
+import './tab.js';
+import './tab-panel.js';
 
 /**
  * A tab set following the WAI-ARIA APG tabs pattern. The default `folder` look is a file folder:

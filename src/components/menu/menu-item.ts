@@ -260,7 +260,8 @@ export class TrMenuItem extends TrompeElement {
     let t = '';
     for (const n of this.childNodes) {
       if (n.nodeType === Node.TEXT_NODE) t += n.textContent;
-      else if (n instanceof Element && !n.slot) t += n.textContent;
+      // Slotted extras and a nested submenu (even before it is given slot="submenu") are not the label.
+      else if (n instanceof Element && !n.slot && n.localName !== 'tr-menu') t += n.textContent;
     }
     return t.replace(/\s+/g, ' ').trim();
   }

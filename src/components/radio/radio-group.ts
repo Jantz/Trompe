@@ -80,7 +80,17 @@ export class TrRadioGroup extends FormControl {
   @property({ reflect: true }) label = '';
 
   /** Value of the selected radio, or '' when none is selected. */
-  @property() value = '';
+  @property()
+  get value(): string {
+    return this._value;
+  }
+  set value(v: string) {
+    this._value = v;
+    this.valueSet = true;
+  }
+  private _value = '';
+  /** Whether `value` was ever assigned (attribute or property), so a [selected]/[checked] child never overrides it. */
+  private valueSet = false;
 
   /** Requires a selection for the form to be valid. */
   @property({ type: Boolean, reflect: true }) required = false;
@@ -91,7 +101,7 @@ export class TrRadioGroup extends FormControl {
   /** Size of the radios and labels. */
   @property({ reflect: true }) size: Size = 'md';
 
-  private defaultValue = '';
+  private defaultValue: string | null = null;
   private observer = new MutationObserver((records) => this.onMutation(records));
   private ownsLabel = false;
 
@@ -106,11 +116,12 @@ export class TrRadioGroup extends FormControl {
   override connectedCallback(): void {
     super.connectedCallback();
     this.observer.observe(this, { subtree: true, childList: true, attributes: true, attributeFilter: ['checked', 'disabled'] });
-    if (!this.hasAttribute('value')) {
+    if (!this.valueSet) {
       const checked = this.radios.find((r) => r.hasAttribute('checked'));
       if (checked) this.value = checked.getAttribute('value') ?? '';
     }
-    this.defaultValue = this.value;
+    // Captured once: reconnecting (moving the control) must not turn the current value into the default.
+    if (this.defaultValue === null) this.defaultValue = this.value;
   }
 
   override disconnectedCallback(): void {
@@ -161,7 +172,7 @@ export class TrRadioGroup extends FormControl {
   }
 
   formResetCallback(): void {
-    this.value = this.defaultValue;
+    this.value = this.defaultValue ?? '';
   }
 
   formStateRestoreCallback(state: string): void {

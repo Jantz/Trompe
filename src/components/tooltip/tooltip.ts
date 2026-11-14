@@ -166,8 +166,13 @@ export class TrTooltip extends TrompeElement {
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this.clear();
-    this.hide();
+    // The browser hides a removed popover before this runs, so hide() -> sync() would see it
+    // closed already and skip the cleanup. Release everything an open tooltip holds directly.
+    const wasOpen = this.open;
+    this.open = false;
+    this.release();
     this.unwire();
+    if (wasOpen) this.dispatchEvent(new Event('close'));
   }
 
   protected override render() {
@@ -224,13 +229,18 @@ export class TrTooltip extends TrompeElement {
       } catch {
         /* already hidden */
       }
-      this.unplace?.();
-      this.unplace = null;
-      if (current === this) current = null;
+      this.release();
       lastHiddenAt = performance.now();
-      document.removeEventListener('keydown', this.onDocKeyDown, true);
       this.dispatchEvent(new Event('close'));
     }
+  }
+
+  /** Drops what an open tooltip holds: placement, the shared `current` slot, the Escape listener. */
+  private release(): void {
+    this.unplace?.();
+    this.unplace = null;
+    if (current === this) current = null;
+    document.removeEventListener('keydown', this.onDocKeyDown, true);
   }
 
   private clear(): void {

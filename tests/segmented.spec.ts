@@ -75,4 +75,45 @@ test.describe('tr-segmented', () => {
     await mount(page, `${row}<div data-tr-theme="dark">${row}</div>`);
     await expect(page.locator('#root')).toHaveScreenshot('segmented-matrix.png');
   });
+
+  test('form reset restores the original state after the control is moved', async ({ page }) => {
+    await mount(page, `<form id="f"><div id="a"><tr-segmented id="x" name="v" label="View" value="list"><tr-option value="list">List</tr-option><tr-option value="grid">Grid</tr-option></tr-segmented></div><div id="b"></div></form>`);
+    await page.getByRole('radio', { name: 'Grid' }).click();
+    const after = await page.evaluate(async () => {
+      const el = document.getElementById('x') as any;
+      document.getElementById('b')!.append(el);
+      (document.getElementById('f') as HTMLFormElement).reset();
+      await el.updateComplete;
+      return el.value;
+    });
+    expect(after).toBe('list');
+  });
+
+  test('a value property set before insertion wins over a selected option', async ({ page }) => {
+    await mount(page, '');
+    const value = await page.evaluate(async () => {
+      const s = document.createElement('tr-segmented');
+      for (const v of ['a', 'b']) {
+        const o = document.createElement('tr-option');
+        o.value = v;
+        o.textContent = v.toUpperCase();
+        o.toggleAttribute('selected', v === 'a');
+        s.append(o);
+      }
+      s.value = 'b';
+      document.getElementById('root')!.append(s);
+      await s.updateComplete;
+      return s.value;
+    });
+    expect(value).toBe('b');
+  });
+  test('a [selected] option in parsed markup sets the value', async ({ page }) => {
+    await mount(page, `<tr-segmented aria-label="View"><tr-option value="a">A</tr-option><tr-option value="b" selected>B</tr-option></tr-segmented>`);
+    expect(await page.locator('tr-segmented').evaluate((s: any) => s.value)).toBe('b');
+    await expect(page.getByRole('radio', { name: 'B' })).toHaveAttribute('aria-checked', 'true');
+  });
+  test('label names the radio group', async ({ page }) => {
+    await mount(page, `<tr-segmented label="Range"><tr-option>Day</tr-option><tr-option>Week</tr-option></tr-segmented>`);
+    await expect(page.getByRole('radiogroup', { name: 'Range' })).toBeVisible();
+  });
 });

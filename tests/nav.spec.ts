@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { mount } from './helpers';
+import { importAlone, mount } from './helpers';
 
 const nav = `<tr-nav label="Main">
   <tr-nav-item href="#home" current>Home</tr-nav-item>
@@ -73,5 +73,15 @@ test.describe('tr-nav', () => {
       </div>`,
     );
     await expect(page.locator('#root')).toHaveScreenshot('nav-matrix.png');
+  });
+
+  test('importing nav alone defines tr-nav-item', async ({ page }) => {
+    expect(await importAlone(page, '/src/components/nav/nav.ts', ['tr-nav', 'tr-nav-item'])).toEqual({ 'tr-nav': true, 'tr-nav-item': true });
+  });
+  test('a disabled link item cannot be focused or followed', async ({ page }) => {
+    await mount(page, `<tr-nav label="Main"><tr-nav-item href="#a">A</tr-nav-item><tr-nav-item href="#b" disabled>B</tr-nav-item></tr-nav>`);
+    const b = page.getByRole('link', { name: 'B' });
+    await expect(b).toHaveAttribute('aria-disabled', 'true');
+    expect(await b.evaluate((a) => a.hasAttribute('href'))).toBe(false);
   });
 });

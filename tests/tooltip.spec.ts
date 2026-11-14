@@ -118,4 +118,28 @@ test.describe('tr-tooltip', () => {
     await page.locator('#t').evaluate((t: any) => t.show());
     await expect(page).toHaveScreenshot('tooltip.png');
   });
+
+  test('removing an open tooltip releases it (no warm show, no stale Escape handler)', async ({ page }) => {
+    await mount(page, `<tr-button id="b">B</tr-button><tr-tooltip id="t">tip</tr-tooltip><tr-button id="b2">B2</tr-button><tr-tooltip id="t2">tip2</tr-tooltip>`);
+    await page.evaluate(() => (document.getElementById('t') as any).show());
+    await expect(page.locator('#t')).toHaveAttribute('open');
+    const closed = await page.evaluate(() => {
+      const t = document.getElementById('t') as any;
+      let closes = 0;
+      t.addEventListener('close', () => closes++);
+      t.remove();
+      return { open: t.open, closes };
+    });
+    expect(closed).toEqual({ open: false, closes: 1 });
+    // Escape reaches the page again (the removed tooltip's capture listener would swallow it).
+    await page.evaluate(() => document.addEventListener('keydown', (e) => ((window as any).esc = !e.defaultPrevented)));
+    await page.keyboard.press('Escape');
+    expect(await page.evaluate(() => (window as any).esc)).toBe(true);
+    await page.waitForTimeout(500); // past the 400ms warm window
+    await page.hover('#b2');
+    await page.waitForTimeout(150);
+    // Not warm: the 500ms show delay still applies.
+    expect(await page.evaluate(() => (document.getElementById('t2') as any).open)).toBe(false);
+    await expect(page.locator('#t2')).toHaveAttribute('open');
+  });
 });

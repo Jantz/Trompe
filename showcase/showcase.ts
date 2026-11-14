@@ -53,11 +53,25 @@ if (bars) {
 
 /* ---------- chrome files: upload progress, menu and dialog ---------- */
 const upload = $<Valued>('#upload');
-if (upload && !reduceMotion) {
-  setInterval(() => {
-    upload.value = upload.value >= 100 ? 8 : Math.min(100, upload.value + 2);
-  }, 400);
+let uploadTimer = 0;
+function setAmbientMotion(on: boolean) {
+  // Everything that moves by itself can be paused (WCAG 2.2.2); reduced motion starts paused.
+  if (on) delete root.dataset.still;
+  else root.dataset.still = '';
+  $('#sync-led')?.toggleAttribute('blink', on);
+  clearInterval(uploadTimer);
+  if (on && upload) {
+    uploadTimer = window.setInterval(() => {
+      upload.value = upload.value >= 100 ? 8 : Math.min(100, upload.value + 2);
+    }, 400);
+  }
 }
+const motion = $<Checkable>('#motion');
+if (motion) {
+  motion.checked = !reduceMotion;
+  motion.addEventListener('change', () => setAmbientMotion(motion.checked));
+}
+setAmbientMotion(!reduceMotion);
 const dialog = $<HTMLElement & { show?: () => void; close?: () => void; open: boolean }>('#delete-dialog');
 document.addEventListener('select', (e) => {
   const value = (e as CustomEvent).detail?.value ?? (e.target as HTMLElement & { value?: string }).value;

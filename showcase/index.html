@@ -43,7 +43,7 @@
         </p>
       </div>
 
-      <tr-panel class="rig" depth="3" data-tr-skin="studio" aria-label="Scene controls">
+      <tr-panel class="rig" depth="3" data-tr-skin="studio" role="group" aria-label="Scene controls">
         <div class="rig-grid">
           <tr-slider id="light-angle" label="Light direction" min="0" max="359" step="1" value="345" unit="°"></tr-slider>
           <tr-slider id="light-elevation" label="Light height" min="20" max="85" step="1" value="55" unit="°"></tr-slider>
@@ -51,6 +51,7 @@
           <div class="rig-switches">
             <tr-switch id="animate-light">Orbit the light</tr-switch>
             <tr-switch id="theme-light">Light page</tr-switch>
+            <tr-switch id="motion" checked>Ambient motion</tr-switch>
           </div>
         </div>
       </tr-panel>
@@ -92,7 +93,7 @@
                   <tr-option value="cet">Berlin (UTC+1)</tr-option>
                   <tr-option value="jst">Tokyo (UTC+9)</tr-option>
                 </tr-select>
-                <tr-segmented label="Appearance" name="appearance" value="auto">
+                <tr-segmented label="Appearance" name="appearance" value="auto" full-width>
                   <tr-option value="light">Light</tr-option>
                   <tr-option value="dark">Dark</tr-option>
                   <tr-option value="auto">Auto</tr-option>
@@ -218,7 +219,7 @@
                       <tr-button slot="end" size="sm" shape="circle" id="file-more" aria-label="More actions for Contract draft"><svg width="16" height="16" aria-hidden="true"><use href="#i-more"/></svg></tr-button>
                     </tr-list-item>
                   </tr-list>
-                  <tr-menu anchor="file-more" label="File actions">
+                  <tr-menu anchor="file-more" aria-label="File actions">
                     <tr-menu-item value="open">Open</tr-menu-item>
                     <tr-menu-item value="rename">Rename</tr-menu-item>
                     <tr-menu-item value="star" type="checkbox">Starred</tr-menu-item>
@@ -330,7 +331,7 @@
           <tr-panel depth="2" class="extra">
             <div class="leds">
               <span><tr-led on color="green" label="Online"></tr-led> Online</span>
-              <span><tr-led on color="amber" blink label="Syncing"></tr-led> Syncing</span>
+              <span><tr-led id="sync-led" on color="amber" blink label="Syncing"></tr-led> Syncing</span>
               <span><tr-led color="red" label="No errors"></tr-led> Errors</span>
             </div>
             <tr-meter id="extra-meter" label="Signal strength" value="0.7" segments="12"></tr-meter>
