@@ -205,7 +205,7 @@ export const surfaceStyles = css`
         transparent 1px 5px,
         color-mix(in oklch, var(--_sh) calc(var(--_r) * var(--_brush) * 5%), transparent) 5px 6px,
         transparent 6px 11px
-      ,
+      ),
       /* material texture, under every lighting layer so the light still reads over it */
       var(--_tex);
     background-size: auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, var(--_tex-size);

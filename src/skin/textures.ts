@@ -87,25 +87,25 @@ const RECIPES: Record<Texture, Recipe> = {
       filter(
         640,
         320,
-        `<feTurbulence type='fractalNoise' baseFrequency='0.0028 0.075' numOctaves='4' seed='${seed}' stitchTiles='stitch' result='n'/>
+        `<feTurbulence type='fractalNoise' baseFrequency='0.0024 0.06' numOctaves='4' seed='${seed}' stitchTiles='stitch' result='n'/>
 <feComponentTransfer in='n' result='b'><feFuncR type='table' tableValues='0.5 0.15 0.62 0.3 0.75 0.2 0.58 0.38 0.85 0.25 0.6 0.42 0.5'/></feComponentTransfer>
 <feTurbulence type='fractalNoise' baseFrequency='0.012 0.9' numOctaves='2' seed='${seed + 3}' stitchTiles='stitch' result='p'/>
-<feComposite in='b' in2='p' operator='arithmetic' k1='0' k2='0.82' k3='0.3' k4='-0.08' result='w'/>
+<feComposite in='b' in2='p' operator='arithmetic' k1='0' k2='0.88' k3='0.16' k4='-0.02' result='w'/>
 ${tone('w', k)}`,
       ),
   },
   leather: {
     w: 220,
     h: 220,
-    strength: 0.5,
+    strength: 0.34,
     blend: 'hard-light',
     body: (k, az, el, seed) =>
       filter(
         220,
         220,
-        `<feTurbulence type='turbulence' baseFrequency='0.085' numOctaves='3' seed='${seed}' stitchTiles='stitch' result='n'/>
+        `<feTurbulence type='turbulence' baseFrequency='0.16' numOctaves='3' seed='${seed}' stitchTiles='stitch' result='n'/>
 <feComponentTransfer in='n' result='c'><feFuncR type='gamma' amplitude='1' exponent='0.55' offset='0'/></feComponentTransfer>
-${lit('c', 2.2, k, az, el)}`,
+${lit('c', 1.6, k, az, el)}`,
       ),
   },
   linen: {
@@ -139,7 +139,7 @@ ${lit('n', 0.9, k, az, el)}`,
   stone: {
     w: 320,
     h: 320,
-    strength: 0.38,
+    strength: 0.46,
     blend: 'hard-light',
     body: (k, az, el, seed) =>
       filter(
@@ -170,16 +170,16 @@ ${lit('p', 1.2, k, az, el)}`,
   terrazzo: {
     w: 360,
     h: 360,
-    strength: 0.42,
+    strength: 0.3,
     blend: 'hard-light',
     body: (k, _az, _el, seed) =>
       filter(
         360,
         360,
-        `<feTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2' seed='${seed}' stitchTiles='stitch' result='a'/>
-<feComponentTransfer in='a' result='chips'><feFuncR type='discrete' tableValues='0.5 0.5 0.5 0.5 0.9 0.5 0.5 0.1 0.5 0.5 0.5 0.75 0.5 0.5'/></feComponentTransfer>
-<feTurbulence type='fractalNoise' baseFrequency='0.13' numOctaves='2' seed='${seed + 9}' stitchTiles='stitch' result='b'/>
-<feComponentTransfer in='b' result='fine'><feFuncR type='discrete' tableValues='0.5 0.5 0.5 0.2 0.5 0.5 0.8 0.5 0.5'/></feComponentTransfer>
+        `<feTurbulence type='fractalNoise' baseFrequency='0.09' numOctaves='1' seed='${seed}' stitchTiles='stitch' result='a'/>
+<feComponentTransfer in='a' result='chips'><feFuncR type='discrete' tableValues='0.5 0.5 0.5 0.5 0.5 0.5 0.95 0.95 0.95 0.95'/></feComponentTransfer>
+<feTurbulence type='fractalNoise' baseFrequency='0.21' numOctaves='1' seed='${seed + 9}' stitchTiles='stitch' result='b'/>
+<feComponentTransfer in='b' result='fine'><feFuncR type='discrete' tableValues='0.1 0.1 0.1 0.5 0.5 0.5 0.5 0.5 0.5 0.5'/></feComponentTransfer>
 <feComposite in='chips' in2='fine' operator='arithmetic' k2='0.6' k3='0.4' result='t'/>
 ${tone('t', k)}`,
       ),
@@ -187,7 +187,7 @@ ${tone('t', k)}`,
   carbon: {
     w: 12,
     h: 12,
-    strength: 0.55,
+    strength: 0.32,
     blend: 'hard-light',
     body: (k) => {
       const hi = (0.5 + k * 0.5).toFixed(3);
@@ -199,7 +199,7 @@ ${tone('t', k)}`,
   knurl: {
     w: 8,
     h: 8,
-    strength: 0.6,
+    strength: 0.38,
     blend: 'hard-light',
     body: (k, az) => {
       // A pyramid per cell: four facets lit by their angle to the light.
