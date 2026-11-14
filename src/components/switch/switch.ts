@@ -1,0 +1,250 @@
+import { css, html, type PropertyValues } from 'lit';
+import { property } from 'lit/decorators.js';
+import { FormControl } from '../../internal/form-control.js';
+import { define } from '../../internal/trompe-element.js';
+import type { Size } from '../../internal/types.js';
+
+/**
+ * A physical slide switch: a raised thumb travelling in a recessed track. When on, the track
+ * fills with the accent color and shows an "I" mark; when off it shows an "O" mark, so state
+ * never depends on color or position alone.
+ *
+ * @summary On/off switch (role="switch"), form-associated.
+ * @tag tr-switch
+ * @role switch
+ *
+ * @slot - Visible label. Clicking it toggles the switch. Also the accessible name.
+ *
+ * @csspart track - The recessed track.
+ * @csspart thumb - The sliding thumb.
+ * @csspart label - Wrapper around the label slot.
+ *
+ * @cssprop --tr-switch-on-color - Track fill when on. Defaults to --tr-color-accent.
+ *
+ * @fires input - The user toggled the switch.
+ * @fires change - The user toggled the switch.
+ *
+ * @example <tr-switch checked>Wi-Fi</tr-switch>
+ * @example <tr-switch name="alerts" material="metal" size="lg">Alerts</tr-switch>
+ */
+export class TrSwitch extends FormControl {
+  static override styles = [
+    ...FormControl.styles,
+    css`
+      :host {
+        --_depth: 1;
+        --_w: 52px;
+        --_h: 30px;
+        --_gap: 3px;
+        --_on: var(--tr-switch-on-color, var(--tr-color-accent));
+        display: inline-flex;
+        align-items: center;
+        gap: var(--tr-space-3, 12px);
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+        touch-action: manipulation;
+        color: var(--tr-color-ink);
+        font-size: var(--tr-font-size-md, 0.9375rem);
+        min-height: var(--_h);
+      }
+      :host([size='sm']) {
+        --_w: 40px;
+        --_h: 24px;
+        --_gap: 2px;
+        font-size: var(--tr-font-size-sm, 0.8125rem);
+      }
+      :host([size='lg']) {
+        --_w: 66px;
+        --_h: 38px;
+        --_gap: 4px;
+        font-size: var(--tr-font-size-lg, 1.0625rem);
+      }
+      .track {
+        --_tr-z: -1;
+        --_base: var(--tr-color-well);
+        --_ink: var(--tr-color-ink-muted);
+        --_edge: var(--_edge-strong);
+        flex: none;
+        position: relative;
+        width: var(--_w);
+        height: var(--_h);
+        border-radius: var(--tr-radius-pill, 999px);
+        transition: background-color var(--tr-motion-duration-travel, 220ms);
+      }
+      :host([checked]) .track {
+        --_base: var(--_on);
+        --_ink: var(--tr-color-accent-ink);
+      }
+      .mark {
+        position: absolute;
+        top: 50%;
+        translate: 0 -50%;
+        font: 600 calc(var(--_h) * 0.36) / 1 var(--tr-font-family-mono, monospace);
+        color: var(--_ink);
+        pointer-events: none;
+      }
+      .mark-on {
+        left: calc(var(--_h) * 0.36);
+        opacity: 0;
+      }
+      .mark-off {
+        right: calc(var(--_h) * 0.3);
+      }
+      :host([checked]) .mark-on {
+        opacity: 1;
+      }
+      :host([checked]) .mark-off {
+        opacity: 0;
+      }
+      .thumb {
+        --_tr-z: var(--_depth);
+        position: absolute;
+        top: var(--_gap);
+        left: var(--_gap);
+        width: calc(var(--_h) - 2 * var(--_gap) - 2px);
+        height: calc(var(--_h) - 2 * var(--_gap) - 2px);
+        border-radius: 50%;
+        transition:
+          translate var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out),
+          --_tr-z var(--tr-motion-duration-release, 160ms);
+      }
+      :host([checked]) .thumb {
+        translate: calc(var(--_w) - var(--_h)) 0;
+      }
+      :host(:active) .thumb {
+        --_tr-z: calc(var(--_depth) - 0.5);
+      }
+      .label {
+        line-height: 1.3;
+      }
+      .label:not(.has-label) {
+        display: none;
+      }
+      :host([disabled]),
+      :host(:state(disabled)) {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+      @media (pointer: coarse) {
+        :host {
+          min-height: var(--tr-control-touch, 44px);
+        }
+      }
+      @media (forced-colors: active) {
+        :host([checked]) .track {
+          background-color: Highlight;
+          forced-color-adjust: none;
+        }
+        .thumb {
+          background-color: ButtonText;
+          forced-color-adjust: none;
+        }
+        :host([checked]) .mark {
+          color: HighlightText;
+        }
+      }
+    `,
+  ];
+
+  /** Whether the switch is on. */
+  @property({ type: Boolean, reflect: true }) checked = false;
+
+  /** Value submitted with the form when on. */
+  @property() value = 'on';
+
+  /** Requires the switch to be on for the form to be valid. */
+  @property({ type: Boolean, reflect: true }) required = false;
+
+  /** Size of the switch. */
+  @property({ reflect: true }) size: Size = 'md';
+
+  private defaultChecked = false;
+  private hasLabel = false;
+
+  constructor() {
+    super();
+    this.role_ = 'switch';
+    this.addEventListener('click', this.onClick);
+    this.addEventListener('keydown', this.onKeyDown);
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.defaultChecked = this.hasAttribute('checked');
+  }
+
+  protected override render() {
+    return html`<span part="track" class="track surface focus-ring">
+        <span class="mark mark-on" aria-hidden="true">I</span>
+        <span class="mark mark-off" aria-hidden="true">O</span>
+        <span part="thumb" class="thumb surface"></span>
+      </span>
+      <span part="label" class="label ${this.hasLabel ? 'has-label' : ''}"
+        ><slot @slotchange=${this.onSlotChange}></slot
+      ></span>`;
+  }
+
+  protected override updated(changed: PropertyValues): void {
+    super.updated(changed);
+    this.aria('aria-checked', String(this.checked));
+    this.aria('aria-required', this.required ? 'true' : null);
+    this.internals.setFormValue(this.checked ? this.value : null, String(this.checked));
+    if (this.required && !this.checked) {
+      this.internals.setValidity({ valueMissing: true }, 'Turn this switch on to continue.');
+    } else {
+      this.internals.setValidity({});
+    }
+  }
+
+  formResetCallback(): void {
+    this.checked = this.defaultChecked;
+  }
+
+  formStateRestoreCallback(state: string): void {
+    this.checked = state === 'true';
+  }
+
+  /** Flips the switch as if the user did, firing input and change. */
+  toggle(force?: boolean): void {
+    const next = force ?? !this.checked;
+    if (next === this.checked) return;
+    this.checked = next;
+    this.emit('input');
+    this.emit('change');
+  }
+
+  private onSlotChange(e: Event): void {
+    const slot = e.target as HTMLSlotElement;
+    this.hasLabel = slot.assignedNodes({ flatten: true }).some((n) => n.textContent?.trim() || n.nodeType === 1);
+    this.requestUpdate();
+  }
+
+  private onClick = (event: MouseEvent): void => {
+    if (this.isDisabled) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+    // Let interactive content inside the label (links) do its own thing.
+    const path = event.composedPath();
+    if (path.some((n) => n instanceof HTMLAnchorElement)) return;
+    this.toggle();
+  };
+
+  private onKeyDown = (event: KeyboardEvent): void => {
+    if (event.target !== this || this.isDisabled) return;
+    if (event.key === ' ' || event.key === 'Enter') {
+      event.preventDefault();
+      this.toggle();
+    }
+  };
+}
+
+define('tr-switch', TrSwitch);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'tr-switch': TrSwitch;
+  }
+}

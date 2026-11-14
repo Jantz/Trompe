@@ -1,0 +1,48 @@
+{
+  "name": "trompe",
+  "version": "0.1.0",
+  "description": "Skeuomorphic web components that agents can build and people can feel. Framework-independent, built on Lit and modern CSS.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jantz/Trompe.git"
+  },
+  "keywords": [
+    "web-components",
+    "skeuomorphism",
+    "design-system",
+    "lit",
+    "custom-elements",
+    "design-tokens",
+    "llm",
+    "agents"
+  ],
+  "workspaces": [
+    "examples/*"
+  ],
+  "scripts": {
+    "tokens": "node scripts/build-tokens.mjs",
+    "dev": "npm run tokens && vite --open /showcase/",
+    "typecheck": "npm run tokens && tsc --noEmit -p .",
+    "test": "npm run tokens && playwright test",
+    "test:update": "npm run tokens && playwright test --update-snapshots"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@custom-elements-manifest/analyzer": "^0.11.0",
+    "@playwright/test": "^1.63.0",
+    "esbuild": "^0.28.2",
+    "parse5": "^8.1.1",
+    "prettier": "^3.10.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+src/generated/
+custom-elements.json
+test-results/
+playwright-report/
+.vite/
+*.log
+.DS_Store
+examples/*/dist/
+showcase/dist/
