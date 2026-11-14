@@ -18,36 +18,38 @@
 :root {
   color-scheme: light;
   --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --sl: var(--tr-shadow-len); --la: var(--tr-light-angle);
-  --ink: oklch(.27 .02 245); --ink-2: oklch(.42 .022 240); --ink-3: oklch(.55 .02 235);
+  --ink: oklch(.27 .02 245); --ink-2: oklch(.42 .022 240); --ink-3: oklch(.495 .02 235);
   --ice: oklch(.84 .1 212); --ice-hi: oklch(.97 .045 205); --ice-ink: oklch(.45 .13 240);
   --amber: oklch(.8 .15 68); --amber-hi: oklch(.93 .09 80); --amber-ink: oklch(.5 .13 52);
-  --stone: oklch(.885 .007 78); --stone-lo: oklch(.8 .01 72);
+  --stone: oklch(.855 .006 75); --stone-lo: oklch(.76 .008 70);
   --edge-near: oklch(.83 .03 198); --edge-far: oklch(.68 .045 204); --edge-dark: oklch(.52 .05 212 / .55);
   --alu-hi: oklch(.97 .003 240); --alu: oklch(.84 .006 240); --alu-lo: oklch(.64 .01 240);
-  --e-cobalt: oklch(.52 .17 262); --e-cobalt-d: oklch(.36 .15 265);
-  --e-jade: oklch(.56 .11 166); --e-jade-d: oklch(.4 .09 170);
-  --e-saffron: oklch(.83 .15 82); --e-saffron-d: oklch(.68 .15 66);
-  --e-vermilion: oklch(.6 .19 33); --e-vermilion-d: oklch(.45 .17 30);
-  --e-plum: oklch(.49 .14 332); --e-plum-d: oklch(.34 .12 332);
+  --e-cobalt: oklch(.5 .135 260); --e-cobalt-d: oklch(.38 .115 263);
+  --e-jade: oklch(.55 .085 172); --e-jade-d: oklch(.41 .07 176);
+  --e-saffron: oklch(.82 .115 82); --e-saffron-d: oklch(.69 .12 68);
+  --e-vermilion: oklch(.58 .145 34); --e-vermilion-d: oklch(.46 .135 31);
+  --e-plum: oklch(.5 .1 335); --e-plum-d: oklch(.37 .085 335);
   /* Light-relative offsets (x y), shared by every shadow and rim. */
   --o1: calc(var(--sx) * 1px) calc(var(--sy) * 1px); --o10x14: calc(var(--sx) * 10px) calc(var(--sy) * 14px); --o12x16: calc(var(--sx) * 12px) calc(var(--sy) * 16px); --o16x22: calc(var(--sx) * 16px) calc(var(--sy) * 22px); --o1_5: calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px); --o1_5x2: calc(var(--sx) * 1.5px) calc(var(--sy) * 2px); --o1x1_5: calc(var(--sx) * 1px) calc(var(--sy) * 1.5px); --o1x2: calc(var(--sx) * 1px) calc(var(--sy) * 2px); --o2: calc(var(--sx) * 2px) calc(var(--sy) * 2px); --o26x34: calc(var(--sx) * 26px) calc(var(--sy) * 34px); --o2_5: calc(var(--sx) * 2.5px) calc(var(--sy) * 2.5px); --o2_5x3_5: calc(var(--sx) * 2.5px) calc(var(--sy) * 3.5px); --o2x2_5: calc(var(--sx) * 2px) calc(var(--sy) * 2.5px); --o2x3: calc(var(--sx) * 2px) calc(var(--sy) * 3px); --o3: calc(var(--sx) * 3px) calc(var(--sy) * 3px); --o3_5: calc(var(--sx) * 3.5px) calc(var(--sy) * 3.5px); --o3x4: calc(var(--sx) * 3px) calc(var(--sy) * 4px); --o4: calc(var(--sx) * 4px) calc(var(--sy) * 4px); --o4x5: calc(var(--sx) * 4px) calc(var(--sy) * 5px); --o4x6: calc(var(--sx) * 4px) calc(var(--sy) * 6px); --o5: calc(var(--sx) * 5px) calc(var(--sy) * 5px); --o5x7: calc(var(--sx) * 5px) calc(var(--sy) * 7px); --o6: calc(var(--sx) * 6px) calc(var(--sy) * 6px); --o7: calc(var(--sx) * 7px) calc(var(--sy) * 7px); --o_5: calc(var(--sx) * .5px) calc(var(--sy) * .5px); --on1: calc(var(--sx) * -1px) calc(var(--sy) * -1px); --on1_5: calc(var(--sx) * -1.5px) calc(var(--sy) * -1.5px); --on2: calc(var(--sx) * -2px) calc(var(--sy) * -2px); --on_5: calc(var(--sx) * -.5px) calc(var(--sy) * -.5px); --on_8: calc(var(--sx) * -.8px) calc(var(--sy) * -.8px);
   --ui: "Instrument Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --disp: "Archivo", "Instrument Sans", system-ui, sans-serif;
   /* Frosting grain: white and dark specks, rasterised once. */
   --tex-frost: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  /* Concrete: broad mottling plus sparse air pits. */
-  --tex-mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.008' numOctaves='4' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .4 0 0 0 0 .37 0 0 0 1.1 -.48'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --tex-pits: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='210' height='210'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.5' numOctaves='2' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .29 0 0 0 0 .28 -7 0 0 0 1.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Cast concrete: broad cement mottle, fine aggregate grains, sparse air pits with a lit lip. */
+  --tex-mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='n' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0065' numOctaves='5' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .46 0 0 0 0 .44 0 0 0 0 .41 1.5 0 0 0 -.62'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tex-agg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='a' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.62' numOctaves='2' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .34 0 0 0 0 .33 0 0 0 0 .31 11 0 0 0 -7.1'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 .98 -12 0 0 0 4.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='.7'/%3E%3C/svg%3E");
+  --tex-pits: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='380' height='380'%3E%3Cfilter id='p' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.09' numOctaves='3' seed='23' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 40 0 0 0 -31' result='m'/%3E%3CfeOffset dx='1' dy='1' in='m' result='o'/%3E%3CfeColorMatrix in='o' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .8 0' result='lip'/%3E%3CfeColorMatrix in='m' values='0 0 0 0 .32 0 0 0 0 .3 0 0 0 0 .28 0 0 0 .85 0' result='hole'/%3E%3CfeMerge%3E%3CfeMergeNode in='lip'/%3E%3CfeMergeNode in='hole'/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
 }
 html { background: var(--stone); }
 body {
   color: var(--ink); font-family: var(--ui);
   background:
-  var(--tex-pits) 0 0 / 210px,
+  var(--tex-pits) 0 0 / 380px,
+  var(--tex-agg) 0 0 / 256px,
   var(--tr-tex-noise) 0 0 / 180px,
-  var(--tex-mottle) 0 0 / 420px,
-  radial-gradient(130% 90% at calc(50% - var(--sx) * 60%) calc(40% - var(--sy) * 60%), oklch(.925 .006 80), var(--stone) 55%, var(--stone-lo));
-  background-blend-mode: normal, soft-light, normal, normal;
+  var(--tex-mottle) 0 0 / 520px,
+  radial-gradient(140% 100% at calc(50% - var(--sx) * 70%) calc(30% - var(--sy) * 70%), oklch(.9 .005 80), var(--stone) 50%, var(--stone-lo));
+  background-blend-mode: normal, normal, soft-light, multiply, normal;
 }
 
 /* ------------------------------------------------------------------ */
@@ -75,42 +77,59 @@ h1, h2, h3 { margin: 0; }
   position: relative; border-radius: var(--r);
   background:
   var(--tex-frost) 0 0 / 160px,
-  linear-gradient(calc(var(--la) + 135deg), transparent 22%, oklch(1 0 0 / .34) 31%, oklch(1 0 0 / .08) 38%, transparent 47%),
-  radial-gradient(150% 130% at calc(50% - var(--sx) * 60%) calc(50% - var(--sy) * 60%), oklch(.992 .004 210 / .93), oklch(.955 .011 214 / .9) 62%, oklch(.925 .016 214 / .9));
-  box-shadow:
-  inset 0 0 0 1px oklch(1 0 0 / .5),
-  inset var(--on1_5) .5px oklch(1 0 0),
-  inset var(--o3) 3px var(--edge-dark),
-  var(--o2) 0 oklch(.93 .025 195),
-  var(--o4) 0 var(--edge-near),
-  var(--o6) 0 var(--edge-far),
-  var(--o7) 1.5px oklch(.3 .03 220 / .55);
+  linear-gradient(calc(var(--la) + 135deg), transparent 20%, oklch(1 0 0 / .3) 30%, oklch(1 0 0 / .06) 37%, transparent 46%),
+  radial-gradient(160% 140% at calc(50% - var(--sx) * 65%) calc(50% - var(--sy) * 65%), oklch(.975 .007 212 / .95), oklch(.945 .013 215 / .93) 58%, oklch(.915 .018 218 / .93));
+  box-shadow: var(--slab-rim), var(--slab-side);
+  outline: 1px solid oklch(1 0 0 / .6); outline-offset: -8px;
 }
-/* Cast shadow on the concrete: light passing through the slab, darkest under the edges,
-  with a caustic rim where the polished arris focuses it. Sits behind the slab (z -1 in .frost). */
+/* One recipe for every slab of 8 mm acrylic, seen from slightly above the light:
+   face rims (polished arris, lit chamfer, refracted far edge), then the side face extruded away from
+   the light. The edge pipes the LED light, so the side is a luminous cyan, darkest at the bottom arris. */
+.frost, dialog.editor {
+  --slab-rim:
+  inset 0 0 0 1px oklch(1 0 0 / .55),
+  inset var(--o1_5) 0 oklch(1 0 0 / .95),
+  inset var(--o4) 5px oklch(1 0 0 / .45),
+  inset var(--on1) 0 oklch(.64 .05 212 / .65),
+  inset calc(var(--sx) * -6px) calc(var(--sy) * -6px) 7px oklch(.6 .06 214 / .2),
+  inset 0 0 0 7px oklch(.62 .05 212 / .07);
+  --slab-side:
+  var(--o1) 0 oklch(.995 .02 200),
+  var(--o2) 0 oklch(.95 .055 200),
+  var(--o3) 0 oklch(.9 .075 202),
+  var(--o4) 0 oklch(.84 .085 205),
+  var(--o5) 0 oklch(.76 .08 208),
+  var(--o6) 0 oklch(.66 .07 212),
+  var(--o7) .5px oklch(.4 .05 220 / .85),
+  calc(var(--sx) * 8px) calc(var(--sy) * 8px) 2px oklch(.25 .03 225 / .3);
+}
+/* Cast shadow on the concrete. Light passes through the acrylic, so the shadow is a pale tinted
+   body with a soft penumbra; a second, tighter shadow pulled back under the slab is the ambient occlusion. */
 .slab::before {
-  content: ""; position: absolute; inset: .3em; z-index: -1; border-radius: inherit; pointer-events: none;
+  content: ""; position: absolute; inset: .25em; z-index: -1; border-radius: inherit; pointer-events: none;
   translate: calc(var(--sx) * var(--lift) * var(--sl)) calc(var(--sy) * var(--lift) * var(--sl));
-  background: oklch(.42 .035 215 / .2);
+  background: oklch(.42 .03 218 / .16);
   box-shadow:
-  0 0 2.4em .5em oklch(.28 .03 225 / .32),
-  0 0 .6em .12em oklch(.28 .03 225 / .3),
-  inset 0 0 .9em .2em oklch(.995 .05 192 / .7),
-  inset 0 0 2.2em .3em oklch(.98 .04 200 / .25);
+  0 0 2em .35em oklch(.27 .025 225 / .26),
+  calc(var(--sx) * var(--lift) * var(--sl) * -.7) calc(var(--sy) * var(--lift) * var(--sl) * -.7) 1.2em .3em oklch(.25 .02 225 / .2);
 }
-/* Ambient occlusion: the base darkens softly all round where the slab hovers close to it. */
+/* Caustic: the polished far edge focuses light into a bright cyan line just inside the shadow's far
+   edge, and the edge-lit glow spills onto the concrete beyond it. Emissive part ignores the light. */
 .slab::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
-  translate: calc(var(--sx) * var(--lift) * .35) calc(var(--sy) * var(--lift) * .35);
-  box-shadow: 0 0 2.6em .5em oklch(.3 .025 225 / .14), 0 .2em 4em 1em oklch(.3 .02 225 / .08);
+  content: ""; position: absolute; inset: .1em; z-index: -1; border-radius: inherit; pointer-events: none;
+  translate: calc(var(--sx) * var(--lift) * var(--sl) * 1.05) calc(var(--sy) * var(--lift) * var(--sl) * 1.05);
+  box-shadow:
+  inset calc(var(--sx) * -.28em) calc(var(--sy) * -.28em) .35em -.12em oklch(.99 .06 195 / .85),
+  inset calc(var(--sx) * -.7em) calc(var(--sy) * -.7em) 1em -.3em oklch(.95 .07 200 / .35),
+  calc(var(--sx) * .5em) calc(var(--sy) * .5em) 1.6em -.3em oklch(.88 .08 205 / .4);
 }
 .slab.clear {
   background:
-  linear-gradient(calc(var(--la) + 135deg), transparent 20%, oklch(1 0 0 / .42) 28%, oklch(1 0 0 / .1) 34%, transparent 42%),
+  linear-gradient(calc(var(--la) + 135deg), transparent 20%, oklch(1 0 0 / .4) 28%, oklch(1 0 0 / .08) 34%, transparent 42%),
   var(--tex-frost) 0 0 / 160px,
-  linear-gradient(calc(var(--la) + 180deg), oklch(.985 .006 205 / .7), oklch(.94 .018 205 / .55) 60%, oklch(.9 .026 205 / .58));
+  linear-gradient(calc(var(--la) + 180deg), oklch(.97 .008 208 / .88), oklch(.935 .016 210 / .82) 60%, oklch(.905 .022 212 / .84));
 }
-.slab.clear::before { background: oklch(.5 .035 215 / .05); }
+.slab.clear::before { background: oklch(.45 .03 215 / .07); }
 
 /* Satin aluminium standoff caps. The barrel shows through the slab as a soft grey disc. */
 .bolt {
@@ -208,6 +227,8 @@ h1, h2, h3 { margin: 0; }
 .gkey[aria-disabled="true"] .cap > * { opacity: .55; }
 .gkey[aria-disabled="true"] .sh { opacity: .5; }
 .gkey.danger .cap { color: var(--e-vermilion-d); }
+.gkey.danger[aria-disabled="true"] .cap { color: oklch(.58 .015 235); }
+.gkey[aria-disabled="true"] .cap { opacity: .7; }
 .gkey.danger:not([aria-disabled="true"]):hover .cap::after { background: radial-gradient(90% 120% at 50% 100%, oklch(.9 .08 30 / .5), transparent 70%); }
 
 /* Enamel key (primary): cobalt vitreous enamel domed in a polished aluminium bezel. */
@@ -238,6 +259,8 @@ h1, h2, h3 { margin: 0; }
 .seg .gkey .cap { flex-direction: column; gap: .28em; }
 .seg .gkey .cap::before { content: ""; width: 1.4em; height: 2px; border-radius: 2px; background: oklch(.6 .03 215 / .35); }
 .seg .gkey[aria-pressed="true"] .cap { color: var(--ice-ink); text-shadow: 0 0 .7em oklch(.82 .12 220 / .9); }
+.seg .gkey[aria-pressed="true"] .cap::after { opacity: 1; background: radial-gradient(80% 90% at 50% 0%, oklch(.9 .08 212 / .55), transparent 75%); }
+.seg .gkey[aria-pressed="true"] .sh { opacity: .35; }
 .seg .gkey[aria-pressed="true"] .cap::before { background: var(--ice); box-shadow: 0 0 .5em var(--ice), 0 0 1em oklch(.84 .1 212 / .6); }
 
 /* ------------------------------------------------------------------ */
@@ -330,7 +353,7 @@ h1, h2, h3 { margin: 0; }
 /* Sandblasted pockets: inputs, textarea, select button               */
 /* ------------------------------------------------------------------ */
 .well {
-  appearance: none; -webkit-appearance: none; display: block; width: 100%; min-height: 2.75em; border: 0; margin: 0; padding: 0 .9em; border-radius: .7em;
+  appearance: none; -webkit-appearance: none; display: block; width: 100%; min-width: 0; min-height: 2.75em; border: 0; margin: 0; padding: 0 .9em; border-radius: .7em;
   font: 500 1em/1.3 var(--ui); color: var(--ink); outline: 2px solid transparent; outline-offset: 1px;
   background:
   var(--tex-frost) 0 0 / 160px,
@@ -356,7 +379,7 @@ h1, h2, h3 { margin: 0; }
 }
 .well:disabled { color: oklch(.6 .015 235); cursor: not-allowed; background: linear-gradient(oklch(.93 .008 210 / .5), oklch(.95 .006 210 / .5)); box-shadow: inset 0 0 0 1px oklch(.75 .02 214 / .45); }
 textarea.well { padding: .65em .9em; min-height: 5.2em; resize: vertical; }
-input[type="date"].well, input[type="time"].well { font-variant-numeric: tabular-nums; }
+input[type="date"].well, input[type="time"].well { font-variant-numeric: tabular-nums; padding-inline: .75em .6em; }
 .well::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
 input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; width: 1em; height: 1em; cursor: pointer; background: radial-gradient(circle, var(--ink-3) 0 45%, transparent 47%); }
 
@@ -377,11 +400,14 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; w
 .mgrid { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(6, 7.3em); }
 .mgrid::before {
   content: ""; position: absolute; inset: 0 -2px -2px 0; pointer-events: none; z-index: 0;
+  --gl: oklch(.995 .035 200); --gd: oklch(.56 .05 214 / .5); --gh: oklch(.86 .09 205 / .34);
   background:
-  linear-gradient(to left, oklch(.995 .04 205) 0 1px, oklch(.6 .04 215 / .35) 1px 2px, oklch(.9 .07 210 / .3) 2px, transparent 6px) 0 0 / calc((100% - 2px) / 7) 100%,
-  linear-gradient(to top, oklch(.995 .04 205) 0 1px, oklch(.6 .04 215 / .35) 1px 2px, oklch(.9 .07 210 / .3) 2px, transparent 6px) 0 0 / 100% calc((100% - 2px) / 6);
-  -webkit-mask: linear-gradient(#000, #000a 50%, #0006);
-  mask: linear-gradient(#000, #000a 50%, #0006);
+  linear-gradient(to left, var(--gd) 0 1px, var(--gl) 1px 2.5px, var(--gh) 2.5px, transparent 7px) 0 0 / calc((100% - 2px) / 7) 100%,
+  linear-gradient(to right, var(--gh), transparent 4px) 0 0 / calc((100% - 2px) / 7) 100%,
+  linear-gradient(to top, var(--gd) 0 1px, var(--gl) 1px 2.5px, var(--gh) 2.5px, transparent 7px) 0 0 / 100% calc((100% - 2px) / 6),
+  linear-gradient(to bottom, var(--gh), transparent 4px) 0 0 / 100% calc((100% - 2px) / 6);
+  -webkit-mask: linear-gradient(#000, #000c 45%, #0008);
+  mask: linear-gradient(#000, #000c 45%, #0008);
 }
 .cell { position: relative; z-index: 1; min-width: 0; display: flex; flex-direction: column; gap: .22em; padding: .4em .45em .4em; cursor: pointer; }
 .cell.wkend { background: oklch(.9 .015 214 / .16); }
@@ -404,19 +430,20 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; w
 
 /* Enamel chips: glossy vitreous enamel in a thin silver cloison, sitting on the frosted glass. */
 .chip {
-  position: relative; display: flex; align-items: center; gap: .4em; width: 100%; min-width: 0; height: 1.72em; padding: 0 .55em; border: 0; border-radius: .48em; cursor: grab;
+  position: relative; display: flex; align-items: center; gap: .4em; width: 100%; min-width: 0; height: 1.72em; padding: 0 .55em; border: 0; border-radius: .46em; cursor: grab;
   font: 600 .78em/1 var(--ui); color: var(--ci); text-align: left; white-space: nowrap; touch-action: none;
-  text-shadow: 0 -.5px 0 oklch(0 0 0 / .18);
+  text-shadow: 0 -.5px 0 oklch(0 0 0 / .14);
   background:
-  radial-gradient(130% 160% at calc(50% - var(--sx) * 20%) calc(50% - var(--sy) * 120%), oklch(1 0 0 / .5), oklch(1 0 0 / .1) 40%, transparent 48%),
-  linear-gradient(calc(var(--la) + 180deg), var(--c), var(--cd));
+  radial-gradient(130% 160% at calc(50% - var(--sx) * 20%) calc(50% - var(--sy) * 120%), oklch(1 0 0 / .4), oklch(1 0 0 / .07) 40%, transparent 48%),
+  radial-gradient(90% 120% at calc(50% + var(--sx) * 25%) calc(50% + var(--sy) * 110%), oklch(from var(--c) calc(l + .1) c h / .55), transparent 70%),
+  linear-gradient(oklch(from var(--c) calc(l + var(--sy) * .03) c h), oklch(from var(--cd) calc(l - var(--sy) * .03) c h));
   box-shadow:
-  inset 0 0 0 1px oklch(from var(--cd) calc(l - .08) c h),
-  inset var(--on1) .5px oklch(1 0 0 / .55),
-  0 0 0 1.25px oklch(.9 .005 240),
-  var(--on_5) 0 1.5px oklch(1 0 0 / .9),
-  var(--o1_5x2) 2px oklch(.25 .02 230 / .3),
-  var(--o3x4) 7px oklch(from var(--c) l c h / .35);
+  inset 0 0 0 .5px oklch(from var(--cd) calc(l - .1) c h / .9),
+  inset var(--o_5) 0 oklch(1 0 0 / .45),
+  0 0 0 1px oklch(.93 .004 240),
+  var(--on_5) 0 1px oklch(1 0 0 / .9),
+  var(--o1x1_5) 1.5px oklch(.28 .02 230 / .32),
+  var(--o2x3) 5px oklch(from var(--c) .5 c h / .14);
   transition: transform .18s var(--tr-ease-out), opacity .2s;
 }
 .chip:hover { transform: translateY(-1px); }
@@ -425,7 +452,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; w
 .chip:focus-visible { outline-offset: 3px; }
 .chip.dim { opacity: .22; }
 .chip.lifting { opacity: .3; }
-.chip.ghost { position: fixed; z-index: 1000; pointer-events: none; margin: 0; cursor: grabbing;
+.chip.ghost.ghost { position: fixed; z-index: 1000; pointer-events: none; margin: 0; cursor: grabbing;
   box-shadow:
   inset 0 0 0 1px oklch(from var(--cd) calc(l - .08) c h), inset var(--on1) .5px oklch(1 0 0 / .55),
   0 0 0 1.25px oklch(.9 .005 240), var(--on_5) 0 1.5px oklch(1 0 0 / .9),
@@ -448,17 +475,35 @@ body.dragging, body.dragging * { cursor: grabbing !important; }
 .tl-body { display: contents; }
 .tl-hours { position: relative; height: calc(var(--hh) * 14); }
 .tl-hours span { position: absolute; right: 0; translate: 0 -50%; font-variant-numeric: tabular-nums; }
-.tl-col { position: relative; height: calc(var(--hh) * 14); border-left: 1px solid oklch(.99 .04 205 / .8);
-  background: repeating-linear-gradient(to bottom, oklch(.995 .04 205 / .95) 0 1px, oklch(.6 .04 215 / .25) 1px 2px, transparent 2px var(--hh)); }
-.tl-col.today { background: repeating-linear-gradient(to bottom, oklch(.995 .04 205 / .95) 0 1px, oklch(.6 .04 215 / .25) 1px 2px, transparent 2px var(--hh)), linear-gradient(oklch(.97 .05 85 / .5), oklch(.97 .05 85 / .2)); }
+.tl-col { position: relative; height: calc(var(--hh) * 14); border-left: 1px solid oklch(.995 .035 200); box-shadow: inset 1px 0 0 oklch(.56 .05 214 / .3), -3px 0 4px -2px oklch(.86 .09 205 / .5);
+  background: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px; }
+.tl-col.today { background: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px, linear-gradient(oklch(.96 .05 85 / .45), oklch(.96 .05 85 / .15)); }
+.tl.day .tl-col.today { background-image: repeating-linear-gradient(to bottom, oklch(.86 .09 205 / .3), oklch(.995 .035 200) 2px 3.5px, oklch(.56 .05 214 / .4) 3.5px 4.5px, oklch(.86 .09 205 / .3) 4.5px, transparent 8px var(--hh)) 0 -3px; }
 .tl-col.drop { background: repeating-linear-gradient(to bottom, oklch(.995 .04 205) 0 1px, transparent 1px var(--hh)), oklch(.9 .08 210 / .4); }
+.chip.bar {
+  color: oklch(from var(--cd) .33 calc(c * .85) h); text-shadow: 0 .5px 0 oklch(1 0 0 / .45);
+  background:
+  linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .5), oklch(1 0 0 / .12) 1.6em, transparent 3em),
+  linear-gradient(calc(var(--la) + 180deg), oklch(from var(--c) .93 calc(c * .32) h / .96), oklch(from var(--c) .875 calc(c * .5) h / .96));
+  box-shadow:
+  inset .3em 0 0 var(--c), inset calc(.3em + 1px) 0 0 oklch(from var(--cd) l c h / .35),
+  inset 0 0 0 .5px oklch(from var(--cd) l c h / .45),
+  inset var(--o_5) 0 oklch(1 0 0 / .7),
+  0 0 0 1px oklch(.93 .004 240),
+  var(--on_5) 0 1px oklch(1 0 0 / .9),
+  var(--o1x2) 3px oklch(.28 .02 230 / .26),
+  var(--o3x4) 9px oklch(from var(--c) .5 c h / .12);
+  padding-left: .95em;
+}
+.chip.bar .tm { opacity: .78; }
 .bar { position: absolute; left: calc(var(--lane) * var(--lw) + 3px); width: calc(var(--lw) - 6px); height: auto; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: .25em; padding: .45em .55em; font-size: .78em; line-height: 1.15; white-space: normal; overflow: hidden; }
 .bar > * { flex: none; }
 .bar .tx { white-space: nowrap; max-width: 100%; }
 .tl.day .bar { width: min(calc(var(--lw) - 6px), 26em); font-size: .88em; padding: .6em .8em; }
 .tl.day .bar .nt { margin-top: .2em; }
 .bar.short { flex-direction: row; align-items: center; padding-block: 0; }
-.bar.short .tx { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.bar.short .tx { flex: 0 1 auto; min-width: 2.5em; overflow: hidden; text-overflow: ellipsis; }
+.bar.short .tm { flex: 0 1000 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bar .nt { font-weight: 450; opacity: .85; white-space: normal; }
 .now { position: absolute; left: -4px; right: 0; height: 2px; z-index: 3; background: var(--amber); box-shadow: 0 0 .5em var(--amber), 0 0 1.2em oklch(.8 .15 68 / .6); pointer-events: none; }
 .now::before { content: ""; position: absolute; left: -2px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, var(--amber-hi), var(--amber)); box-shadow: 0 0 .6em var(--amber); }
@@ -482,21 +527,17 @@ body.dragging, body.dragging * { cursor: grabbing !important; }
 /* ------------------------------------------------------------------ */
 /* Editor dialog                                                       */
 /* ------------------------------------------------------------------ */
-dialog.editor { border: 0; padding: 0; margin: auto; background: none; color: var(--ink); overflow: visible; width: min(35em, calc(100vw - 24px)); max-height: calc(100dvh - 24px); font: 400 clamp(13px, .35vw + 9px, 15px)/1.35 var(--ui); }
-dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(80% 80% at 50% 45%, oklch(.4 .02 230 / .16), oklch(.3 .02 230 / .34)); }
+dialog.editor { border: 0; padding: 0; margin: auto; background: none; color: var(--ink); overflow: visible; width: min(36em, calc(100vw - 24px)); max-height: calc(100dvh - 24px); font: 400 clamp(13px, .35vw + 9px, 15px)/1.35 var(--ui); }
+dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(80% 80% at 50% 45%, oklch(.32 .02 230 / .3), oklch(.24 .02 230 / .5)); }
 .ed {
   --r: 1.4em; position: relative; padding: 2.4em 2.4em 2em; border-radius: var(--r); max-height: calc(100dvh - 24px); overflow: hidden auto; overscroll-behavior: contain;
-  -webkit-backdrop-filter: blur(16px) saturate(1.5); backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.3); backdrop-filter: blur(22px) saturate(1.3);
   background:
-  linear-gradient(calc(var(--la) + 135deg), transparent 18%, oklch(1 0 0 / .45) 27%, oklch(1 0 0 / .1) 33%, transparent 42%),
-  linear-gradient(calc(var(--la) + 180deg), oklch(.995 .005 205 / .74), oklch(.95 .015 205 / .62) 60%, oklch(.92 .022 205 / .66));
-  box-shadow:
-  inset 0 0 0 1px oklch(1 0 0 / .6),
-  inset var(--on2) .5px oklch(1 0 0),
-  inset var(--o3) 3px var(--edge-dark),
-  var(--o2_5) 0 var(--edge-near),
-  var(--o5) 0 var(--edge-far),
-  var(--o26x34) 48px oklch(.2 .03 230 / .32);
+  linear-gradient(calc(var(--la) + 135deg), transparent 18%, oklch(1 0 0 / .4) 27%, oklch(1 0 0 / .08) 33%, transparent 42%),
+  var(--tex-frost) 0 0 / 160px,
+  linear-gradient(calc(var(--la) + 180deg), oklch(.985 .006 205 / .86), oklch(.95 .014 208 / .8) 60%, oklch(.925 .02 210 / .82));
+  box-shadow: var(--slab-rim), var(--slab-side), var(--o26x34) 48px oklch(.2 .03 230 / .34), var(--o6) 14px oklch(.2 .03 230 / .2);
+  outline: 1px solid oklch(1 0 0 / .6); outline-offset: -8px;
 }
 .ed .bolt { width: 1.2em; height: 1.2em; }
 .ed-top { display: flex; align-items: center; gap: .8em; margin-bottom: 1.2em; }
@@ -507,8 +548,8 @@ dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(
 .err[hidden] { display: none; }
 .err::before { content: "!"; display: grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 50%; font-size: .85em; color: white; background: radial-gradient(circle at 40% 35%, oklch(.75 .15 35), var(--e-vermilion-d)); }
 .row { display: grid; gap: .9em; margin-top: 1.05em; }
-.row.three { grid-template-columns: 1.5fr 1fr 1fr; }
-.row.two { grid-template-columns: 1fr 1fr; align-items: end; }
+.row.three { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: .7em; }
+.row.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; }
 .fld { display: grid; gap: .4em; min-width: 0; }
 .fld > span, .fld-label { font: 600 .72em/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
 
@@ -578,7 +619,7 @@ dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(
 .gslider:focus-visible { outline-offset: 2px; }
 .alert-val { font: 600 1.2em/1 var(--ui); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 
-.ed-foot { display: flex; align-items: center; gap: .7em; margin-top: 1.6em; padding-top: 1.3em; border-top: 1px solid oklch(1 0 0 / .8); box-shadow: inset 0 1px 0 oklch(.6 .04 215 / .25); }
+.ed-foot { display: flex; align-items: center; gap: .7em; margin-top: 1.6em; padding-top: 1.3em; border-top: 1.5px solid oklch(.995 .035 200); box-shadow: inset 0 1px 0 oklch(.56 .05 214 / .4), 0 -3px 5px -3px oklch(.86 .09 205 / .5); }
 .ed-foot .grow { flex: 1; }
 
 .tg-caption { color: oklch(.3 .015 240); }
@@ -725,7 +766,7 @@ dialog.editor::backdrop { transition: opacity .22s; background: radial-gradient(
 
 <section class="tg-caption">
   <h2>Frost, a calendar in edge-lit acrylic</h2>
-  <p>Every surface is a slab of acrylic: frosted for the month grid and date picker, clear for the header, side panel and editor. Each slab has a polished arris that catches the light on one side and a darker refracted edge on the other, an internal reflection band, frosting grain, and a soft cast shadow on the concrete with a caustic rim where the polished edge focuses light. Satin aluminium standoffs hold the slabs off the base; brushed LED rails clamp along the top edges and light the engraved grid lines from inside the glass. Today glows warm amber. Events are vitreous enamel chips in a silver cloison.</p>
+  <p>Every surface is a slab of acrylic: frosted for the month grid and date picker, clear for the header, side panel and editor. Each slab has a polished arris that catches the light on one side and a darker refracted edge on the other, an internal reflection line where the edge shows through the face, a luminous side face that pipes the LED light, frosting grain, and a soft cast shadow on the concrete with a caustic rim where the polished edge focuses light. Satin aluminium standoffs hold the slabs off the base; brushed LED rails clamp along the top edges and light the engraved grid lines from inside the glass. Today glows warm amber. Events are vitreous enamel in a silver cloison: opaque domed chips in the month, translucent enamel over silver with a solid enamel edge in the week and day timelines.</p>
   <p>Turn the light dial in the top bar: every edge, shadow, caustic, gloss and engraving moves with it. Nothing uses images; three surfaces use a backdrop blur (the editor, the listbox and the gallery bar).</p>
   <ul>
     <li>Glass push keys with press travel, a latching Day / Week / Month group, enamel primary key.</li>
