@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ember Home</title>
+<meta name="description" content="Ember Home: a smart-home app screen built from lime plaster, bisque ceramic, bead-blasted aluminium and frosted glass.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@200;300;400;500&display=swap">
+<link rel="stylesheet" href="kit/objects.css">
+<script>
+/* Procedural plaster, built once before first paint. Every tile is an SVG feTurbulence
+   rasterised by the browser a single time; nothing here is a live filter. */
+(() => {
+  const u = (w, h, body) => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>${body}</svg>`)}")`;
+  const T = (f, o, s, type = "fractalNoise") => `<feTurbulence type='${type}' baseFrequency='${f}' numOctaves='${o}' seed='${s}' stitchTiles='stitch'/>`;
+  /* Relief: one height field, differentiated four ways (Sobel), each mapped to black
+     where the slope faces away from that light and white where it faces it. CSS mixes
+     the four by the scene light angle, so the trowel marks rake with the light. */
+  const AZ = { w: 180, e: 0, n: 270, s: 90 };
+  const relief = (az) => u(600, 600, `<filter id='f' x='0' y='0' width='100%' height='100%' color-interpolation-filters='sRGB'>${T(".0045 .0075", 4, 23)}<feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0'/><feDiffuseLighting surfaceScale='7' diffuseConstant='1' lighting-color='#fff' result='d'><feDistantLight azimuth='${az}' elevation='45'/></feDiffuseLighting><feColorMatrix in='d' values='0 0 0 0 .16 0 0 0 0 .12 0 0 0 0 .08 -2.2 0 0 0 1.556' result='k'/><feColorMatrix in='d' values='0 0 0 0 1 0 0 0 0 .99 0 0 0 0 .95 1.6 0 0 0 -1.13' result='l'/><feMerge><feMergeNode in='k'/><feMergeNode in='l'/></feMerge></filter><rect width='100%' height='100%' filter='url(#f)'/>`);
+  const r = document.documentElement.style;
+  for (const d in AZ) r.setProperty(`--relief-${d}`, relief(AZ[d]));
+  r.setProperty("--plaster-mottle", u(560, 560, `<filter id='f' x='0' y='0' width='100%' height='100%' color-interpolation-filters='sRGB'>${T(".0042", 4, 8)}<feColorMatrix values='0 0 0 0 .52 0 0 0 0 .44 0 0 0 0 .34 1.5 0 0 0 -.62' result='a'/>${T(".009", 3, 31)}<feColorMatrix values='0 0 0 0 1 0 0 0 0 .99 0 0 0 0 .96 -1.5 0 0 0 .66' result='b'/><feMerge><feMergeNode in='a'/><feMergeNode in='b'/></feMerge></filter><rect width='100%' height='100%' filter='url(#f)'/>`));
+  r.setProperty("--plaster-grain", u(240, 240, `<filter id='f' x='0' y='0' width='100%' height='100%' color-interpolation-filters='sRGB'>${T(".72", 2, 4)}<feColorMatrix values='0 0 0 0 .32 0 0 0 0 .27 0 0 0 0 .22 9 0 0 0 -6.6' result='a'/>${T(".9", 1, 12)}<feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 .97 7 0 0 0 -5.3' result='b'/><feMerge><feMergeNode in='a'/><feMergeNode in='b'/></feMerge></filter><rect width='100%' height='100%' filter='url(#f)'/>`));
+  r.setProperty("--bead", u(120, 120, `<filter id='f' x='0' y='0' width='100%' height='100%'>${T(".95", 2, 2)}<feColorMatrix values='.45 0 0 0 .275 .45 0 0 0 .275 .45 0 0 0 .275 0 0 0 0 1'/></filter><rect width='100%' height='100%' filter='url(#f)'/>`));
+  /* Daylight through a four-pane window, plus a branch of leaves; blurred inside the SVG
+     so the browser caches the soft result as an image. */
+  r.setProperty("--sun", u(1000, 760, `<filter id='b' x='-10%' y='-10%' width='120%' height='120%'><feGaussianBlur stdDeviation='26'/></filter><mask id='m'><rect width='1000' height='760' fill='#fff'/><g fill='#000'><rect x='455' y='60' width='34' height='640'/><rect x='120' y='360' width='720' height='28'/></g></mask><g filter='url(#b)'><path d='M150 70 L820 40 L860 700 L120 730Z' fill='#fff' mask='url(#m)'/></g>`));
+  r.setProperty("--leaves", u(700, 560, `<filter id='b' x='-20%' y='-20%' width='140%' height='140%'><feGaussianBlur stdDeviation='9'/></filter><g filter='url(#b)' fill='#000'><path d='M40 520 C 160 420 260 330 400 250 S 600 140 680 90' fill='none' stroke='#000' stroke-width='9'/>${[[120,450,-30],[190,395,40],[250,350,-45],[320,300,30],[390,255,-55],[450,215,25],[520,175,-40],[580,140,35],[640,108,-20],[300,330,110],[470,200,120]].map(([x,y,a])=>`<ellipse cx='${x}' cy='${y}' rx='58' ry='19' transform='rotate(${a} ${x} ${y}) translate(40 0)'/>`).join("")}</g>`));
+})();
+</script>
+<style>
+:root {
+  --plaster: oklch(0.87 0.018 78);
+  --cer-hi: oklch(0.985 0.005 85); --cer: oklch(0.94 0.009 82); --cer-lo: oklch(0.86 0.013 76);
+  --alu-hi: oklch(0.86 0.012 76); --alu: oklch(0.71 0.013 70); --alu-lo: oklch(0.5 0.013 64);
+  --ink: oklch(0.44 0.014 68); --ink-soft: oklch(0.56 0.012 70);
+  --heat: oklch(0.83 0.145 62); --cool: oklch(0.81 0.105 232); --idle: oklch(0.96 0.012 88);
+  --led: oklch(0.94 0.085 82);
+  --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --sl: var(--tr-shadow-len);
+  color-scheme: light;
+}
+body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter", system-ui, sans-serif; overflow-x: hidden; }
+
+/* ---------------- The wall ---------------- */
+.wall { position: relative; container-type: inline-size; overflow: clip; isolation: isolate; contain: layout paint; background: var(--plaster); }
+.wall > .tex { position: absolute; inset: 0; pointer-events: none; }
+.tex.mottle { background: var(--plaster-grain), var(--plaster-mottle); background-size: 240px, 560px; opacity: .5; }
+.tex.relief { background-size: 600px; background-image: var(--img); opacity: calc(max(0, var(--w)) * .44); }
+.tex.rn { --img: var(--relief-n); --w: var(--sy); }
+.tex.rs { --img: var(--relief-s); --w: calc(-1 * var(--sy)); }
+.tex.rw { --img: var(--relief-w); --w: var(--sx); }
+.tex.re { --img: var(--relief-e); --w: calc(-1 * var(--sx)); }
+/* Ambient: the room is lit from the window side, falling off away from it. */
+.tex.amb { background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(1 0.02 85 / .22), transparent 45%, oklch(0.35 0.03 60 / .16)); }
+.tex.sunwrap { inset: -18% -12%; transform: translate(calc(var(--sx) * 7%), calc(var(--sy) * 6%)) skewX(calc(var(--sx) * -9deg)); }
+.sun, .leaves { position: absolute; inset: 0; background-repeat: no-repeat; }
+.sun { background-image: var(--sun); background-size: 100% 100%; opacity: .42; transition: opacity 1.4s var(--tr-ease-out); }
+.leaves { background-image: var(--leaves); background-size: 46% auto; background-position: 4% 6%; opacity: .11; transform-origin: 6% 90%; transition: opacity 1.4s; }
+.wall[data-shades="1"] .sun { opacity: .07; }
+.wall[data-shades="1"] .leaves { opacity: .02; }
+.wall[data-fan="1"] .leaves { animation: sway 3.2s ease-in-out infinite alternate; }
+@keyframes sway { from { transform: rotate(-.6deg) translateY(-2px); } to { transform: rotate(.8deg) translateY(3px); } }
+.tex.warm { background: radial-gradient(ellipse 60% 70% at 42% 55%, oklch(0.9 0.09 70 / .55), oklch(0.88 0.07 68 / .2) 55%, transparent 80%); opacity: 0; mix-blend-mode: multiply; }
+.tex.warm2 { background: radial-gradient(ellipse 50% 60% at 40% 52%, oklch(1 0.05 85 / .5), transparent 70%); opacity: 0; }
+
+/* ---------------- App frame ---------------- */
+.app { position: relative; z-index: 1; font-size: clamp(8px, 1.17cqi, 18px); width: 53em; margin: 0 auto; padding: 3.2em 0 4.2em; display: grid; gap: 2.6em; }
+.head { display: flex; align-items: center; gap: 1.4em; }
+.brand { display: grid; line-height: 1; margin-right: auto; }
+.brand b { font: 300 1.9em/1 "Outfit", sans-serif; letter-spacing: -.01em; color: oklch(0.38 0.015 66); }
+.brand span { font: 500 .62em/1.4 "Inter", sans-serif; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-soft); margin-top: .55em; }
+.main { display: grid; grid-template-columns: 25em 1fr; gap: 3.8em; align-items: center; }
+.ctrls { display: flex; gap: 1.8em; justify-content: center; }
+
+/* Printed legend (pad print on ceramic). */
+.print { font: 600 .6em/1 "Inter", sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); }
+
+/* ---------------- Ceramic keys (tabs, buttons) ---------------- */
+.trough {
+  display: flex; gap: .28em; padding: .32em; border-radius: 1.25em;
+  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.8 0.016 76), oklch(0.86 0.015 78));
+  box-shadow: inset calc(var(--sx) * .2em) calc(var(--sy) * .2em) .45em oklch(0.3 0.03 60 / .32), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(1 0 0 / .5), 0 0 0 1px oklch(0.55 0.02 70 / .18);
+}
+.key {
+  --d: 1; position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .55em;
+  min-height: 2.75em; padding: 0 1.15em; border: 0; border-radius: .95em; cursor: pointer; isolation: isolate;
+  font: 500 .86em/1 "Inter", sans-serif; letter-spacing: .02em; color: var(--ink); background: none;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; white-space: nowrap;
+}
+.key { font-size: .86em; min-height: max(3.2em, 44px); }
+.key::before { /* cast shadow, stays on the wall while the cap moves */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -2;
+  box-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 1px oklch(0.3 0.03 60 / .35), calc(var(--sx) * .35em * var(--sl)) calc(var(--sy) * .45em * var(--sl)) .9em oklch(0.3 0.03 60 / .22);
+  transition: opacity .12s;
+}
+.key::after { /* the ceramic cap */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1;
+  background: var(--tr-tex-noise) 0 0 / 160px, linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer-hi), var(--cer) 48%, var(--cer-lo));
+  background-blend-mode: soft-light, normal;
+  box-shadow: inset calc(var(--sx) * 1.2px) calc(var(--sy) * 1.2px) 0 oklch(1 0 0 / .9), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0.55 0.02 70 / .35), 0 0 0 .5px oklch(0.5 0.02 70 / .3);
+  transition: transform .09s var(--tr-ease-out);
+}
+.key > * { transition: transform .09s var(--tr-ease-out); }
+@media (hover: hover) {
+  .key:not([aria-selected="true"]):hover::after, .key:not([aria-selected="true"]):hover > * { transform: translate(calc(var(--sx) * -.6px), calc(var(--sy) * -.6px)); }
+}
+.key:is(:active, [data-down])::after, .key:is(:active, [data-down]) > * { transform: translate(calc(var(--sx) * .5px), calc(var(--sy) * .5px)) scale(.985); }
+.key:is(:active, [data-down])::before { opacity: .45; }
+.key svg { width: 1.15em; height: 1.15em; flex: none; }
+.trough .key::before { box-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 1px oklch(0.3 0.03 60 / .3), calc(var(--sx) * .15em) calc(var(--sy) * .2em) .4em oklch(0.3 0.03 60 / .18); }
+.tab { flex: 1 1 0; min-width: 0; padding: 0 .9em; flex-direction: column; gap: .45em; }
+.tab i, .menu li::before { /* a dark glass LED lens pressed into the ceramic, with a lit chamfer */
+  width: .44em; height: .44em; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), oklch(0.64 0.012 72), oklch(0.44 0.012 64) 72%);
+  box-shadow: inset calc(var(--sx) * .04em) calc(var(--sy) * .05em) .06em oklch(0.1 0.02 60 / .8), 0 0 0 .07em oklch(0.74 0.014 74), calc(var(--sx) * .07em) calc(var(--sy) * .07em) 0 .07em oklch(1 0 0 / .85); }
+.tab[aria-selected="true"] { color: oklch(0.3 0.02 60); }
+.tab[aria-selected="true"]::after { transform: translate(calc(var(--sx) * .6px), calc(var(--sy) * .6px)) scale(.985); background: var(--tr-tex-noise) 0 0 / 160px, linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer), oklch(0.9 0.011 80) 55%, oklch(0.84 0.014 76)); background-blend-mode: soft-light, normal; box-shadow: inset calc(var(--sx) * .12em) calc(var(--sy) * .12em) .3em oklch(0.35 0.03 60 / .25), 0 0 0 .5px oklch(0.5 0.02 70 / .3); }
+.tab[aria-selected="true"]::before { opacity: 0; }
+.tab[aria-selected="true"] i, .menu li[aria-selected="true"]::before {
+  background: radial-gradient(circle, oklch(0.99 0.04 90) 0 18%, oklch(0.86 0.15 68) 55%, oklch(0.74 0.16 55));
+  box-shadow: 0 0 0 .07em oklch(0.8 0.08 70), 0 0 .3em .06em oklch(0.82 0.16 62 / .85), 0 0 .9em .1em oklch(0.85 0.15 65 / .45); }
+.rooms { width: 25em; }
+
+/* ---------------- Scene listbox ---------------- */
+.scene { position: relative; }
+.scene .key { padding: 0 1em 0 1.15em; gap: .7em; min-width: 11em; justify-content: space-between; }
+.scene .key small { display: block; font-size: .78em; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: .3em; font-weight: 600; }
+.scene .key span { text-align: left; line-height: 1.1; }
+.chev { transition: transform .2s var(--tr-ease-out); }
+.scene .key[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.menu {
+  position: absolute; z-index: 20; top: calc(100% + .7em); right: 0; width: 15em; margin: 0; padding: .45em; list-style: none; border-radius: 1.1em;
+  background: radial-gradient(120% 90% at calc(50% - var(--sx) * 40%) calc(50% - var(--sy) * 60%), oklch(0.995 0.004 85), oklch(0.955 0.008 82) 60%, oklch(0.92 0.011 78));
+  box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff, inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0.6 0.02 70 / .4), 0 0 0 .5px oklch(0.45 0.02 70 / .3),
+    calc(var(--sx) * .2em) calc(var(--sy) * .3em) .5em oklch(0.3 0.03 60 / .22), calc(var(--sx) * 1.6em * var(--sl)) calc(var(--sy) * 2em * var(--sl)) 3.2em oklch(0.3 0.03 60 / .3);
+  transform-origin: 85% 0; animation: pop .18s var(--tr-ease-out);
+}
+.menu[hidden] { display: none; }
+@keyframes pop { from { opacity: 0; transform: translateY(-.4em) scale(.97); } }
+.menu li { display: flex; align-items: center; gap: .8em; min-height: 2.75em; padding: 0 .9em; border-radius: .75em; font: 500 .9em/1.2 "Inter", sans-serif; color: var(--ink); cursor: pointer; }
+.menu li small { margin-left: auto; color: var(--ink-soft); font-size: .82em; font-weight: 400; }
+.menu li::before { content: ""; }
+.menu li:is(.active, :hover) { background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.89 0.012 78), oklch(0.93 0.009 80)); box-shadow: inset calc(var(--sx) * .1em) calc(var(--sy) * .1em) .25em oklch(0.35 0.03 60 / .2); }
+.menu:focus-visible { outline: none; }
+.menu:focus-visible li.active { box-shadow: inset 0 0 0 1.5px var(--tr-focus), inset calc(var(--sx) * .1em) calc(var(--sy) * .1em) .25em oklch(0.35 0.03 60 / .2); }
+
+/* ---------------- The dial ---------------- */
+.dial { position: relative; width: 25em; aspect-ratio: 1; }
+.dial > *, .ring > * { position: absolute; border-radius: 50%; }
+.dial-shadow { inset: .2em; box-shadow:
+  0 0 .12em .14em oklch(0.25 0.03 60 / .38),
+  calc(var(--sx) * .35em) calc(var(--sy) * .35em) .55em .1em oklch(0.25 0.03 60 / .42),
+  calc(var(--sx) * 1.6em * var(--sl)) calc(var(--sy) * 1.9em * var(--sl)) 2.6em oklch(0.28 0.03 60 / .3),
+  calc(var(--sx) * 3.5em * var(--sl)) calc(var(--sy) * 4em * var(--sl)) 6em oklch(0.3 0.03 60 / .14); }
+.ring { inset: 0; outline-offset: 6px; }
+.ring:focus-visible { outline: 2px solid var(--tr-focus); }
+.knurl { inset: 0; will-change: transform; transform: rotate(var(--tr-angle));
+  background: repeating-conic-gradient(from 0deg, oklch(0.5 0.01 68) 0deg, oklch(0.86 0.008 78) .5deg, oklch(0.5 0.01 68) 1deg); }
+.knurl-light { inset: 0; background:
+  radial-gradient(circle, transparent 46%, oklch(0.2 0.02 60 / .3) 49.6%, transparent 50%),
+  conic-gradient(from var(--tr-light-angle), oklch(1 0.01 85 / .45), oklch(1 0 0 / .05) 18%, oklch(0.18 0.02 60 / .55) 50%, oklch(1 0 0 / .05) 82%, oklch(1 0.01 85 / .45));
+  box-shadow: inset calc(var(--sx) * .6px) calc(var(--sy) * .6px) 0 oklch(1 0 0 / .5); }
+.face { inset: .85em;
+  background:
+    var(--bead) 0 0 / 120px,
+    radial-gradient(circle, oklch(0.25 0.02 60 / .2) 74%, transparent 77%, oklch(1 0.01 85 / .16) 85%, transparent 93%, oklch(0.25 0.02 60 / .22) 99%),
+    conic-gradient(from calc(var(--tr-light-angle) - 40deg), transparent, oklch(1 0.01 85 / .38) 11%, transparent 22%, transparent 78%, oklch(1 0.01 85 / .1) 89%, transparent),
+    conic-gradient(from var(--tr-light-angle), var(--alu-hi), var(--alu) 22%, var(--alu-lo) 50%, var(--alu) 78%, var(--alu-hi)),
+    var(--alu);
+  background-blend-mode: soft-light, normal, normal, normal, normal;
+  box-shadow: 0 0 0 .5px oklch(0.25 0.02 60 / .55), inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(1 0.01 85 / .9), inset calc(var(--sx) * 2.5px) calc(var(--sy) * 2.5px) 2px oklch(1 0 0 / .25), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.25 0.02 60 / .35); }
+.index { inset: .85em; transform: rotate(var(--tr-angle)); will-change: transform; }
+.index::after { content: ""; position: absolute; left: 50%; top: 1.35em; width: .42em; height: .42em; margin-left: -.21em; border-radius: 50%;
+  background: oklch(0.42 0.012 66); box-shadow: inset 0 .06em .1em oklch(0.15 0.02 60 / .8), 0 .04em 0 oklch(1 0 0 / .35); }
+/* Diamond-cut inner chamfer: lit on the side away from the light, it falls into the well. */
+.bezel { inset: 3.65em; background: conic-gradient(from var(--tr-light-angle), oklch(0.42 0.01 68), oklch(0.6 0.01 70) 25%, oklch(0.98 0.008 85) 50%, oklch(0.6 0.01 70) 75%, oklch(0.42 0.01 68));
+  box-shadow: 0 0 0 .5px oklch(0.3 0.02 60 / .6); }
+
+/* Frosted smoked-glass dome. */
+.glass { inset: 4.02em; overflow: hidden; cursor: pointer; isolation: isolate; outline-offset: 5px;
+  transform: scale(calc(1 - var(--tr-press, 0) * .014)); will-change: transform;
+  background: radial-gradient(circle at calc(50% - var(--sx) * 12%) calc(50% - var(--sy) * 12%), oklch(0.25 0.006 70), oklch(0.17 0.005 68) 62%, oklch(0.11 0.004 65));
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.glass > *, .screen > * { position: absolute; }
+.glass .glow { inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 48%, var(--c) 0%, color-mix(in oklch, var(--c) 40%, transparent) 30%, transparent 64%); opacity: 0; transition: opacity .7s var(--tr-ease-out); }
+.glow.g-heat { --c: oklch(0.7 0.15 58 / .5); } .glow.g-cool { --c: oklch(0.68 0.11 235 / .45); } .glow.g-idle { --c: oklch(0.9 0.01 85 / .2); }
+.dial[data-glow="heat"] .g-heat, .dial[data-glow="cool"] .g-cool, .dial[data-glow="idle"] .g-idle { opacity: 1; }
+.dial { --c: var(--idle); }
+.dial[data-glow="heat"] { --c: var(--heat); } .dial[data-glow="cool"] { --c: var(--cool); }
+.screen { inset: 0; transition: opacity .5s var(--tr-ease-out); }
+.dial[data-glow="off"] .screen { opacity: .16; }
+.dial[data-glow="off"] .screen .modes { opacity: 3; }
+.ticks { inset: 0; }
+.ticks span { position: absolute; left: 50%; top: 50%; width: .14em; height: .78em; margin: -7.95em 0 0 -.07em; border-radius: .07em; transform-origin: 50% 7.95em; transform: rotate(var(--a));
+  background: oklch(0.55 0.006 70 / .38); }
+.ticks span:nth-child(3n+1) { height: 1em; background: oklch(0.6 0.006 70 / .5); }
+.ticks span.on { background: var(--c); box-shadow: 0 0 .25em color-mix(in oklch, var(--c) 80%, transparent); }
+.marker, .roomdot { inset: 0; pointer-events: none; }
+.marker { transform: rotate(var(--set-angle, 0deg)); }
+.marker::after { content: ""; position: absolute; left: 50%; top: .25em; width: .24em; height: 1.45em; margin-left: -.12em; border-radius: .12em; background: var(--c);
+  box-shadow: 0 0 .3em var(--c), 0 0 .9em color-mix(in oklch, var(--c) 60%, transparent); }
+.roomdot { transform: rotate(var(--room-angle, 0deg)); transition: transform .6s var(--tr-ease-out); }
+.roomdot::after { content: ""; position: absolute; left: 50%; top: 1.75em; width: .3em; height: .3em; margin-left: -.15em; border-radius: 50%; background: oklch(0.96 0.01 85 / .85); box-shadow: 0 0 .3em oklch(1 0 0 / .5); }
+.readout { inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
+.readout .mark { position: absolute; top: 2.9em; left: 0; right: 0; font: 300 .95em/1 "Outfit", sans-serif; letter-spacing: .04em; color: oklch(0.7 0.006 75 / .55); }
+.status { position: absolute; top: 7.5em; left: 0; right: 0; font: 600 .62em/1 "Inter", sans-serif; letter-spacing: .28em; text-transform: uppercase; color: var(--c); opacity: .9; }
+.temp { font: 200 4.7em/1 "Outfit", sans-serif; letter-spacing: -.03em; padding-left: .2em; color: color-mix(in oklch, var(--c) 55%, white); font-variant-numeric: tabular-nums; margin-top: -.02em;
+  text-shadow: 0 0 .06em var(--c), 0 0 .3em color-mix(in oklch, var(--c) 55%, transparent); }
+.temp sup { font-size: .34em; vertical-align: 1.3em; margin-left: .04em; font-weight: 300; }
+.room { position: absolute; top: 12.35em; left: 0; right: 0; font: 400 .92em/1 "Inter", sans-serif; color: oklch(0.86 0.006 80 / .78); letter-spacing: .02em; }
+.room b { font-weight: 500; color: oklch(0.95 0.006 85 / .9); }
+.modes { position: absolute; left: 0; right: 0; bottom: 1.05em; display: flex; justify-content: center; gap: 1.05em; }
+.modes svg { width: 1.05em; height: 1.05em; color: oklch(0.75 0.006 75 / .22); }
+.modes svg.on { color: var(--c); filter: drop-shadow(0 0 .2em var(--c)); }
+.dial[data-glow="off"] .modes svg.on { color: oklch(0.85 0.01 80); filter: none; }
+/* glass optics, all fixed to the light */
+.frost { inset: 0; border-radius: 50%; background: var(--tr-tex-noise) 0 0 / 110px, radial-gradient(circle, oklch(1 0 0 / .03), oklch(1 0 0 / .07)); opacity: .3; mix-blend-mode: screen; }
+.optics { inset: 0; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, transparent 60%, oklch(0.05 0 0 / .25) 86%, oklch(0.05 0 0 / .55));
+  box-shadow: inset calc(var(--sx) * .5em) calc(var(--sy) * .55em) .9em oklch(0 0 0 / .6), inset 0 0 0 1px oklch(0 0 0 / .6), inset calc(var(--sx) * -1.5px) calc(var(--sy) * -1.5px) 1px oklch(1 0 0 / .14); }
+.spec { inset: 0; border-radius: 50%; pointer-events: none; transform: rotate(var(--tr-light-angle)); }
+.spec::before { content: ""; position: absolute; left: 14%; right: 14%; top: 3.5%; height: 42%; border-radius: 50%;
+  background: radial-gradient(ellipse 50% 46% at 50% 36%, oklch(1 0 0 / .17), oklch(1 0 0 / .05) 60%, transparent 100%); }
+/* the window, reflected small and curved near the top of the dome */
+.win { left: 50%; top: 50%; width: 4.4em; height: 2.3em; margin: -1.15em 0 0 -2.2em; opacity: .42; border-radius: 45% 45% 35% 35% / 70% 70% 40% 40%; pointer-events: none;
+  transform: translate(calc(var(--sx) * -5.3em), calc(var(--sy) * -5.3em)) perspective(10em) rotateX(calc(var(--sy) * 25deg)) rotateY(calc(var(--sx) * -25deg));
+  background: linear-gradient(90deg, transparent 47%, oklch(0.15 0 0 / .28) 48.5% 51.5%, transparent 53%), linear-gradient(180deg, transparent 50%, oklch(0.15 0 0 / .22) 52% 56%, transparent 57%),
+    linear-gradient(180deg, oklch(1 0.01 85 / .2), oklch(1 0.01 85 / .04)); filter: blur(1.4px); }
+.rim { inset: 0; border-radius: 50%; pointer-events: none; transform: rotate(var(--tr-light-angle));
+  background: radial-gradient(ellipse 60% 22% at 50% 102%, oklch(0.95 0.03 80 / .14), transparent 70%), radial-gradient(circle, transparent 92%, oklch(1 0 0 / .1) 97%, transparent 100%); }
+.press-shade { inset: 0; border-radius: 50%; pointer-events: none; opacity: var(--tr-press, 0); background: radial-gradient(circle, transparent 50%, oklch(0 0 0 / .5)); }
+
+/* ---------------- Flush ceramic plates ---------------- */
+.plate { position: relative; width: 8.6em; height: 14.4em; border-radius: .85em;
+  /* Shadow gap: the recess is open plaster, so it is the wall darkened, not a drawn line.
+     Deepest on the light side, where the lip shades it; the far side of the gap is lit. */
+  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.38 0.02 62 / .62), oklch(0.5 0.02 66 / .34) 45%, oklch(0.7 0.02 72 / .2));
+  box-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) .5px oklch(1 0.01 85 / .55), calc(var(--sx) * -.5px) calc(var(--sy) * -.5px) 1px oklch(0.4 0.02 64 / .14),
+    inset calc(var(--sx) * .1em) calc(var(--sy) * .12em) .12em oklch(0.2 0.02 60 / .3); }
+.plate-face { position: absolute; inset: max(1.5px, .085em); border-radius: .78em;
+  background: var(--tr-tex-noise) 0 0 / 150px, radial-gradient(130% 90% at calc(50% - var(--sx) * 50%) calc(50% - var(--sy) * 50%), var(--cer-hi), var(--cer) 55%, var(--cer-lo));
+  background-blend-mode: soft-light, normal;
+  box-shadow: inset calc(var(--sx) * 1.2px) calc(var(--sy) * 1.2px) 0 oklch(1 0 0 / .95), inset calc(var(--sx) * .3em) calc(var(--sy) * .3em) .4em oklch(1 0 0 / .45), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.5 0.02 70 / .4), inset calc(var(--sx) * -.3em) calc(var(--sy) * -.3em) .5em oklch(0.5 0.02 70 / .12),
+    calc(var(--sx) * .05em) calc(var(--sy) * .07em) .07em oklch(0.2 0.02 60 / .3); }
+.plate .print { position: absolute; left: 0; right: 0; bottom: 1.35em; text-align: center; }
+
+/* dimmer */
+.dimmer { position: absolute; left: 2em; right: 2em; top: 1.3em; bottom: 3.1em; --travel: 7.7em; outline-offset: 4px; border-radius: .6em; }
+.dimmer .track { position: absolute; left: 0; right: 0; top: 1.1em; bottom: 1.1em; pointer-events: none; }
+.slot { position: absolute; left: 50%; top: .55em; bottom: .55em; width: .56em; margin-left: -.28em; border-radius: .28em; overflow: hidden;
+  background: linear-gradient(90deg, oklch(0.14 0.01 60), oklch(0.24 0.012 62));
+  box-shadow: inset calc(var(--sx) * .1em) calc(var(--sy) * .12em) .15em oklch(0 0 0 / .85), 0 0 0 1px oklch(0.55 0.02 70 / .35), calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0.6 0.02 70 / .4), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff; }
+.slot i { position: absolute; left: .14em; right: .14em; bottom: .45em; top: .45em; border-radius: .2em; transform-origin: 50% 100%; transform: scaleY(var(--tr-value-ratio));
+  background: linear-gradient(0deg, oklch(0.88 0.12 72), oklch(0.82 0.15 62)); box-shadow: 0 0 .3em oklch(0.85 0.14 68); opacity: calc(.35 + var(--tr-value-ratio) * .65); }
+.scale { position: absolute; left: -.9em; top: 1.1em; bottom: 1.1em; width: .5em; background: repeating-linear-gradient(180deg, oklch(0.5 0.012 68 / .55) 0 1px, transparent 1px calc((100% - 1px) / 10)); background-size: 100% 100%; }
+.scale::before, .scale::after { content: ""; position: absolute; right: 100%; margin-right: .2em; border-radius: 50%; }
+.scale::before { top: -.25em; width: .5em; height: .5em; border: 1.5px solid oklch(0.5 0.012 68 / .7); }
+.scale::after { bottom: -.15em; width: .3em; height: .3em; background: oklch(0.5 0.012 68 / .55); }
+.cap { position: absolute; left: 50%; top: 0; width: 3.3em; height: 2.2em; margin-left: -1.65em; border-radius: 1.1em;
+  transform: translateY(calc((1 - var(--tr-value-ratio)) * var(--travel))); will-change: transform; }
+.cap::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
+  box-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 1.5px oklch(0.2 0.03 60 / .45), calc(var(--sx) * .5em * var(--sl)) calc(var(--sy) * .65em * var(--sl)) 1em oklch(0.25 0.03 60 / .32); }
+.cap::after { content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(70% 60% at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 30%), oklch(1 0 0 / .85), transparent 70%),
+    linear-gradient(180deg, transparent 47%, oklch(0.5 0.02 70 / .25) 48% 52%, oklch(1 0 0 / .6) 53%, transparent 56%),
+    radial-gradient(120% 120% at calc(50% - var(--sx) * 35%) calc(50% - var(--sy) * 45%), var(--cer-hi), var(--cer) 50%, oklch(0.82 0.014 74));
+  box-shadow: inset calc(var(--sx) * -1px) calc(var(--sy) * -1.5px) 1.5px oklch(0.45 0.02 68 / .45), 0 0 0 .5px oklch(0.45 0.02 70 / .35); }
+.dimmer[data-dragging] .cap { scale: 1.02; }
+
+/* rockers */
+.rk-plate .plate-face { display: flex; justify-content: center; gap: .55em; padding-top: 1.05em; }
+.rk { position: relative; width: 3.2em; height: 11.6em; display: flex; flex-direction: column; align-items: center; outline-offset: 2px; border-radius: .5em; }
+.rk .led { width: .36em; height: .36em; border-radius: 50%; margin-bottom: .75em; background: oklch(0.35 0.02 62); box-shadow: inset 0 .05em .06em oklch(0 0 0 / .8), 0 .04em 0 oklch(1 0 0 / .8); position: relative; }
+.rk .led::after { content: ""; position: absolute; inset: -.55em; border-radius: 50%; opacity: 0; transition: opacity .25s;
+  background: radial-gradient(circle, oklch(1 0.03 85) 0 .13em, var(--led) .17em, oklch(0.92 0.09 78 / .45) .3em, transparent 70%); }
+.rk[aria-checked="true"] .led::after { opacity: 1; }
+.aperture { position: relative; width: 2.85em; height: 8.4em; border-radius: .55em; perspective: 13em;
+  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.36 0.016 62), oklch(0.5 0.018 66) 50%, oklch(0.62 0.018 70));
+  box-shadow: inset calc(var(--sx) * .08em) calc(var(--sy) * .1em) .1em oklch(0.12 0.02 60 / .5), calc(var(--sx) * -.5px) calc(var(--sy) * -.5px) .5px oklch(0.55 0.02 70 / .3), calc(var(--sx) * 1px) calc(var(--sy) * 1px) .5px oklch(1 0 0 / .9); }
+.paddle { position: absolute; inset: .075em; border-radius: .47em; --t: calc(var(--tr-value-ratio) * 2 - 1);
+  transform: rotateX(calc(var(--t) * 10deg)); will-change: transform;
+  background: var(--tr-tex-noise) 0 0 / 150px, linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer-hi), var(--cer) 50%, var(--cer-lo));
+  background-blend-mode: soft-light, normal;
+  box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff, inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.45 0.02 68 / .4); }
+.paddle::before, .paddle::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+/* tilting re-lights the face: up-facing gets more of a top light, and vice versa */
+.paddle::before { background: linear-gradient(180deg, oklch(1 0 0 / .5), oklch(1 0 0 / .1)); opacity: calc(var(--t) * var(--sy) * .5); }
+.paddle::after { background: linear-gradient(180deg, oklch(0.3 0.02 60 / .05), oklch(0.3 0.02 60 / .16)); opacity: calc(var(--t) * var(--sy) * -1); }
+.paddle .ao { position: absolute; left: 0; right: 0; height: 55%; border-radius: inherit; pointer-events: none; }
+.ao.top { top: 0; background: linear-gradient(180deg, oklch(0.35 0.02 60 / .3), transparent); opacity: var(--tr-value-ratio); }
+.ao.bot { bottom: 0; background: linear-gradient(0deg, oklch(0.35 0.02 60 / .3), transparent); opacity: calc(1 - var(--tr-value-ratio)); }
+.paddle svg { position: absolute; left: 50%; top: 1.15em; width: 1.05em; height: 1.05em; margin-left: -.525em; color: oklch(0.55 0.012 68 / .8); }
+.paddle b { position: absolute; left: 50%; bottom: 1.05em; width: .9em; height: 2px; margin-left: -.45em; border-radius: 1px; background: oklch(0.55 0.012 68 / .5); }
+.rk .print { position: static; margin-top: .95em; font-size: .52em; }
+
+/* ---------------- Schedule tiles ----------------
+   Glazed ceramic tiles a few millimetres proud of the plaster: a rounded glaze edge that
+   catches the light, the tile's fired body visible as a thin edge on the shadow side, and
+   a contact shadow on the wall. The face is a separate layer so it can press. */
+.sched { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.3em; margin: 0; padding: 0; list-style: none; }
+.schedw h2 { margin: 0 0 1.1em; }
+.sched li { display: grid; }
+.card { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .15em 1em; padding: 1em 1.2em 1.05em 1.25em; border-radius: .8em 1em .9em 1em; cursor: pointer; isolation: isolate;
+  -webkit-tap-highlight-color: transparent; }
+.card::before, .card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.card::before { z-index: -2; /* body edge + cast shadow, fixed to the wall */
+  box-shadow: calc(var(--sx) * .07em) calc(var(--sy) * .1em) 0 oklch(0.83 0.013 75), calc(var(--sx) * .13em) calc(var(--sy) * .19em) 0 oklch(0.7 0.017 68),
+    calc(var(--sx) * .2em) calc(var(--sy) * .28em) .18em oklch(0.28 0.03 60 / .32), calc(var(--sx) * .8em * var(--sl)) calc(var(--sy) * 1em * var(--sl)) 1.8em oklch(0.3 0.03 60 / .2); }
+.card::after { z-index: -1; /* glazed face */
+  background: var(--tr-tex-noise) 0 0 / 160px,
+    radial-gradient(60% 90% at calc(50% - var(--sx) * 38%) calc(50% - var(--sy) * 70%), oklch(1 0 0 / .55), transparent 70%),
+    linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer-hi), var(--cer) 50%, oklch(0.9 0.011 79));
+  background-blend-mode: soft-light, normal, normal;
+  box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff, inset calc(var(--sx) * .28em) calc(var(--sy) * .32em) .4em oklch(1 0 0 / .55),
+    inset calc(var(--sx) * -.22em) calc(var(--sy) * -.26em) .4em oklch(0.5 0.02 70 / .16), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.5 0.02 70 / .32), 0 0 0 .5px oklch(0.45 0.02 70 / .26);
+  transition: transform .09s var(--tr-ease-out); }
+.card > * { transition: transform .09s var(--tr-ease-out), opacity .3s; }
+.card:active::after, .card:active > * { transform: translate(calc(var(--sx) * .5px), calc(var(--sy) * .5px)) scale(.992); }
+.card .print { grid-column: 1; font-size: .56em; letter-spacing: .22em; color: oklch(0.5 0.014 68); }
+.card time { grid-column: 1; font: 300 1.75em/1.05 "Outfit", sans-serif; letter-spacing: -.01em; color: oklch(0.34 0.016 64); }
+.card .det { grid-column: 1; font: 500 .78em/1.3 "Inter", sans-serif; color: oklch(0.5 0.013 68); }
+.card:has(input:not(:checked)) :is(time, .det, .print) { opacity: .6; }
+.card:has(.sw:focus-visible) { outline: 2px solid var(--tr-focus); outline-offset: 3px; }
+/* checkbox as a tiny ceramic slide switch in a plaster groove */
+.sw { grid-row: 1 / 4; grid-column: 2; appearance: none; -webkit-appearance: none; margin: 0; position: relative; width: 3.1em; height: 1.75em; border-radius: 1em; cursor: pointer;
+  background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.78 0.016 74), oklch(0.86 0.014 78));
+  box-shadow: inset calc(var(--sx) * .1em) calc(var(--sy) * .12em) .22em oklch(0.25 0.03 60 / .45), calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0.6 0.02 70 / .3), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff; }
+.sw::before { content: ""; position: absolute; left: .5em; top: 50%; width: .36em; height: .36em; margin-top: -.18em; border-radius: 50%; background: var(--led); box-shadow: 0 0 .3em var(--led); opacity: 0; transition: opacity .2s; }
+.sw::after { content: ""; position: absolute; top: .17em; left: .17em; width: 1.41em; height: 1.41em; border-radius: 50%; transition: transform .22s var(--tr-ease-spring);
+  background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), var(--cer-hi), var(--cer) 50%, oklch(0.83 0.013 75));
+  box-shadow: calc(var(--sx) * .08em) calc(var(--sy) * .12em) .18em oklch(0.25 0.03 60 / .45), 0 0 0 .5px oklch(0.45 0.02 70 / .4); }
+.sw:checked::after { transform: translateX(1.35em); }
+.sw:checked::before { opacity: 1; }
+.sw:focus-visible { outline: none; }
+.h2 { font: 600 .66em/1 "Inter", sans-serif; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-soft); }
+
+/* ---------------- Confirm dialog ---------------- */
+dialog { border: 0; padding: 2em 2em 1.6em; width: min(26em, calc(100vw - 32px)); border-radius: 1.4em; color: var(--ink); font-size: clamp(14px, 1.1vw, 16px);
+  background: var(--tr-tex-noise) 0 0 / 160px, radial-gradient(130% 100% at calc(50% - var(--sx) * 40%) calc(50% - var(--sy) * 50%), oklch(0.995 0.004 85), oklch(0.95 0.008 82) 60%, oklch(0.91 0.011 78));
+  background-blend-mode: soft-light, normal;
+  box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff, inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.5 0.02 70 / .35), 0 0 0 .5px oklch(0.4 0.02 70 / .3),
+    calc(var(--sx) * .3em) calc(var(--sy) * .4em) .7em oklch(0.2 0.03 60 / .25), calc(var(--sx) * 2.4em * var(--sl)) calc(var(--sy) * 3em * var(--sl)) 5em oklch(0.2 0.03 60 / .38); }
+dialog[open] { animation: pop .22s var(--tr-ease-out); }
+dialog::backdrop { background: oklch(0.3 0.02 60 / .28); backdrop-filter: blur(3px) saturate(.9); }
+dialog h2 { margin: 0 0 .5em; font: 300 1.65em/1.15 "Outfit", sans-serif; color: oklch(0.32 0.016 64); }
+dialog h2 .q { margin-left: -.07em; }
+dialog p { margin: 0 0 1.5em; font-size: .92em; line-height: 1.55; color: var(--ink-soft); }
+.dlg-actions { display: flex; justify-content: flex-end; gap: .7em; }
+.dlg-actions .key { font-size: .9em; padding: 0 1.4em; }
+.key.warn { color: oklch(0.98 0.01 80); }
+.key.warn::after { background: var(--tr-tex-noise) 0 0 / 160px, linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.6 0.1 50), oklch(0.5 0.11 44) 55%, oklch(0.43 0.1 40)); background-blend-mode: soft-light, normal;
+  box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(0.85 0.07 60 / .8), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.25 0.06 40 / .5), 0 0 0 .5px oklch(0.3 0.06 40 / .6); }
+
+/* ---------------- Responsive ---------------- */
+@container (max-width: 640px) {
+  .app { font-size: 3.36cqi; width: auto; padding: 1.4em 1.2em 3em; gap: 2em; }
+  .head { flex-wrap: wrap; gap: 1em; }
+  .brand { width: 100%; }
+  .rooms { width: 100%; order: 2; }
+  .tab { padding: 0 .4em; }
+  .scene { order: 1; flex: 1; }
+  .scene .key { width: 100%; min-width: 0; }
+  .alloff { order: 1; }
+  .main { grid-template-columns: 1fr; gap: 2.4em; justify-items: center; }
+  .dial { width: 25em; }
+  .ctrls { font-size: 1.24em; gap: 1.6em; }
+  .sched { grid-template-columns: 1fr; gap: .9em; }
+}
+@media (prefers-reduced-motion: reduce) { .wall[data-fan="1"] .leaves { animation: none; } }
+@media (forced-colors: active) { .glass, .plate-face, .card, .key { border: 1px solid CanvasText; } }
+
+.tg-caption { padding-top: 40px; color: oklch(0.36 0.015 64); }
+.tg-caption ul { padding-left: 1.2em; margin: 0; opacity: .85; }
+.tg-caption li { margin: 0 0 4px; }
+</style>
+</head>
+<body>
+<main class="wall" id="wall" data-shades="0" data-fan="0">
+  <div class="tex mottle"></div>
+  <div class="tex relief rn"></div><div class="tex relief rs"></div><div class="tex relief rw"></div><div class="tex relief re"></div>
+  <div class="tex sunwrap"><div class="sun"></div><div class="leaves"></div></div>
+  <div class="tex amb"></div>
+  <div class="tex warm" id="warm"></div><div class="tex warm2" id="warm2"></div>
+
+  <div class="app">
+    <header class="head">
+      <div class="brand"><b>ember</b><span>Home</span></div>
+      <div class="trough rooms" role="tablist" aria-label="Rooms" id="tabs">
+        <button class="key tab" role="tab" id="t-living" aria-controls="panel" aria-selected="true" data-room="living"><i></i>Living</button>
+        <button class="key tab" role="tab" id="t-kitchen" aria-controls="panel" aria-selected="false" tabindex="-1" data-room="kitchen"><i></i>Kitchen</button>
+        <button class="key tab" role="tab" id="t-bedroom" aria-controls="panel" aria-selected="false" tabindex="-1" data-room="bedroom"><i></i>Bedroom</button>
+        <button class="key tab" role="tab" id="t-studio" aria-controls="panel" aria-selected="false" tabindex="-1" data-room="studio"><i></i>Studio</button>
+      </div>
+      <div class="scene">
+        <button class="key" id="sceneBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="sceneList" aria-labelledby="sceneLbl sceneVal">
+          <span><small id="sceneLbl">Scene</small><b id="sceneVal" style="font-weight:500">Custom</b></span>
+          <svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg>
+        </button>
+        <ul class="menu" id="sceneList" role="listbox" tabindex="-1" aria-labelledby="sceneLbl" hidden></ul>
+      </div>
+      <button class="key alloff" id="allOff" aria-label="Turn everything off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 1.8v5.4M4.7 4.1a5 5 0 1 0 6.6 0"/></svg>All off</button>
+    </header>
+
+    <section class="main" id="panel" role="tabpanel" aria-labelledby="t-living">
+      <div class="dial" id="dial" data-glow="heat">
+        <div class="dial-shadow"></div>
+        <div class="ring" id="ring" aria-label="Set temperature">
+          <div class="knurl"></div><div class="knurl-light"></div><div class="face"></div><div class="index"></div><div class="bezel"></div>
+        </div>
+        <div class="glass" id="glass" aria-label="Mode" aria-describedby="modeTxt">
+          <div class="glow g-heat"></div><div class="glow g-cool"></div><div class="glow g-idle"></div>
+          <div class="screen">
+            <div class="ticks" id="ticks"></div>
+            <div class="marker"></div><div class="roomdot"></div>
+            <div class="readout" aria-hidden="true">
+              <div class="mark">ember</div>
+              <div class="status" id="status">Heating</div>
+              <div class="temp" id="temp">21.5<sup>°</sup></div>
+              <div class="room">Room <b id="roomT">20.2°</b></div>
+              <div class="modes" id="modes"></div>
+            </div>
+          </div>
+          <div class="frost"></div><div class="optics"></div><div class="rim"></div><div class="spec"></div><div class="win"></div><div class="press-shade"></div>
+          <span class="tr-sr" id="modeTxt" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div class="ctrls">
+        <div class="plate">
+          <div class="plate-face">
+            <div class="dimmer" id="dimmer" aria-label="Light level">
+              <div class="scale"></div>
+              <div class="slot"><i></i></div>
+              <div class="track" id="track"></div>
+              <div class="cap" id="cap"></div>
+            </div>
+            <div class="print">Light</div>
+          </div>
+        </div>
+        <div class="plate rk-plate">
+          <div class="plate-face">
+            <div class="rk" id="shades" aria-label="Shades">
+              <span class="led"></span>
+              <div class="aperture"><div class="paddle"><i class="ao top"></i><i class="ao bot"></i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.5 3h11M3.5 3v7.5h9V3M3.5 6h9M3.5 8.5h9M8 10.5v2.5"/></svg><b></b></div></div>
+              <span class="print">Shades</span>
+            </div>
+            <div class="rk" id="fan" aria-label="Fan">
+              <span class="led"></span>
+              <div class="aperture"><div class="paddle"><i class="ao top"></i><i class="ao bot"></i><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 8C7.6 5 8.3 2.4 10.2 2.2c2-.2 2.4 2.4.4 3.7L8 8Zm0 0c-2.8 1.2-5.4.8-5.9-1-.6-1.9 1.9-2.9 3.6-1.3L8 8Zm0 0c2.4 1.8 3.5 4.2 2.2 5.6-1.4 1.4-3.4-.2-2.9-2.5L8 8Z"/><circle cx="8" cy="8" r="1.1"/></svg><b></b></div></div>
+              <span class="print">Fan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="schedw" aria-labelledby="schedH">
+      <h2 class="h2" id="schedH">Schedule</h2>
+      <ul class="sched"></ul>
+    </section>
+  </div>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlgT" aria-describedby="dlgD">
+  <form method="dialog">
+    <h2 id="dlgT">Turn everything off<span class="q">?</span></h2>
+    <p id="dlgD">Heating, lights and fans in every room switch off. Shades stay where they are, and schedules resume tomorrow morning.</p>
+    <div class="dlg-actions">
+      <button class="key" value="cancel" autofocus>Cancel</button>
+      <button class="key warn" value="confirm">Turn off</button>
+    </div>
+  </form>
+</dialog>
+
+<section class="tg-caption">
+  <h2>Ember Home</h2>
+  <p>A smart-home screen built as if the interface were the wall itself: lime plaster with trowel relief that rakes with the light, flush bisque-ceramic plates set into shadow-gap recesses, and a dial thermostat in bead-blasted aluminium around a smoked, frosted-glass dome. The everyday app parts (room tabs, a scene menu, schedule toggles, a confirm dialog) are made from the same ceramic.</p>
+  <p>Light comes from the scene light: the plaster relief is one height field differentiated four ways and mixed by the light angle, the window and leaf shadows slide across the wall, and every chamfer, gloss and cast shadow follows. The room temperature is simulated and drifts toward the set point while the page is visible. Lowering the shades dims the daylight, the fan sways the leaf shadows, and the dimmer warms the plaster.</p>
+  <ul>
+    <li><b>Dial ring</b>: drag around, flick to coast, arrow keys or <kbd>PgUp</kbd>/<kbd>PgDn</kbd>; 10 to 30 °C in half-degree clicks with a firmer detent on whole degrees.</li>
+    <li><b>Glass face</b>: press (click, <kbd>Enter</kbd>, <kbd>Space</kbd>) to cycle Heat, Cool, Auto and Off.</li>
+    <li><b>Light dimmer</b>: drag the ceramic cap or use arrow keys. <b>Shades</b> and <b>Fan</b> rockers: click, drag or <kbd>Space</kbd>.</li>
+    <li><b>Rooms</b>: tabs with arrow keys; <b>Scene</b>: listbox with arrows, <kbd>Enter</kbd>, <kbd>Esc</kbd> and type-ahead; <b>Schedule</b>: native checkboxes; <b>All off</b> asks first.</li>
+  </ul>
+</section>
+
+<script type="module">
+import { mountBar, RotaryController, LinearController, PressController, ToggleController, feedback, animate, clamp } from "./kit/objects.js";
+mountBar({ title: "Ember Home", subtitle: "Lime plaster, bisque ceramic, bead-blasted aluminium, frosted glass", tone: "light" });
+
+feedback.define("glass", { parts: [{ n: 0.004, f: 4300, q: 1.3, g: 0.38 }, { s: 610, d: 0.018, g: 0.06 }, { n: 0.006, f: 1300, q: 0.8, g: 0.22, at: 0.006 }], vib: 8 });
+feedback.define("glassUp", { parts: [{ n: 0.003, f: 5000, q: 1.4, g: 0.16 }], vib: 0 });
+feedback.define("rocker", { parts: [{ n: 0.005, f: 3100, q: 1.1, g: 0.36 }, { n: 0.008, f: 1400, q: 0.9, g: 0.34, at: 0.011 }, { s: 200, d: 0.035, g: 0.13, at: 0.011 }], vib: [6, 14, 8] });
+feedback.define("ceramic", { parts: [{ n: 0.004, f: 3400, q: 1, g: 0.32 }, { s: 330, d: 0.022, g: 0.08 }, { n: 0.006, f: 1100, q: 0.8, g: 0.22, at: 0.004 }], vib: 7 });
+
+const $ = (s) => document.querySelector(s);
+const wall = $("#wall"), dial = $("#dial"), glass = $("#glass");
+const AMB = 18.6, MIN = 10, MAX = 30, SWEEP = 270;
+const MODES = ["heat", "cool", "auto", "off"];
+const MODE_NAME = { heat: "Heat", cool: "Cool", auto: "Auto", off: "Off" };
+const ICON = {
+  heat: '<path d="M8 1.8c.5 2.3 3.7 3.7 3.7 7.1a3.7 3.7 0 0 1-7.4 0c0-1.7.9-2.7 1.7-3.5.1 1.2.6 1.9 1.4 2.2C7 5.8 7.4 3.7 8 1.8Z"/>',
+  cool: '<path d="M8 1.5v13M2.4 4.75l11.2 6.5M2.4 11.25l11.2-6.5M6.3 2.6 8 4.1l1.7-1.5M6.3 13.4 8 11.9l1.7 1.5"/>',
+  auto: '<path d="M12.6 6.2A4.9 4.9 0 0 0 3.4 6M3.4 9.8a4.9 4.9 0 0 0 9.2.2M12.9 3.1v3.2H9.7M3.1 12.9V9.7h3.2"/>',
+  off: '<path d="M8 1.8v5.4M4.7 4.1a5 5 0 1 0 6.6 0"/>',
+};
+$("#modes").innerHTML = MODES.map((m) => `<svg viewBox="0 0 16 16" data-m="${m}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${ICON[m]}</svg>`).join("");
+
+/* 61 ticks, a third of a degree apart, on the same 270deg arc the ring sweeps. */
+const N = 60, ticks = [];
+$("#ticks").append(...Array.from({ length: N + 1 }, (_, i) => { const s = document.createElement("span"); s.style.setProperty("--a", (-SWEEP / 2 + (i * SWEEP) / N) + "deg"); ticks.push(s); return s; }));
+const angleOf = (t) => -SWEEP / 2 + ((t - MIN) / (MAX - MIN)) * SWEEP;
+
+const ROOMS = {
+  living:  { set: 21.5, room: 20.2, mode: "heat", light: 62, shades: 0, fan: 0, scene: "Custom" },
+  kitchen: { set: 20,   room: 20.6, mode: "auto", light: 85, shades: 0, fan: 1, scene: "Daylight" },
+  bedroom: { set: 18.5, room: 19.4, mode: "cool", light: 18, shades: 1, fan: 0, scene: "Evening" },
+  studio:  { set: 22,   room: 21.1, mode: "heat", light: 40, shades: 1, fan: 0, scene: "Custom" },
+};
+let cur = "living", R = ROOMS[cur];
+
+/* ---------- display ---------- */
+let lastRoomShown = null, lastActive;
+function activity() {
+  const d = R.set - R.room;
+  if ((R.mode === "heat" || R.mode === "auto") && d > 0.05) return "heat";
+  if ((R.mode === "cool" || R.mode === "auto") && d < -0.05) return "cool";
+  return null;
+}
+function paint(force) {
+  const act = activity();
+  const glow = R.mode === "off" ? "off" : act || "idle";
+  const shown = Math.round(R.room * 10) / 10;
+  if (!force && shown === lastRoomShown && act === lastActive && dial.dataset.glow === glow) return;
+  lastRoomShown = shown; lastActive = act;
+  dial.dataset.glow = glow;
+  $("#roomT").textContent = shown.toFixed(1) + "°";
+  dial.style.setProperty("--room-angle", angleOf(clamp(R.room, MIN, MAX)) + "deg");
+  $("#status").textContent = glow === "off" ? "Off" : act === "heat" ? "Heating" : act === "cool" ? "Cooling" : Math.abs(R.room - R.set) < 0.15 ? "Holding" : "Idle";
+  const lo = Math.min(R.room, R.set), hi = Math.max(R.room, R.set);
+  ticks.forEach((t, i) => { const v = MIN + (i * (MAX - MIN)) / N; t.classList.toggle("on", !!act && v >= lo - 0.01 && v <= hi + 0.01); });
+  for (const s of $("#modes").children) s.classList.toggle("on", s.dataset.m === R.mode);
+  const vt = `${R.set.toFixed(1)} degrees, ${$("#status").textContent.toLowerCase()}, room ${shown.toFixed(1)}`;
+  ring.setAttribute("aria-valuetext", vt);
+}
+function showSet(v) {
+  const t = $("#temp"); const i = Math.trunc(v), f = Math.round((v - i) * 10);
+  t.innerHTML = `${i}.${f}<sup>°</sup>`;
+}
+
+/* ---------- simulation: room drifts to the set point, pauses when hidden ---------- */
+let simStop = null;
+function target() {
+  if (R.mode === "off") return AMB;
+  if (R.mode === "heat") return R.room < R.set ? R.set : Math.max(R.set, AMB);
+  if (R.mode === "cool") return R.room > R.set ? R.set : Math.min(R.set, AMB);
+  return R.set;
+}
+function kick() {
+  if (simStop || document.hidden) return;
+  simStop = animate((dt) => {
+    if (document.hidden) { simStop = null; return false; }
+    const tgt = target(), d = tgt - R.room;
+    const rate = activity() ? 0.07 : 0.03;
+    R.room += Math.sign(d) * Math.min(Math.abs(d), rate * dt * clamp(Math.abs(d) * 3, 0.3, 1));
+    paint();
+    if (Math.abs(tgt - R.room) < 0.004) { R.room = tgt; paint(true); simStop = null; return false; }
+  });
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) kick(); });
+
+/* ---------- dial ring ---------- */
+const ring = $("#ring");
+const rc = new RotaryController(ring, {
+  min: MIN, max: MAX, step: 0.5, value: R.set, sweep: SWEEP, inertia: 0.5, detentStrength: 0.8, wheel: "focus", resetOnDoubleClick: false,
+  sound: "none", bigStep: 2,
+  valueText: (v) => `${v.toFixed(1)} degrees`,
+  onInput: (v) => {
+    feedback.play(v % 1 === 0 ? "detent" : "tick", { intensity: v % 1 === 0 ? 0.9 : 0.6 });
+    R.set = v; showSet(v); setScene("Custom", false); paint(true); kick();
+  },
+});
+// Kit gap: a key press during a fling is overwritten by the coasting value; stop the fling first.
+ring.addEventListener("keydown", () => rc._stopInertia?.(), true);
+const baseRender = rc.render.bind(rc);
+rc.render = () => { baseRender(); dial.style.setProperty("--set-angle", ring.style.getPropertyValue("--tr-angle")); };
+rc.render();
+
+/* ---------- glass face: press to cycle modes ---------- */
+new PressController(glass, {
+  sound: "glass", soundUp: "glassUp",
+  onActivate: () => setMode(MODES[(MODES.indexOf(R.mode) + 1) % MODES.length]),
+});
+function setMode(m) {
+  R.mode = m; setScene("Custom", false);
+  $("#modeTxt").textContent = `Mode: ${MODE_NAME[m]}`;
+  glass.setAttribute("aria-label", `Mode ${MODE_NAME[m]}. Press to change`);
+  paint(true); kick();
+}
+
+/* ---------- dimmer ---------- */
+const dimmer = $("#dimmer"), warm = $("#warm"), warm2 = $("#warm2");
+const dc = new LinearController(dimmer, {
+  min: 0, max: 100, step: 1, value: R.light, orientation: "vertical", bigStep: 10,
+  track: () => $("#track"), thumb: () => $("#cap"), sound: "none", slideSound: "slide", grabSound: "tick",
+  valueText: (v) => `${Math.round(v)} percent`,
+  onInput: (v) => { if (v % 10 === 0) feedback.play(v === 0 || v === 100 ? "detent" : "tick", { intensity: 0.35 }); R.light = v; setScene("Custom", false); lightWall(v); },
+});
+/* Kit bug workaround: ValueModel.glide() captures its target when it starts, so a value set
+   while a glide is still settling (keyboard right after a drag) never displays. Always glide
+   to the live value instead. */
+for (const c of [rc, dc]) Object.defineProperty(c, "_target", { get() { return this._value; }, set() {} });
+function lightWall(v) { const k = v / 100; warm.style.opacity = (k * 0.85).toFixed(3); warm2.style.opacity = (k * k * 0.7).toFixed(3); }
+
+/* ---------- rockers ---------- */
+const mkRocker = (el, key) => new ToggleController(el, {
+  value: R[key], sound: "rocker", dragPx: 30,
+  onChange: (v) => { R[key] = v; setScene("Custom", false); wall.dataset[key] = v; },
+});
+const shadesT = mkRocker($("#shades"), "shades"), fanT = mkRocker($("#fan"), "fan");
+
+/* ---------- press feel for native buttons (pointer and keyboard) ---------- */
+function keyFx(el, sound = "ceramic") {
+  el.addEventListener("pointerdown", () => feedback.play(sound, { intensity: 0.7 }));
+  el.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && !e.repeat) { el.dataset.down = ""; feedback.play(sound, { intensity: 0.7 }); } });
+  el.addEventListener("keyup", () => delete el.dataset.down);
+  el.addEventListener("blur", () => delete el.dataset.down);
+}
+
+/* ---------- room tabs ---------- */
+const tabs = [...document.querySelectorAll(".tab")];
+function selectRoom(tab, focus) {
+  tabs.forEach((t) => { const on = t === tab; t.setAttribute("aria-selected", on); t.tabIndex = on ? 0 : -1; });
+  if (focus) tab.focus();
+  $("#panel").setAttribute("aria-labelledby", tab.id);
+  cur = tab.dataset.room; R = ROOMS[cur]; syncRoom();
+}
+tabs.forEach((t, i) => {
+  keyFx(t);
+  t.addEventListener("click", () => selectRoom(t));
+  t.addEventListener("keydown", (e) => {
+    const j = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+    if (j == null) return;
+    e.preventDefault(); feedback.play("ceramic", { intensity: 0.6 });
+    selectRoom(tabs[(j + tabs.length) % tabs.length], true);
+  });
+});
+function syncRoom() {
+  ring.value = R.set; showSet(R.set);
+  dimmer.value = R.light; lightWall(R.light);
+  shadesT.set(R.shades, false); fanT.set(R.fan, false);
+  wall.dataset.shades = R.shades; wall.dataset.fan = R.fan;
+  setScene(R.scene, false);
+  $("#modeTxt").textContent = ""; glass.setAttribute("aria-label", `Mode ${MODE_NAME[R.mode]}. Press to change`);
+  paint(true); kick();
+}
+
+/* ---------- scene listbox ---------- */
+const SCENES = [
+  { name: "Morning", note: "21° · 55%", set: 21, light: 55, shades: 0, fan: 0 },
+  { name: "Daylight", note: "20° · 30%", set: 20, light: 30, shades: 0, fan: 0 },
+  { name: "Evening", note: "21.5° · 70%", set: 21.5, light: 70, shades: 1, fan: 0 },
+  { name: "Movie", note: "21° · 12%", set: 21, light: 12, shades: 1, fan: 0 },
+  { name: "Away", note: "17° · off", set: 17, light: 0, shades: 1, fan: 0 },
+];
+const sbtn = $("#sceneBtn"), list = $("#sceneList");
+list.innerHTML = SCENES.map((s, i) => `<li role="option" id="sc-${i}" aria-selected="false">${s.name}<small>${s.note}</small></li>`).join("");
+const opts = [...list.children];
+let active = 0;
+function setScene(name, apply) {
+  R.scene = name; $("#sceneVal").textContent = name;
+  opts.forEach((o, i) => o.setAttribute("aria-selected", SCENES[i].name === name));
+  if (!apply) return;
+  const s = SCENES.find((x) => x.name === name);
+  Object.assign(R, { set: s.set, light: s.light, shades: s.shades, fan: s.fan });
+  if (s.name === "Away") R.mode = "off"; else if (R.mode === "off") R.mode = "auto";
+  syncRoom();
+}
+function hilite(i) { active = (i + opts.length) % opts.length; opts.forEach((o, j) => o.classList.toggle("active", j === active)); list.setAttribute("aria-activedescendant", opts[active].id); }
+function openList() {
+  list.hidden = false; sbtn.setAttribute("aria-expanded", "true");
+  const i = SCENES.findIndex((s) => s.name === R.scene); hilite(i < 0 ? 0 : i); list.focus({ preventScroll: true });
+}
+function closeList(refocus = true) { if (list.hidden) return; list.hidden = true; sbtn.setAttribute("aria-expanded", "false"); if (refocus) sbtn.focus({ preventScroll: true }); }
+function choose(i) { feedback.play("ceramic", { intensity: 0.6 }); setScene(SCENES[i].name, true); closeList(); }
+keyFx(sbtn);
+sbtn.addEventListener("click", () => (list.hidden ? openList() : closeList()));
+sbtn.addEventListener("keydown", (e) => { if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); openList(); } });
+let typed = "", typedT;
+list.addEventListener("keydown", (e) => {
+  const k = e.key;
+  if (k === "ArrowDown") hilite(active + 1);
+  else if (k === "ArrowUp") hilite(active - 1);
+  else if (k === "Home") hilite(0);
+  else if (k === "End") hilite(opts.length - 1);
+  else if (k === "Enter" || k === " ") choose(active);
+  else if (k === "Escape") closeList();
+  else if (k === "Tab") { closeList(false); return; }
+  else if (k.length === 1) { clearTimeout(typedT); typed += k.toLowerCase(); typedT = setTimeout(() => (typed = ""), 600); const i = SCENES.findIndex((s) => s.name.toLowerCase().startsWith(typed)); if (i >= 0) hilite(i); }
+  else return;
+  e.preventDefault();
+  if (k.startsWith("Arrow") || k === "Home" || k === "End") feedback.play("tick", { intensity: 0.3 });
+});
+opts.forEach((o, i) => { o.addEventListener("pointerenter", () => hilite(i)); o.addEventListener("click", () => choose(i)); });
+document.addEventListener("pointerdown", (e) => { if (!e.target.closest(".scene")) closeList(false); });
+
+/* ---------- schedule ---------- */
+const SCHED = [["06:30", "Wake", "21.0° · all rooms", true], ["09:00", "Away", "17.0° · lights off", true], ["18:30", "Evening", "21.5° · shades down", false]];
+$(".sched").insertAdjacentHTML("beforeend", SCHED.map(([t, n, d, on]) => `<li><label class="card"><span class="print">${n}</span><time>${t}</time><span class="det">${d}</span><input type="checkbox" class="sw" ${on ? "checked" : ""} aria-label="${n} at ${t}, ${d}"></label></li>`).join(""));
+document.querySelectorAll(".sw").forEach((c) => c.addEventListener("change", () => feedback.play(c.checked ? "snap" : "rocker", { intensity: 0.55 })));
+
+/* ---------- all off ---------- */
+const dlg = $("#dlg");
+keyFx($("#allOff"));
+dlg.querySelectorAll(".key").forEach((b) => keyFx(b));
+$("#allOff").addEventListener("click", () => dlg.showModal());
+dlg.addEventListener("close", () => {
+  if (dlg.returnValue !== "confirm") return;
+  for (const r of Object.values(ROOMS)) Object.assign(r, { mode: "off", light: 0, fan: 0, scene: "Custom" });
+  feedback.play("thunk", { intensity: 0.5 });
+  syncRoom();
+});
+
+syncRoom();
+window.ember = { ROOMS, get room() { return cur; }, get R() { return R; } };
+</script>
+</body>
+</html>
