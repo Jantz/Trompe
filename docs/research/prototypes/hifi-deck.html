@@ -21,7 +21,7 @@
 /* ------------------------------------------------------------------ */
 /* Recipes: the only place a look is defined. Same markup for all.     */
 /* ------------------------------------------------------------------ */
-:root, [data-tr-recipe="chrome"] {
+:root, [data-tr-skin="chrome"] {
   --page: oklch(0.9 0.012 250);
   --page-ink: oklch(0.3 0.02 255);
   --c-hi: oklch(0.985 0.004 250);  --c-mid: oklch(0.86 0.012 250);  --c-lo: oklch(0.66 0.02 252);
@@ -44,7 +44,7 @@
   /* polished chrome: a soft "sky" band and a ground band reflected in the face */
   --c-env: linear-gradient(180deg, transparent 0 14%, oklch(1 0 0 / .55) 20%, oklch(1 0 0 / 0) 34%, transparent 62%, oklch(0.4 0.03 255 / .14) 74%, transparent 88%);
 }
-[data-tr-recipe="studio"] {
+[data-tr-skin="studio"] {
   --page: oklch(0.2 0.006 60);
   --page-ink: oklch(0.85 0.01 70);
   --c-hi: oklch(0.42 0.006 260);   --c-mid: oklch(0.3 0.006 260);     --c-lo: oklch(0.2 0.006 260);
@@ -65,7 +65,7 @@
   --label-font: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   --c-env: linear-gradient(transparent, transparent);
 }
-[data-tr-recipe="porcelain"] {
+[data-tr-skin="porcelain"] {
   --page: oklch(0.95 0.008 160);
   --page-ink: oklch(0.32 0.02 180);
   --c-hi: oklch(1 0 0);            --c-mid: oklch(0.965 0.005 160);   --c-lo: oklch(0.88 0.01 170);
@@ -150,7 +150,7 @@ body { margin: 0; min-height: 100vh; font: 15px/1.4 system-ui, sans-serif; color
   background: var(--c-texture-img); background-size: 400px 80px; mix-blend-mode: overlay;
   opacity: calc(var(--c-texture) * var(--_r));
 }
-[data-tr-recipe="studio"] .chassis::before, [data-tr-recipe="porcelain"] .chassis::before { background-size: 160px 160px; }
+[data-tr-skin="studio"] .chassis::before, [data-tr-skin="porcelain"] .chassis::before { background-size: 160px 160px; }
 
 /* Socket: a hole milled into the chassis (light falls on its far wall) */
 .socket {
@@ -304,7 +304,7 @@ body { margin: 0; min-height: 100vh; font: 15px/1.4 system-ui, sans-serif; color
 }
 .range:focus-visible { outline: .15em solid var(--accent); outline-offset: .25em; border-radius: 1em; }
 .range:not(.vrange) { --cap-radius: 1em; }
-[data-tr-recipe="studio"] .range:not(.vrange) { --cap-radius: .2em; }
+[data-tr-skin="studio"] .range:not(.vrange) { --cap-radius: .2em; }
 .seek { inline-size: 100%; block-size: 1.4em; }
 
 .transport { display: flex; align-items: center; gap: .55em; flex-wrap: wrap; }
@@ -408,7 +408,7 @@ html.still .marquee span { animation: none; padding-left: 0; }
     <label class="r">Realism <input id="realism" type="range" min="0" max="100" value="100"></label>
   </div>
 
-  <div class="deck" id="deck" data-tr-recipe="chrome">
+  <div class="deck" id="deck" data-tr-skin="chrome">
     <div class="deck-inner">
       <section class="player chassis" aria-label="Player">
         <header class="titlebar">
@@ -498,7 +498,7 @@ const q = new URLSearchParams(location.search);
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* recipe + light controls */
-const setRecipe = r => { deck.dataset.trRecipe = r; document.documentElement.dataset.trRecipe = r; };
+const setRecipe = r => { deck.dataset.trSkin = r; document.documentElement.dataset.trSkin = r; };
 document.querySelectorAll('input[name=recipe]').forEach(i => i.addEventListener('change', () => setRecipe(i.value)));
 const angle = document.getElementById('angle'), realism = document.getElementById('realism'), sun = document.getElementById('sun');
 const applyLight = () => {
