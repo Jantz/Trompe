@@ -13,7 +13,7 @@ import { TrChoiceCard } from './choice-card.js';
  *
  * The group is form-associated: it submits `name=value` (one entry per chosen card when
  * `multiple`), supports `required`, and shows a `hint` and an `error` under the cards, like
- * `tr-input`. Cards fill columns at least `--tr-choice-min` wide (15em) and wrap, so the grid
+ * `tr-input`. Cards fill columns at least `--tr-choice-min` wide (11em) and wrap, so the grid
  * never scrolls sideways on a phone; `columns` caps how many sit in a row.
  *
  * @summary Selectable card group (role="radiogroup", or "group" when multiple), form-associated.
@@ -27,7 +27,7 @@ import { TrChoiceCard } from './choice-card.js';
  * @csspart hint - The help text under the cards.
  * @csspart error - The error message under the cards.
  *
- * @cssprop --tr-choice-min - Narrowest a card column may get before the grid wraps. Defaults to 15em.
+ * @cssprop --tr-choice-min - Narrowest a card column may get before the grid wraps. Defaults to 11em.
  * @cssprop --tr-choice-gap - Space between cards. Defaults to 0.75em.
  *
  * @fires input - The user chose (or, when multiple, toggled) a card.
@@ -42,7 +42,7 @@ export class TrChoiceGroup extends FormControl {
     ...FormControl.styles,
     css`
       :host {
-        --_min: var(--tr-choice-min, 15em);
+        --_min: var(--tr-choice-min, 11em);
         --_gap: var(--tr-choice-gap, 0.75em);
         --_cols: 0;
         display: block;

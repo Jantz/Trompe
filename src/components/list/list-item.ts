@@ -71,6 +71,7 @@ export class TrListItem extends TrompeElement {
         position: relative;
         isolation: isolate;
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: var(--tr-list-item-gap, 0.85em);
         min-height: 3em;
@@ -143,9 +144,11 @@ export class TrListItem extends TrompeElement {
       ::slotted([slot='start']) {
         flex: none;
       }
+      /* the title keeps room for a few words: on a phone a wide end slot (a price and a button)
+         wraps under it, aligned to the end, instead of squeezing it to one word per line */
       .text {
-        flex: 1;
-        min-width: 0;
+        flex: 1 1 0;
+        min-width: min(9em, 100%);
         display: flex;
         flex-direction: column;
         gap: 0.15em;
@@ -167,6 +170,7 @@ export class TrListItem extends TrompeElement {
       }
       .end {
         flex: none;
+        margin-inline-start: auto;
         display: flex;
         align-items: center;
         gap: 0.5em;
