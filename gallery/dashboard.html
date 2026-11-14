@@ -1,0 +1,1227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meridian Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Doto:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="kit/objects.css">
+<style>
+/* Meridian: an operations dashboard built as an instrument panel.
+   Graphite anodised plate, polished chrome bezels, displays lit from within. */
+:root {
+  color-scheme: dark;
+  --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --sl: var(--tr-shadow-len); --la: var(--tr-light-angle);
+  --g0: oklch(.12 .005 255); --g1: oklch(.17 .006 255); --g2: oklch(.215 .007 255); --g3: oklch(.255 .008 255); --g4: oklch(.31 .008 255);
+  --print: oklch(.9 .006 95); --print-2: oklch(.74 .008 95); --print-3: oklch(.58 .008 95);
+  --amber: oklch(.86 .16 70); --amber-glow: oklch(.74 .19 58); --amber-ghost: oklch(.6 .09 60 / .11);
+  --mint: oklch(.91 .16 162); --mint-2: oklch(.78 .14 162); --mint-3: oklch(.55 .1 162);
+  --led-g: oklch(.86 .22 145); --led-a: oklch(.85 .17 78); --led-r: oklch(.68 .23 27);
+  --paper: oklch(.885 .009 100); --paper-lo: oklch(.8 .011 100); --ink: oklch(.25 .012 260); --ink-2: oklch(.42 .012 260);
+  --f-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-lbl: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-dot: "Doto", "IBM Plex Mono", ui-monospace, monospace;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* Bevel faces: how much each side of a raised part faces the light (top, right, bottom, left). */
+  --bev-t: color-mix(in oklch, #fff calc(50% + var(--tr-shadow-y) * 50%), #000);
+  --bev-r: color-mix(in oklch, #fff calc(50% - var(--tr-shadow-x) * 50%), #000);
+  --bev-b: color-mix(in oklch, #fff calc(50% - var(--tr-shadow-y) * 50%), #000);
+  --bev-l: color-mix(in oklch, #fff calc(50% + var(--tr-shadow-x) * 50%), #000);
+  --chrome: linear-gradient(calc(var(--tr-light-angle) + 180deg), #fbfcfd 0%, #a3a9b1 16%, #3a3f46 34%, #c9ced5 52%, #6a7078 70%, #1d2025 100%);
+  --cast-1: calc(var(--tr-shadow-x) * 1px) calc(var(--tr-shadow-y) * 1px) 1px oklch(0 0 0 / .65),
+            calc(var(--tr-shadow-x) * .22em * var(--tr-shadow-len)) calc(var(--tr-shadow-y) * .3em * var(--tr-shadow-len)) .45em oklch(0 0 0 / .5);
+  --lip: inset calc(var(--tr-shadow-x) * 1px) calc(var(--tr-shadow-y) * 1px) 0 oklch(1 0 0 / .22), inset calc(var(--tr-shadow-x) * -1px) calc(var(--tr-shadow-y) * -1px) 0 oklch(0 0 0 / .4);
+  --well: inset calc(var(--tr-shadow-x) * .12em) calc(var(--tr-shadow-y) * .16em) .28em oklch(0 0 0 / .75), inset calc(var(--tr-shadow-x) * -1px) calc(var(--tr-shadow-y) * -1px) 0 oklch(1 0 0 / .14);
+}
+html { background: oklch(.13 .004 255); }
+body { color: var(--print); font: 400 14px/1.45 var(--f-ui);
+  background: radial-gradient(120% 70% at 50% 0%, oklch(.24 .006 255), oklch(.13 .004 255) 70%); }
+.stage { container-type: inline-size; padding: 28px 24px 40px; }
+button { cursor: pointer; }
+
+/* ---------------- panel (graphite anodised) ---------------- */
+.panel {
+  font-size: clamp(11px, .94cqi, 15px);
+  position: relative; isolation: isolate; contain: layout paint; max-width: 112em; margin: 0 auto;
+  padding: 0 1.4em 1.6em; border-radius: 1.3em;
+  border: .16em solid transparent;
+  background:
+    linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .06), transparent 35%, transparent 65%, oklch(0 0 0 / .18)) padding-box,
+    linear-gradient(180deg, var(--g2), var(--g1)) padding-box,
+    linear-gradient(calc(var(--la) + 180deg), oklch(.85 .005 255), oklch(.38 .006 255) 30%, oklch(.16 .005 255) 62%, oklch(.5 .006 255)) border-box;
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .8), calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px oklch(0 0 0 / .5),
+    calc(var(--sx) * 1.6em * var(--sl)) calc(var(--sy) * 2.2em * var(--sl)) 3.4em oklch(0 0 0 / .55);
+}
+.panel::before, .mod::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: var(--tr-tex-noise) 0 0 / 160px; mix-blend-mode: overlay; opacity: .2; }
+
+/* ---------------- brushed aluminium header strip ---------------- */
+.strip {
+  position: relative; isolation: isolate; margin: 0 -1.4em 1.3em; padding: .9em 2.6em; border-radius: 1.14em 1.14em .3em .3em;
+  display: flex; align-items: center; gap: 1.2em; color: oklch(.28 .01 255);
+  background:
+    radial-gradient(16% 160% at calc(50% - var(--sx) * 38%) 50%, oklch(1 0 0 / .4), transparent),
+    linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .3), transparent 30%, transparent 70%, oklch(0 0 0 / .14)),
+    linear-gradient(180deg, oklch(.9 .003 250), oklch(.79 .004 250) 46%, oklch(.74 .004 250) 54%, oklch(.83 .004 250));
+  box-shadow: inset 0 -1px 0 oklch(0 0 0 / .55), inset 0 -2px 0 oklch(1 0 0 / .25), var(--lip),
+    0 calc(var(--sy) * .3em) .5em oklch(0 0 0 / .45);
+}
+.strip::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--tr-tex-brushed) 0 0 / 480px 96px; mix-blend-mode: overlay; opacity: .85; pointer-events: none; }
+.engr { color: oklch(.27 .012 255); text-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(1 0 0 / .65), calc(var(--sx) * -.5px) calc(var(--sy) * -.5px) 0 oklch(0 0 0 / .35); }
+.brand { display: flex; align-items: center; gap: .6em; flex: none; }
+.brand svg { width: 2.1em; height: 2.1em; filter: drop-shadow(calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(1 0 0 / .65)); }
+.brand b { display: block; font: 800 1.35em/1 var(--f-lbl); font-stretch: 125%; letter-spacing: .2em; }
+.brand small { display: block; font: 600 .68em/1 var(--f-lbl); letter-spacing: .26em; text-transform: uppercase; margin-top: .3em; opacity: .85; }
+.screw { position: absolute; width: .95em; height: .95em; border-radius: 50%; --r: 30deg;
+  background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), oklch(.97 0 0), oklch(.66 .004 250) 55%, oklch(.42 .004 250));
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .45), calc(var(--sx) * 1px) calc(var(--sy) * 1px) 1px oklch(0 0 0 / .5), inset 0 0 0 .08em oklch(1 0 0 / .2); }
+.screw::after { content: ""; position: absolute; left: 12%; right: 12%; top: calc(50% - .07em); height: .14em; border-radius: .05em; transform: rotate(var(--r));
+  background: oklch(.25 .005 250); box-shadow: inset calc(var(--sx) * .5px) calc(var(--sy) * .8px) 0 oklch(0 0 0 / .8), 0 0 0 .5px oklch(1 0 0 / .25); }
+.strip .screw { top: calc(50% - .475em); }
+.strip .s1 { left: .9em; } .strip .s2 { right: .9em; }
+
+/* nav: illuminated latching keys in a milled slot */
+.slot { display: flex; gap: .3em; padding: .3em; border-radius: .7em; background: linear-gradient(calc(var(--la) + 180deg), oklch(.13 .004 255), oklch(.22 .005 255));
+  box-shadow: var(--well), 0 0 0 1px oklch(0 0 0 / .35); }
+.tk { position: relative; border: 0; padding: 0; background: none; border-radius: .48em; min-height: 2.7em; }
+.cap { position: relative; display: flex; align-items: center; justify-content: center; gap: .55em; height: 100%; border-radius: inherit;
+  transform: translateY(calc(var(--tr-press, 0) * .16em)) scale(calc(1 - var(--tr-press, 0) * .015)); }
+.cap::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: oklch(0 0 0); opacity: calc(var(--tr-press, 0) * .28); pointer-events: none; }
+.tk .cap { min-height: 2.7em; padding: 0 1.15em; font: 600 .95em/1 var(--f-ui); letter-spacing: .01em; color: oklch(.62 .006 95);
+  background:
+    radial-gradient(120% 90% at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 60%), oklch(1 0 0 / .16), transparent 60%),
+    linear-gradient(180deg, oklch(.3 .006 255), oklch(.2 .006 255));
+  box-shadow: var(--lip), 0 0 0 1px oklch(0 0 0 / .7), var(--cast-1); }
+.tk .led { width: .38em; height: .38em; border-radius: 50%; background: oklch(.32 .03 145); box-shadow: inset 0 .05em .08em oklch(0 0 0 / .7); }
+.tk[aria-selected="true"] .cap { color: oklch(.98 .02 95); text-shadow: 0 0 .5em oklch(.95 .06 90 / .7); }
+.tk[aria-selected="true"] .led { background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 45%); box-shadow: 0 0 .35em .05em var(--led-g); }
+.tk:hover .cap { color: oklch(.82 .01 95); }
+.tk[aria-selected="true"]:hover .cap { color: #fff; }
+
+/* status line (amber VFD) */
+.status { flex: 1 1 auto; min-width: 0; }
+.vfdline { position: relative; overflow: hidden; height: 2.5em; padding: 0 .9em; display: flex; align-items: center; gap: .8em; border-radius: .5em; border: .24em solid;
+  border-color: var(--bev-b) var(--bev-l) var(--bev-t) var(--bev-r);
+  background: radial-gradient(120% 200% at 30% -40%, oklch(.2 .02 60), oklch(.1 .01 50) 70%) padding-box, var(--chrome) border-box;
+  box-shadow: inset calc(var(--sx) * .15em) calc(var(--sy) * .2em) .35em oklch(0 0 0 / .8), 0 0 0 1px oklch(0 0 0 / .5);
+  font: 700 1.04em/1 var(--f-dot); letter-spacing: .05em; color: var(--amber); text-transform: uppercase; white-space: nowrap;
+  text-shadow: 0 0 .1em var(--amber-glow), 0 0 .5em oklch(.74 .19 58 / .55); }
+.vfdline span { overflow: hidden; text-overflow: ellipsis; }
+.vfdline i { flex: none; width: .5em; height: .5em; border-radius: 50%; background: var(--amber-ghost); }
+.vfdline i.on { background: var(--amber); box-shadow: 0 0 .4em var(--amber-glow); }
+.glass::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; z-index: 3;
+  background: linear-gradient(calc(var(--la) + 165deg), oklch(1 0 0 / .11), oklch(1 0 0 / .03) 40%, transparent 40.3%); }
+
+/* search: recessed smoked-glass well */
+.field { position: relative; display: flex; align-items: center; flex: 0 1 17em; min-width: 11em; height: 2.7em; border-radius: .6em;
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(.1 .006 200 / .92), oklch(.2 .008 200 / .88));
+  box-shadow: var(--well), 0 0 0 1px oklch(0 0 0 / .55), 0 1px 0 oklch(1 0 0 / .5); }
+.field svg { position: absolute; left: .8em; width: 1.1em; height: 1.1em; color: oklch(.7 .02 170); pointer-events: none; }
+.field input { appearance: none; -webkit-appearance: none; width: 100%; height: 100%; border: 0; background: none; outline: none;
+  padding: 0 2.2em 0 2.5em; font: 500 .98em/1 var(--f-ui); color: oklch(.93 .03 165); caret-color: var(--led-g); border-radius: inherit; }
+.field input::placeholder { color: oklch(.6 .02 170); }
+.field input::-webkit-search-cancel-button { display: none; }
+.field:focus-within { outline: 2px solid var(--tr-focus); outline-offset: 3px; }
+.field .err { position: absolute; right: .85em; width: .5em; height: .5em; border-radius: 50%; background: oklch(.3 .05 27); }
+.field:has([aria-invalid="true"]) .err { background: radial-gradient(circle at 40% 35%, #fff, var(--led-r) 50%); box-shadow: 0 0 .4em var(--led-r); }
+.field:has([aria-invalid="true"]) input { color: oklch(.85 .1 30); }
+
+/* domed key */
+.dome { position: relative; flex: none; width: 2.9em; height: 2.9em; padding: .24em; border: 0; border-radius: 50%;
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(.42 .004 250), oklch(.92 .003 250));
+  box-shadow: inset 0 0 0 1px oklch(0 0 0 / .4), 0 0 0 1px oklch(1 0 0 / .3); }
+.dome .cap { border-radius: 50%; display: grid; place-items: center; color: oklch(.9 .01 95);
+  background: radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 26%), oklch(.5 .008 255), oklch(.26 .008 255) 55%, oklch(.14 .006 255));
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .75), calc(var(--sx) * .1em) calc(var(--sy) * .14em) .2em oklch(0 0 0 / .6); }
+.dome .cap::before { content: ""; position: absolute; inset: 7% 22% 52%; border-radius: 50%; translate: calc(var(--sx) * -12%) calc(var(--sy) * -12%);
+  background: linear-gradient(180deg, oklch(1 0 0 / .45), oklch(1 0 0 / 0)); pointer-events: none; }
+.dome svg { width: 1.3em; height: 1.3em; position: relative; z-index: 1; }
+.dome.spin svg { animation: spin .6s var(--tr-ease-out); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------------- toolbar ---------------- */
+.toolbar { display: flex; align-items: flex-end; gap: 1.6em; margin: 0 .2em 1.2em; flex-wrap: wrap; }
+.ttl { margin-right: auto; min-width: 0; }
+.ttl h1 { margin: 0; font: 700 2.15em/1.05 var(--f-lbl); font-stretch: 112%; letter-spacing: -.01em; color: var(--print); }
+.ttl p { margin: .35em 0 0; color: var(--print-2); font-size: .95em; }
+.ttl p em { font-style: normal; color: var(--amber); font: 600 .78em/1 var(--f-lbl); letter-spacing: .14em; text-transform: uppercase; padding: .25em .5em; border: 1px solid oklch(.86 .16 70 / .45); border-radius: .3em; margin-left: .3em; vertical-align: .1em; }
+.ctl { display: grid; justify-items: center; gap: .45em; }
+.lbl { font: 650 .72em/1 var(--f-lbl); letter-spacing: .2em; text-transform: uppercase; color: var(--print-2); }
+
+/* range select */
+.sel { position: relative; z-index: 20; }
+.sel-btn { display: flex; align-items: center; gap: .55em; height: 2.9em; padding: 0 .3em 0 .3em; border: 0; border-radius: .6em; background: none; }
+.sel-win { position: relative; display: flex; align-items: center; height: 2.4em; min-width: 7.6em; padding: 0 .8em; border-radius: .42em;
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(.08 .006 200), oklch(.18 .008 200));
+  box-shadow: var(--well), 0 0 0 1px oklch(0 0 0 / .6);
+  font: 700 1.08em/1 var(--f-dot); color: var(--mint); text-transform: uppercase; letter-spacing: .05em; text-shadow: 0 0 .45em oklch(.85 .16 162 / .55); }
+.sel-chev { position: relative; width: 2.3em; height: 2.3em; border-radius: .42em; display: grid; place-items: center;
+  background: linear-gradient(180deg, oklch(.32 .006 255), oklch(.21 .006 255)); box-shadow: var(--lip), 0 0 0 1px oklch(0 0 0 / .7), var(--cast-1); }
+.sel-chev::before { content: ""; width: .5em; height: .5em; border: solid var(--print-2); border-width: 0 .14em .14em 0; transform: translateY(-.12em) rotate(45deg); }
+.sel-btn[aria-expanded="true"] .sel-chev { transform: translateY(.12em); }
+.sel-btn[aria-expanded="true"] .sel-chev::before { transform: translateY(.12em) rotate(225deg); }
+.menu { position: absolute; top: calc(100% + .5em); left: 0; min-width: 15em; margin: 0; padding: .4em; list-style: none; border-radius: .7em; outline: none;
+  background: linear-gradient(170deg, oklch(.26 .01 220 / .72), oklch(.12 .008 220 / .82));
+  -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / .22), inset 0 0 0 1px oklch(1 0 0 / .08), 0 0 0 1px oklch(0 0 0 / .6),
+    calc(var(--sx) * .8em) calc(var(--sy) * 1.1em) 1.8em oklch(0 0 0 / .55);
+  transform-origin: 20% 0; animation: drop .16s var(--tr-ease-out); }
+.menu[hidden] { display: none; }
+@keyframes drop { from { opacity: 0; transform: translateY(-.4em) scale(.98); } }
+.menu li { position: relative; display: grid; grid-template-columns: 1em 1fr auto; align-items: center; gap: .6em; padding: .7em .8em; min-height: 2.9em; border-radius: .45em; cursor: pointer; color: oklch(.85 .01 220); }
+.menu li::before { content: ""; width: .48em; height: .48em; border-radius: 50%; background: oklch(.3 .03 145); box-shadow: inset 0 .05em .08em oklch(0 0 0 / .7); }
+.menu li small { color: oklch(.68 .01 220); font-size: .82em; }
+.menu li.act { background: oklch(1 0 0 / .07); color: #fff; }
+.menu li.act::before { background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 45%); box-shadow: 0 0 .4em .05em var(--led-g); }
+.menu li[aria-selected="true"] { font-weight: 600; }
+.menu li[aria-selected="true"]::after { content: ""; position: absolute; right: .9em; top: 50%; width: .3em; height: .6em; border: solid var(--mint-2); border-width: 0 .13em .13em 0; transform: translateY(-65%) rotate(45deg); }
+.menu li[aria-selected="true"] small { margin-right: 1.3em; }
+
+/* rotary region selector */
+.rot { position: relative; width: 19em; height: 6.1em; }
+.knob { position: absolute; left: calc(50% - 1.9em); bottom: .1em; width: 3.8em; height: 3.8em; border-radius: 50%; }
+.knob > i { position: absolute; inset: 0; border-radius: 50%; display: block; }
+.k-shd { box-shadow: calc(var(--sx) * .2em) calc(var(--sy) * .28em) .25em oklch(0 0 0 / .6), calc(var(--sx) * .55em * var(--sl)) calc(var(--sy) * .75em * var(--sl)) .9em oklch(0 0 0 / .5); }
+.k-skirt { transform: rotate(var(--tr-angle, 0deg));
+  background: repeating-conic-gradient(oklch(.62 .004 250) 0 2.5deg, oklch(.2 .004 250) 2.5deg 6deg); }
+.knob::before { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 1; pointer-events: none;
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .35), transparent 45%, oklch(0 0 0 / .5));
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .7); }
+.k-cap { inset: .42em !important; z-index: 2;
+  background:
+    radial-gradient(circle, transparent 35%, oklch(0 0 0 / .12)),
+    conic-gradient(from calc(var(--la) - 40deg), oklch(.55 .004 250), oklch(.92 .003 250) 40deg, oklch(.5 .004 250) 85deg, oklch(.38 .004 250) 140deg, oklch(.78 .003 250) 220deg, oklch(.42 .004 250) 270deg, oklch(.55 .004 250));
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .55), inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(1 0 0 / .6), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0 0 0 / .4); }
+.k-ptr { position: absolute; inset: 0; transform: rotate(var(--tr-angle, 0deg)); }
+.k-ptr::before { content: ""; position: absolute; left: calc(50% - .1em); top: .14em; width: .2em; height: 1em; border-radius: .1em;
+  background: oklch(.2 .01 255); box-shadow: calc(var(--sx) * .5px) calc(var(--sy) * .5px) 0 oklch(1 0 0 / .55); }
+.rl { position: absolute; --R: 3.25em; left: calc(50% + sin(var(--a)) * var(--R)); top: calc(100% - 2em - cos(var(--a)) * var(--R));
+  translate: calc(-50% + sin(var(--a)) * 78%) calc(-50% - cos(var(--a)) * 45%);
+  font: 650 .78em/1 var(--f-lbl); letter-spacing: .1em; text-transform: uppercase; color: var(--print-3); white-space: nowrap; cursor: pointer; padding: .3em .2em; }
+.rl::after { content: ""; position: absolute; width: .32em; height: .32em; border-radius: 50%; left: calc(50% - .16em); top: -.35em; background: oklch(.3 .03 70); opacity: 0; }
+.rl.on { color: oklch(.97 .04 85); text-shadow: 0 0 .55em oklch(.86 .14 75 / .7); }
+.rl.on::after { opacity: 1; background: var(--amber); box-shadow: 0 0 .35em var(--amber-glow); }
+.rl:hover { color: var(--print); }
+.tick { position: absolute; left: calc(50% - .06em); bottom: 2em; width: .12em; height: .4em; background: var(--print-3); transform-origin: 50% 100%;
+  transform: rotate(var(--a)) translateY(-2.3em); }
+
+/* bat-handle toggle with guard ring */
+.batw { display: grid; grid-template-columns: auto auto; align-items: center; gap: .35em .55em; }
+.bat { position: relative; width: 3.2em; height: 4.4em; grid-row: span 2; border-radius: 1.6em;
+  --p: calc(sin((var(--tr-value-ratio, 0) - .5) * 70deg) / .5736); }
+.bat .ring { position: absolute; left: .1em; top: .7em; width: 3em; height: 3em; border-radius: 50%;
+  background: radial-gradient(circle, transparent 54%, oklch(0 0 0 / .4) 56%, transparent 60%), var(--chrome);
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .65), var(--cast-1); }
+.bat .ring::after { content: ""; position: absolute; inset: .42em; border-radius: 50%; background: radial-gradient(circle at 50% 50%, oklch(.18 .005 255), oklch(.1 .005 255)); box-shadow: inset calc(var(--sx) * .1em) calc(var(--sy) * .14em) .2em oklch(0 0 0 / .9); }
+.bat .nut { position: absolute; left: calc(50% - .55em); top: calc(50% - .55em); width: 1.1em; height: 1.1em; border-radius: 50%; z-index: 1;
+  background: radial-gradient(circle at calc(50% - var(--sx) * 20%) calc(50% - var(--sy) * 20%), #fff, #9aa0a8 45%, #3d4148);
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .6); }
+.bat .lever, .bat .lsh { position: absolute; left: calc(50% - .24em); bottom: 50%; width: .48em; height: 1.75em; border-radius: .24em .24em .1em .1em; transform-origin: 50% 100%; z-index: 2;
+  transform: scaleY(var(--p));
+  background: linear-gradient(90deg, #30343a, #e9edf1 calc(50% - var(--sx) * 28%), #8a9098 calc(62% - var(--sx) * 28%), #2a2e33); }
+.bat .lsh { background: oklch(0 0 0 / .45); z-index: 1; translate: calc(var(--sx) * .5em) calc(var(--sy) * .5em); filter: blur(1.5px); }
+.bat .tip, .bat .tsh { position: absolute; left: calc(50% - .42em); top: calc(50% - .42em); width: .84em; height: .84em; border-radius: 50%; z-index: 3;
+  transform: translateY(calc(var(--p) * -1.75em));
+  background: radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), #fff, #b9bec5 30%, #50555c 75%, #2a2d32); box-shadow: 0 0 0 1px oklch(0 0 0 / .5); }
+.bat .tsh { z-index: 1; background: oklch(0 0 0 / .4); box-shadow: none; translate: calc(var(--sx) * .6em) calc(var(--sy) * .6em); filter: blur(2px); }
+.batw b { font: 650 .72em/1 var(--f-lbl); letter-spacing: .16em; color: var(--print-3); }
+.batw .led { width: .62em; height: .62em; border-radius: 50%; justify-self: start; background: radial-gradient(circle at 40% 35%, oklch(.45 .05 145), oklch(.22 .04 145)); box-shadow: 0 0 0 .14em oklch(.12 .005 255), 0 0 0 .2em oklch(.5 .005 255 / .5); }
+.batw:has([aria-checked="true"]) .led { background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 45%, oklch(.6 .2 145)); box-shadow: 0 0 0 .14em oklch(.12 .005 255), 0 0 .6em .1em var(--led-g); }
+.batw:has([aria-checked="true"]) b.on, .batw:has([aria-checked="false"]) b.off { color: var(--print); }
+
+/* rectangular keys: secondary (graphite), primary (aluminium), danger (oxide red) */
+.key { position: relative; border: 0; padding: 0; background: none; border-radius: .5em; min-height: 2.8em; font: 600 .95em/1 var(--f-ui); }
+.key .cap { padding: 0 1.25em; min-height: 2.95em; color: var(--print);
+  background:
+    linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .1), transparent 45%, oklch(0 0 0 / .2)),
+    linear-gradient(180deg, oklch(.33 .007 255), oklch(.24 .007 255));
+  box-shadow: var(--lip), 0 0 0 1px oklch(0 0 0 / .75), var(--cast-1); }
+.key svg { width: 1.1em; height: 1.1em; }
+.key.primary .cap { color: oklch(.24 .012 255); text-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(1 0 0 / .55);
+  background:
+    radial-gradient(18% 160% at calc(50% - var(--sx) * 35%) 50%, oklch(1 0 0 / .35), transparent),
+    var(--tr-tex-brushed) 0 0 / 240px 48px,
+    linear-gradient(180deg, oklch(.93 .003 250), oklch(.78 .004 250)); background-blend-mode: normal, overlay, normal; }
+.key.danger .cap { color: oklch(.97 .02 40);
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .14), transparent 45%, oklch(0 0 0 / .25)), linear-gradient(180deg, oklch(.5 .15 30), oklch(.4 .14 28)); }
+.key:hover .cap::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: oklch(1 0 0 / .05); }
+.key[aria-disabled="true"] { cursor: not-allowed; }
+.key[aria-disabled="true"] .cap { color: oklch(.55 .006 255); text-shadow: none; filter: saturate(.25) brightness(.8); }
+.key.sm .cap { min-height: 2.5em; padding: 0 1em; }
+
+/* alert banner */
+.alert { display: flex; align-items: center; gap: 1.1em; margin: 0 .2em 1.2em; padding: .8em .9em .8em 1em; border-radius: .8em;
+  background: linear-gradient(90deg, oklch(.3 .05 70 / .35), transparent 40%), linear-gradient(180deg, var(--g3), var(--g2));
+  box-shadow: var(--lip), 0 0 0 1px oklch(0 0 0 / .65), var(--cast-1); transform-origin: 50% 0; }
+.alert .lamp { position: relative; flex: none; width: 2.3em; height: 2.3em; border-radius: 50%; background: var(--chrome); box-shadow: 0 0 0 1px oklch(0 0 0 / .6), var(--cast-1); }
+.alert .lamp::before { content: ""; position: absolute; inset: .3em; border-radius: 50%;
+  background: repeating-conic-gradient(from 15deg, oklch(1 0 0 / .14) 0 30deg, oklch(0 0 0 / .1) 30deg 60deg), radial-gradient(circle at 45% 40%, oklch(.99 .06 90), var(--led-a) 35%, oklch(.6 .17 60) 80%);
+  box-shadow: 0 0 .9em .25em oklch(.8 .17 70 / .55); }
+.alert .lamp::after { content: ""; position: absolute; inset: .3em; border-radius: 50%; background: radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), oklch(1 0 0 / .8), transparent 30%); }
+.alert div { flex: 1; min-width: 0; }
+.alert b { display: block; font-weight: 600; color: var(--print); }
+.alert div > span { color: var(--print-2); font-size: .93em; }
+.alert.out { animation: out .26s var(--tr-ease-out) forwards; }
+@keyframes out { to { opacity: 0; transform: translateY(-.4em) scale(.99); } }
+
+/* ---------------- modules ---------------- */
+.grid { display: grid; gap: 1.2em; grid-template-columns: minmax(0, 1fr); }
+.mod { position: relative; isolation: isolate; min-width: 0; padding: .95em 1.1em 1.15em; border-radius: .95em; border: .13em solid transparent;
+  background:
+    linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .06), transparent 40%, oklch(0 0 0 / .12)) padding-box,
+    linear-gradient(180deg, var(--g3), var(--g2)) padding-box,
+    linear-gradient(calc(var(--la) + 180deg), oklch(.9 .004 250), oklch(.45 .006 250) 30%, oklch(.2 .006 250) 62%, oklch(.6 .005 250)) border-box;
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .7), var(--cast-1), calc(var(--sx) * .7em * var(--sl)) calc(var(--sy) * 1em * var(--sl)) 1.6em oklch(0 0 0 / .35); }
+.mh { display: flex; align-items: baseline; gap: .8em; margin: 0 .1em .75em; min-height: 1.5em; flex-wrap: wrap; }
+.mh h2 { margin: 0; font: 700 .8em/1 var(--f-lbl); letter-spacing: .2em; text-transform: uppercase; color: var(--print); }
+.mh .meta { color: var(--print-3); font-size: .82em; }
+.mh .push { margin-left: auto; }
+
+/* chrome-bevelled display window */
+.win { position: relative; border-radius: .6em; border: .3em solid; overflow: hidden;
+  border-color: var(--bev-b) var(--bev-l) var(--bev-t) var(--bev-r);
+  background-clip: padding-box, border-box; background-origin: padding-box, border-box;
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .7), calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(1 0 0 / .12); }
+.win::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: .3em;
+  box-shadow: inset calc(var(--sx) * .2em) calc(var(--sy) * .28em) .5em oklch(0 0 0 / .85), inset 0 0 0 1px oklch(0 0 0 / .9); }
+.win::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3; border-radius: .3em;
+  background: linear-gradient(calc(var(--la) + 160deg), oklch(1 0 0 / .1), oklch(1 0 0 / .025) 42%, transparent 42.3%); }
+
+/* seven-segment digits with ghost segments */
+.sn { display: inline-flex; gap: .17em; transform: skewX(-6deg); font-size: var(--dh, 2.7em); --on: var(--amber); --off: var(--amber-ghost); --glow: var(--amber-glow);
+  filter: drop-shadow(0 0 .05em var(--glow)) drop-shadow(0 0 .22em color-mix(in oklch, var(--glow) 50%, transparent)); }
+.sd { position: relative; width: .52em; height: 1em; flex: none; }
+.sd i { position: absolute; background: var(--off); }
+.sd i.on { background: var(--on); }
+.sd .a, .sd .d, .sd .g { left: .05em; right: .05em; height: .09em; clip-path: polygon(.045em 0, calc(100% - .045em) 0, 100% 50%, calc(100% - .045em) 100%, .045em 100%, 0 50%); }
+.sd .a { top: 0; } .sd .g { top: calc(50% - .045em); } .sd .d { bottom: 0; }
+.sd .b, .sd .c, .sd .e, .sd .f { width: .09em; height: calc(50% - .07em); clip-path: polygon(50% 0, 100% .045em, 100% calc(100% - .045em), 50% 100%, 0 calc(100% - .045em), 0 .045em); }
+.sd .f { left: 0; top: .05em; } .sd .b { right: 0; top: .05em; } .sd .e { left: 0; bottom: .05em; } .sd .c { right: 0; bottom: .05em; }
+.sd .p { width: .1em; height: .1em; border-radius: 50%; right: -.135em; bottom: 0; }
+
+/* VFD (KPIs) */
+.vfd { background: radial-gradient(130% 180% at 30% -30%, oklch(.19 .025 60), oklch(.09 .012 50) 65%) padding-box, var(--chrome) border-box; }
+.vfd .mesh { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .5;
+  background: repeating-linear-gradient(60deg, oklch(0 0 0 / .35) 0 1px, transparent 1px 4px), repeating-linear-gradient(-60deg, oklch(0 0 0 / .35) 0 1px, transparent 1px 4px),
+    linear-gradient(transparent calc(30% - 1px), oklch(.5 .02 60 / .35) 30%, transparent calc(30% + 1px), transparent calc(72% - 1px), oklch(.5 .02 60 / .35) 72%, transparent calc(72% + 1px)); }
+.m-kpi { display: flex; flex-direction: column; }
+.m-kpi .vfd { flex: 1; display: grid; align-content: center; }
+.kpis { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 1.3em .4em 1.2em; }
+.kpis .sn { --dh: 3.2em; }
+.kpi { display: grid; gap: .55em; padding: 0 1.1em; justify-items: start; min-width: 0; }
+.kpi + .kpi { border-left: 1px solid oklch(.86 .16 70 / .14); }
+.vtx { font: 700 .98em/1.1 var(--f-dot); letter-spacing: .04em; text-transform: uppercase; color: var(--amber); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  text-shadow: 0 0 .08em var(--amber-glow), 0 0 .45em oklch(.74 .19 58 / .5); }
+.vtx.dim { opacity: .62; font-size: .88em; }
+.vtx .up::before { content: "▲ "; } .vtx .dn::before { content: "▼ "; }
+.krow { display: flex; align-items: flex-end; gap: .45em; margin: .2em 0 .1em; }
+.krow .vtx { font-size: .86em; padding-bottom: .1em; }
+
+/* LED ladder (on-time) */
+.ledw { background: linear-gradient(180deg, oklch(.12 .004 255), oklch(.08 .004 255)) padding-box, var(--chrome) border-box; }
+.lads { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .2em .9em; align-items: center; padding: .95em 1em .75em; }
+.lad-n { font: 650 .74em/1.15 var(--f-lbl); letter-spacing: .14em; text-transform: uppercase; color: var(--print-2); }
+.leds { display: grid; grid-template-columns: repeat(25, minmax(0, 1fr)); gap: .18em; height: 1.9em; }
+.leds i { position: relative; border-radius: .12em; background: var(--c-off, oklch(.25 .05 145)); box-shadow: inset 0 0 0 1px oklch(0 0 0 / .55); }
+.leds i::after { content: ""; position: absolute; inset: 1px 1px 55%; border-radius: .1em; background: linear-gradient(oklch(1 0 0 / .14), transparent); }
+.leds { --c-on: var(--led-g); --c-off: oklch(.22 .035 145); }
+.leds[data-c="a"] { --c-on: var(--led-a); --c-off: oklch(.23 .035 75); }
+.leds[data-c="r"] { --c-on: var(--led-r); --c-off: oklch(.22 .04 27); }
+.leds i.past { --c-off: oklch(.26 .035 145); }
+.leds i.on { background: radial-gradient(120% 90% at 50% 40%, oklch(1 0 0 / .8), var(--c-on) 55%); box-shadow: 0 0 .45em color-mix(in oklch, var(--c-on) 70%, transparent), inset 0 0 0 1px oklch(0 0 0 / .2); }
+.leds i.tgt { outline: 1px solid oklch(.92 .005 95 / .9); outline-offset: 2px; }
+.lread { display: flex; align-items: flex-end; gap: .2em; min-width: 5.2em; justify-content: flex-end; }
+.lread .sn { --dh: 1.75em; }
+.lread small { font: 650 .8em/1 var(--f-lbl); color: var(--print-3); padding-bottom: .1em; }
+.lread[data-c="g"] .sn { --on: var(--led-g); --glow: oklch(.7 .2 145); --off: oklch(.5 .08 145 / .12); }
+.lread[data-c="a"] .sn { --on: var(--led-a); --glow: oklch(.72 .17 75); --off: oklch(.5 .08 75 / .12); }
+.lread[data-c="r"] .sn { --on: oklch(.75 .2 27); --glow: oklch(.62 .22 27); --off: oklch(.5 .1 27 / .13); }
+.scale { grid-column: 2; position: relative; height: 1.3em; font: 500 .72em/1 var(--f-mono); color: var(--print-3); }
+.scale span { position: absolute; top: .2em; translate: -50% 0; }
+.scale b { position: absolute; top: -.35em; translate: -50% 0; width: 0; height: 0; border: .4em solid transparent; border-bottom: .55em solid var(--print); border-top: 0; }
+.ot-foot { display: flex; align-items: center; gap: 1.1em; margin-top: 1em; padding: 0 .2em; }
+.ot-foot output { min-width: 4.2em; font: 600 1em/1 var(--f-mono); color: var(--print); text-align: right; }
+.fader { position: relative; flex: 1; height: 2.6em; touch-action: none; }
+.fader .slt { position: absolute; left: 0; right: 0; top: calc(50% - .22em); height: .44em; border-radius: .22em; background: oklch(.08 .004 255); box-shadow: var(--well), 0 0 0 1px oklch(0 0 0 / .4); }
+.fader .tks { position: absolute; left: 1.1em; right: 1.1em; top: 0; height: .5em; background: repeating-linear-gradient(90deg, var(--print-3) 0 1px, transparent 1px calc(100% / 18)); }
+.fader .tks::after { content: ""; position: absolute; inset: 0 -1px 0 auto; width: 1px; background: var(--print-3); }
+.fader .thumb { position: absolute; top: calc(50% - 1em); left: calc(var(--tr-value-ratio, .5) * (100% - 2.2em)); width: 2.2em; height: 2em; border-radius: .3em;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 1px), oklch(.2 .01 255) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+    repeating-linear-gradient(90deg, oklch(1 0 0 / .18) 0 1px, transparent 1px 3px),
+    linear-gradient(calc(var(--la) + 180deg), oklch(.96 .003 250), oklch(.7 .004 250) 50%, oklch(.5 .004 250));
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .65), var(--lip), var(--cast-1); }
+.fader[data-dragging] .thumb { transform: scale(1.03); }
+
+/* OLED chart */
+.oled { background: oklch(.06 .003 200) padding-box, var(--chrome) border-box; }
+.oled .pix { position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: repeating-linear-gradient(0deg, oklch(0 0 0 / .32) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, oklch(0 0 0 / .22) 0 1px, transparent 1px 3px); }
+.chart { position: relative; height: 17.5em; touch-action: pan-y; outline: none; }
+.chart svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.chart text { font-family: var(--f-mono); font-size: 11.5px; fill: var(--mint-2); }
+.chart .ax { fill: oklch(.7 .1 162); }
+.chart .grid line { stroke: oklch(.55 .1 162 / .35); stroke-dasharray: 1 3; }
+.chart .now line { stroke: var(--mint); stroke-dasharray: 2 3; opacity: .7; }
+.chart:focus-visible { outline: 2px solid var(--tr-focus); outline-offset: -4px; }
+.tip { position: absolute; z-index: 2; pointer-events: none; padding: .45em .6em; border: 1px solid oklch(.8 .14 162 / .6); border-radius: .25em; background: oklch(.06 .01 200 / .92);
+  font: 500 .82em/1.35 var(--f-mono); color: var(--mint); white-space: nowrap; text-shadow: 0 0 .4em oklch(.85 .16 162 / .5); }
+.tip[hidden] { display: none; }
+
+/* analog gauge */
+.gwrap { display: grid; justify-items: center; gap: .9em; }
+.gauge { position: relative; width: min(100%, 17.5em); aspect-ratio: 1; border-radius: 50%; padding: .55em;
+  background: var(--chrome); box-shadow: 0 0 0 1px oklch(0 0 0 / .7), var(--cast-1), calc(var(--sx) * .8em * var(--sl)) calc(var(--sy) * 1.1em * var(--sl)) 1.6em oklch(0 0 0 / .4); }
+.gface { position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+  background: radial-gradient(circle at 50% 46%, oklch(.2 .01 230), oklch(.09 .006 230) 72%);
+  box-shadow: inset calc(var(--sx) * .3em) calc(var(--sy) * .4em) .7em oklch(0 0 0 / .85), inset 0 0 0 2px oklch(0 0 0 / .8); }
+.gface svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gface text { font-family: var(--f-lbl); font-weight: 650; fill: oklch(.95 .02 95); }
+.gface .lum { filter: drop-shadow(0 0 1.2px oklch(.95 .05 95 / .8)); }
+.ndl, .ndl-s { position: absolute; left: calc(50% - .17em); bottom: 50%; width: .34em; height: 44%; transform-origin: 50% 100%; translate: 0 .9em; border-radius: .2em .2em 0 0; }
+.ndl { z-index: 2; background: linear-gradient(90deg, oklch(.6 .19 40), oklch(.78 .17 55) 50%, oklch(.55 .18 38)); clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+  filter: drop-shadow(0 0 2px oklch(.75 .18 55 / .7)); }
+.ndl-s { z-index: 1; background: oklch(0 0 0 / .55); clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%); margin: calc(var(--sy) * .3em) 0 0 calc(var(--sx) * .3em); filter: blur(1.5px); }
+.hub { position: absolute; z-index: 3; left: calc(50% - .95em); top: calc(50% - .95em); width: 1.9em; height: 1.9em; border-radius: 50%;
+  background: radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), #fff, #a8aeb6 30%, #3b3f45 80%); box-shadow: 0 0 0 1px oklch(0 0 0 / .7), calc(var(--sx) * .15em) calc(var(--sy) * .2em) .3em oklch(0 0 0 / .7); }
+.gdome { position: absolute; inset: 0; z-index: 4; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(55% 40% at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 30%), oklch(1 0 0 / .16), transparent 70%),
+    radial-gradient(circle at 50% 50%, transparent 62%, oklch(1 0 0 / .05) 64%, transparent 70%); }
+.odo { position: absolute; z-index: 1; left: 50%; top: 68%; translate: -50% 0; padding: .3em .5em; border-radius: .2em; background: oklch(.05 .003 230);
+  box-shadow: inset 0 .1em .2em oklch(0 0 0 / .9), 0 0 0 1px oklch(.4 .01 230 / .5);
+  font: 700 .95em/1 var(--f-dot); color: var(--amber); letter-spacing: .06em; white-space: nowrap; text-shadow: 0 0 .4em oklch(.74 .19 58 / .6); }
+.gkey { display: flex; flex-wrap: wrap; justify-content: center; gap: .5em 1.1em; margin: 0; padding: 0; list-style: none; font-size: .8em; color: var(--print-2); }
+.gkey li { display: flex; align-items: center; gap: .4em; }
+.gkey i { width: 1.2em; height: .3em; border-radius: .1em; }
+
+/* e-paper route table, with soft-keys on the bezel */
+.routes { position: relative; isolation: isolate; --kw: 3.6em; }
+.routes::before { content: ""; position: absolute; inset: 0 0 0 var(--kw); z-index: -1; border-radius: .6em; border: .3em solid;
+  border-color: var(--bev-b) var(--bev-l) var(--bev-t) var(--bev-r);
+  background:
+    linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .22), transparent 55%, oklch(0 0 0 / .07)) padding-box,
+    var(--tr-tex-paper) padding-box 0 0 / 240px,
+    linear-gradient(180deg, var(--paper), var(--paper-lo)) padding-box,
+    var(--chrome) border-box;
+  background-blend-mode: normal, soft-light, normal, normal;
+  box-shadow: 0 0 0 1px oklch(0 0 0 / .7), inset calc(var(--sx) * .2em) calc(var(--sy) * .28em) .45em oklch(0 0 0 / .4); }
+.routes .gl { position: absolute; inset: .3em .3em .3em calc(var(--kw) + .3em); z-index: 2; pointer-events: none; border-radius: .3em;
+  background: linear-gradient(calc(var(--la) + 160deg), oklch(1 0 0 / .2), oklch(1 0 0 / .05) 40%, transparent 40.3%); }
+.flash { position: absolute; inset: .3em .3em .3em calc(var(--kw) + .3em); z-index: 1; pointer-events: none; opacity: 0; background: oklch(.2 .01 260); border-radius: .3em; }
+.routes table { width: 100%; border-collapse: collapse; font-size: .95em; color: var(--ink); }
+.routes th, .routes td { height: 2.95em; padding: 0 .9em; text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.routes thead th { height: 2.6em; padding-top: .3em; font: 700 .72em/1 var(--f-lbl); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); border-bottom: 1.5px solid var(--ink); }
+.routes th:first-child, .routes td:first-child { font-size: 1em; width: var(--kw); padding: 0; text-align: center; border: 0 !important; background: none !important; }
+.routes th:nth-child(2), .routes td:nth-child(2) { padding-left: 1.3em; }
+.routes th:last-child, .routes td:last-child { padding-right: 1.3em; }
+.routes tbody td { border-bottom: 1px dotted oklch(.25 .012 260 / .5); }
+.routes tbody tr:last-child td { border-bottom: 0; }
+.routes .num { text-align: right; }
+.routes .rid { font: 600 .86em/1 var(--f-mono); color: var(--ink-2); margin-right: .6em; }
+.routes .nm { font-weight: 600; }
+.routes tr.sel td:not(:first-child) { background: var(--ink); color: var(--paper); }
+.routes tr.sel .rid { color: oklch(.8 .01 100); }
+.routes tr.sel svg { color: var(--paper); }
+.routes svg { width: 5.5em; height: 1.5em; display: block; color: var(--ink); }
+.tag { display: inline-block; padding: .25em .55em; border: 1.5px solid currentColor; border-radius: 1em; font: 700 .72em/1 var(--f-lbl); letter-spacing: .1em; text-transform: uppercase; }
+.tag.late, .tag.held { background: currentColor; } .tag.late b, .tag.held b { color: var(--paper); }
+tr.sel .tag.late b, tr.sel .tag.held b { color: var(--ink); }
+.tag b { font-weight: inherit; }
+.empty td { text-align: center !important; color: var(--ink-2); font-style: italic; }
+.ep-foot { display: flex; gap: 1em; justify-content: space-between; margin: .6em .2em 0 calc(var(--kw) + .4em); font-size: .8em; color: var(--print-3); }
+.ep-foot b { color: var(--print-2); font-weight: 500; }
+
+/* illuminated square soft-keys (checkboxes) */
+.ck { position: relative; width: 2.15em; height: 2.15em; border: 0; padding: 0; border-radius: .34em; background: none; vertical-align: middle; }
+.ck .cap { border-radius: .34em; background: linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .12), transparent 50%, oklch(0 0 0 / .25)), linear-gradient(180deg, oklch(.33 .007 255), oklch(.23 .007 255));
+  box-shadow: var(--lip), 0 0 0 1px oklch(0 0 0 / .75), var(--cast-1); }
+.ck .cap::before { content: ""; width: 1em; height: .42em; border-radius: .1em; background: linear-gradient(oklch(1 0 0 / .12), transparent 60%), oklch(.3 .05 145); box-shadow: 0 0 0 1px oklch(0 0 0 / .7), 0 1px 0 oklch(1 0 0 / .08); }
+.ck[aria-checked="true"] .cap::before { background: radial-gradient(100% 140% at 50% 30%, #fff, var(--led-g) 55%) border-box; box-shadow: 0 0 .5em .05em var(--led-g); }
+.ck[aria-checked="mixed"] .cap::before { background: var(--led-a); box-shadow: 0 0 .4em var(--led-a); width: .5em; }
+.ck[aria-disabled="true"] { visibility: hidden; }
+.ck::after { content: ""; position: absolute; inset: -.5em -.6em; } /* larger hit target */
+
+/* dialog: brushed aluminium panel */
+dialog { padding: 0; border: 0; background: none; color: inherit; max-width: calc(100vw - 24px); overflow: visible; }
+dialog::backdrop { background: oklch(.08 .005 255 / .62); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+dialog[open] { animation: dlg .22s var(--tr-ease-out); }
+@keyframes dlg { from { opacity: 0; transform: translateY(.6em) scale(.985); } }
+.dlg { position: relative; isolation: isolate; width: min(32em, calc(100vw - 24px)); font-size: clamp(12px, 1vw, 14px); padding: 2em 2.1em 1.7em; border-radius: 1em; color: oklch(.25 .012 255);
+  background:
+    radial-gradient(16% 140% at calc(50% - var(--sx) * 38%) 50%, oklch(1 0 0 / .32), transparent),
+    linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .3), transparent 35%, oklch(0 0 0 / .14)),
+    linear-gradient(180deg, oklch(.9 .003 250), oklch(.79 .004 250));
+  box-shadow: var(--lip), 0 0 0 1px oklch(0 0 0 / .6), calc(var(--sx) * 1.6em) calc(var(--sy) * 2.2em) 3em oklch(0 0 0 / .65); }
+.dlg::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--tr-tex-brushed) 0 0 / 480px 96px; mix-blend-mode: overlay; opacity: .85; }
+.dlg .screw { top: .8em; } .dlg .s1 { left: .8em; } .dlg .s2 { right: .8em; } .dlg .s3 { top: auto; bottom: .8em; left: .8em; } .dlg .s4 { top: auto; bottom: .8em; right: .8em; }
+.dlg h2 { margin: 0; font: 800 1.35em/1.1 var(--f-lbl); font-stretch: 115%; letter-spacing: .06em; text-transform: uppercase; }
+.dlg .sum { margin: .45em 0 1.3em; font-size: .95em; opacity: .85; }
+.dlg fieldset { border: 0; margin: 0 0 1.2em; padding: 0; display: grid; gap: .6em; }
+.dlg legend, .dlg .fl { font: 700 .72em/1 var(--f-lbl); letter-spacing: .2em; text-transform: uppercase; margin-bottom: .7em; padding: 0; display: block; }
+.jw { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .9em; padding: .55em .7em; min-height: 3.2em; border-radius: .6em; cursor: pointer;
+  background: oklch(0 0 0 / .05); box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(0 0 0 / .15), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(1 0 0 / .5); }
+.jw input { appearance: none; -webkit-appearance: none; margin: 0; position: relative; width: 2em; height: 2em; border-radius: 50%; cursor: pointer;
+  background: var(--chrome); box-shadow: 0 0 0 1px oklch(0 0 0 / .5), var(--cast-1); }
+.jw input::before { content: ""; position: absolute; inset: .28em; border-radius: 50%;
+  background: conic-gradient(from 20deg, oklch(1 0 0 / .18), transparent 60deg, oklch(1 0 0 / .1) 120deg, transparent 180deg, oklch(1 0 0 / .16) 240deg, transparent 300deg, oklch(1 0 0 / .18)), radial-gradient(circle at 45% 40%, oklch(.42 .1 145), oklch(.18 .06 145)); }
+.jw input::after { content: ""; position: absolute; inset: .28em; border-radius: 50%; background: radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), oklch(1 0 0 / .85), transparent 28%); }
+.jw input:checked::before { background: conic-gradient(from 20deg, oklch(1 0 0 / .3), transparent 60deg, oklch(1 0 0 / .2) 120deg, transparent 180deg, oklch(1 0 0 / .25) 240deg, transparent 300deg, oklch(1 0 0 / .3)), radial-gradient(circle at 45% 40%, #fff, var(--led-g) 40%, oklch(.55 .19 145)); box-shadow: 0 0 .8em .2em oklch(.86 .22 145 / .6); }
+.jw b { display: block; font: 700 1em/1.2 var(--f-lbl); letter-spacing: .08em; }
+.jw small { display: block; font-size: .85em; opacity: .78; }
+.ta { display: block; width: 100%; min-height: 5.5em; resize: vertical; padding: .75em .85em; border: 0; border-radius: .55em; outline: none;
+  font: 400 .98em/1.45 var(--f-ui); color: oklch(.93 .03 165); caret-color: var(--led-g);
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(.1 .006 200 / .94), oklch(.2 .008 200 / .9));
+  box-shadow: var(--well), 0 0 0 1px oklch(0 0 0 / .55), 0 1px 0 oklch(1 0 0 / .5); }
+.ta::placeholder { color: oklch(.6 .02 170); }
+.ta:focus-visible { outline: 2px solid var(--tr-focus); outline-offset: 3px; }
+.dlg .act { display: flex; justify-content: flex-end; gap: .8em; margin-top: 1.5em; }
+.dlg .key:not(.primary) .cap { color: oklch(.25 .012 255); text-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 oklch(1 0 0 / .5);
+  background: linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .5), transparent 50%, oklch(0 0 0 / .1)), linear-gradient(180deg, oklch(.86 .003 250), oklch(.74 .004 250)); }
+.dlg .key.primary .cap { color: oklch(.97 .02 145); text-shadow: 0 0 .5em oklch(.86 .2 145 / .6); background: linear-gradient(calc(var(--la) + 180deg), oklch(1 0 0 / .12), transparent 45%, oklch(0 0 0 / .2)), linear-gradient(180deg, oklch(.33 .007 255), oklch(.22 .007 255)); }
+.dlg .key.primary .cap::before { content: ""; position: static; width: .45em; height: .45em; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 50%); box-shadow: 0 0 .4em var(--led-g); }
+
+/* caption */
+.tg-caption { padding-top: 32px; color: oklch(.88 .006 95); }
+
+/* ---------------- responsive ---------------- */
+@container (min-width: 1000px) {
+  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .92fr); grid-template-areas: "kpi kpi ot" "chart chart gauge" "tbl tbl tbl"; }
+  .m-kpi { grid-area: kpi; } .m-ot { grid-area: ot; } .m-chart { grid-area: chart; } .m-gauge { grid-area: gauge; } .m-tbl { grid-area: tbl; }
+}
+@container (min-width: 700px) and (max-width: 999.98px) {
+  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "kpi kpi" "ot gauge" "chart chart" "tbl tbl"; }
+  .m-kpi { grid-area: kpi; } .m-ot { grid-area: ot; } .m-chart { grid-area: chart; } .m-gauge { grid-area: gauge; } .m-tbl { grid-area: tbl; }
+}
+@container (max-width: 1180px) { .status { display: none; } }
+@container (max-width: 699.98px) {
+  .panel { font-size: 12px; padding: 0 .9em 1.2em; border-radius: 1.1em; }
+  .strip { margin: 0 -.9em 1.1em; padding: .8em 1.1em; flex-wrap: wrap; gap: .8em; border-radius: .95em .95em .3em .3em; }
+  .strip .screw { display: none; }
+  .brand { margin-right: auto; }
+  .slot { order: 3; flex: 1 1 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .slot::-webkit-scrollbar { display: none; }
+  .tk { flex: 1 0 auto; scroll-snap-align: start; }
+  .tk, .tk .cap { min-height: 3.7em; }
+  .field { order: 4; flex: 1 1 100%; height: 3.7em; }
+  .dome { width: 3.8em; height: 3.8em; }
+  .toolbar { gap: 1.1em 1em; align-items: center; justify-content: space-between; }
+  .ttl { flex: 1 1 100%; }
+  .ttl h1 { font-size: 1.9em; }
+  .ctl-region { order: 3; flex: 1 1 100%; }
+  .export { order: 4; flex: 1 1 100%; }
+  .export .cap, .key .cap { min-height: 3.95em; }
+  .sel-btn { height: 3.7em; } .sel-win { height: 3.4em; } .sel-chev { width: 3.4em; height: 3.4em; }
+  .rot { width: 17em; }
+  .alert { flex-wrap: wrap; }
+  .alert div { flex-basis: calc(100% - 4em); }
+  .alert .key { margin-left: auto; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.2em; padding: 1em .2em; }
+  .kpi { padding: 0 .9em; }
+  .kpi:nth-child(3) { border-left: 0; }
+  .sn, .kpis .sn { --dh: 2.15em; }
+  .chart { height: 15em; }
+  .mh .push { margin-left: 0; flex: 1 1 100%; display: flex; gap: .6em; }
+  .mh .push .key { flex: 1; }
+  .routes { --kw: 4.4em; }
+  .routes th, .routes td { height: 4.3em; padding: 0 .5em; }
+  .routes td:nth-child(2) { white-space: normal; line-height: 1.2; }
+  .routes th:nth-child(2), .routes td:nth-child(2) { padding-left: 1.15em; }
+  .routes th:last-child, .routes td:last-child { padding-right: .8em; }
+  .rl { padding: .9em .4em; }
+  .rot { width: 100%; max-width: 21em; }
+  .routes .c-zone, .routes .c-avg, .routes .c-trend, .routes .c-drops { display: none; }
+  .key.sm .cap { min-height: 3.9em; }
+  .bat { width: 3.8em; }
+  .fader { height: 3.9em; }
+  .ck { width: 3.95em; height: 3.95em; }
+  .ck .cap { border-radius: .45em; }
+  .knob { width: 4.2em; height: 4.2em; left: calc(50% - 2.1em); bottom: -.1em; }
+  .routes .rid { display: block; margin: 0 0 .25em; }
+  .ep-foot { flex-direction: column; gap: .2em; }
+  .tg-caption { padding-top: 24px; }
+}
+@media (max-width: 699.98px) { .stage { padding: 14px 10px 28px; } }
+@media (prefers-reduced-motion: reduce) { .menu, dialog[open], .alert.out { animation: none; } }
+@media (forced-colors: active) { .win, .mod, .key, .ck, .tk { border: 1px solid CanvasText; } .sd i:not(.on) { background: transparent; } }
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="panel" id="panel">
+    <header class="strip">
+      <i class="screw s1" style="--r:22deg"></i><i class="screw s2" style="--r:-64deg"></i>
+      <div class="brand engr">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="16" cy="16" r="12.5"/><path d="M16 2.5v27M6 11c6 3 14 3 20 0M6 21c6-3 14-3 20 0"/></svg>
+        <div><b>MERIDIAN</b><small>Courier operations</small></div>
+      </div>
+      <div class="slot" role="tablist" aria-label="Sections">
+        <button class="tk" role="tab" id="t-overview" data-tab="overview" aria-controls="view"><span class="cap"><i class="led"></i>Overview</span></button>
+        <button class="tk" role="tab" id="t-fleet" data-tab="fleet" aria-controls="view"><span class="cap"><i class="led"></i>Fleet</span></button>
+        <button class="tk" role="tab" id="t-riders" data-tab="riders" aria-controls="view"><span class="cap"><i class="led"></i>Riders</span></button>
+        <button class="tk" role="tab" id="t-reports" data-tab="reports" aria-controls="view"><span class="cap"><i class="led"></i>Reports</span></button>
+      </div>
+      <div class="status"><div class="vfdline glass" role="status" aria-live="polite"><i id="st-dot"></i><span id="status">Synced 14:20 · sample data</span></div></div>
+      <label class="field"><span class="tr-sr">Search routes</span>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4.5 4.5" stroke-linecap="round"/></svg>
+        <input type="search" id="search" placeholder="Search routes" autocomplete="off" aria-describedby="tbl-meta"><i class="err" aria-hidden="true"></i>
+      </label>
+      <button class="dome" id="refresh" aria-label="Refresh data"><span class="cap"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3"/><path d="M16.2 3.5v3.2H13"/></svg></span></button>
+    </header>
+
+    <div id="view" role="tabpanel" aria-labelledby="t-overview">
+      <div class="toolbar">
+        <div class="ttl"><h1 id="vtitle">Overview</h1><p id="vsub">Calder Bay courier network · Sat 14 Nov<em>Sample data</em></p></div>
+        <div class="ctl"><span class="lbl" id="lbl-range">Range</span>
+          <div class="sel">
+            <button class="sel-btn" id="range-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="range-list" aria-labelledby="lbl-range range-val"><span class="sel-win" id="range-val">7 days</span><span class="sel-chev" aria-hidden="true"></span></button>
+            <ul class="menu" id="range-list" role="listbox" tabindex="-1" aria-labelledby="lbl-range" hidden>
+              <li role="option" id="o-today" data-v="today">Today<small>06:00 – now</small></li>
+              <li role="option" id="o-d7" data-v="d7">7 days<small>8 – 14 Nov</small></li>
+              <li role="option" id="o-d30" data-v="d30">30 days<small>16 Oct – 14 Nov</small></li>
+            </ul>
+          </div>
+        </div>
+        <div class="ctl ctl-region"><span class="lbl" id="lbl-region">Region</span>
+          <div class="rot" id="rot">
+            <i class="tick" style="--a:-110deg"></i><i class="tick" style="--a:-36.67deg"></i><i class="tick" style="--a:36.67deg"></i><i class="tick" style="--a:110deg"></i>
+            <span class="rl" data-i="0" style="--a:-110deg">All</span><span class="rl" data-i="1" style="--a:-36.67deg">Harbour</span><span class="rl" data-i="2" style="--a:36.67deg">Midtown</span><span class="rl" data-i="3" style="--a:110deg">Hillside</span>
+            <div class="knob" id="region" aria-labelledby="lbl-region"><i class="k-shd"></i><i class="k-skirt"></i><i class="k-cap"></i><i class="k-ptr"></i></div>
+          </div>
+        </div>
+        <div class="ctl"><span class="lbl" id="lbl-live">Live</span>
+          <div class="batw"><div class="bat" id="live" aria-labelledby="lbl-live"><i class="ring"></i><i class="lsh"></i><i class="tsh"></i><i class="nut"></i><i class="lever"></i><i class="tip"></i></div><b class="on">ON</b><i class="led"></i><b class="off" style="grid-column:2">OFF</b></div>
+        </div>
+        <button class="key primary export" id="export"><span class="cap"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v9m-3.5-3.5L10 12l3.5-3.5M4 14v2.5h12V14"/></svg>Export report</span></button>
+      </div>
+
+      <div class="alert" id="alert" role="region" aria-label="Alert">
+        <span class="lamp" aria-hidden="true"></span>
+        <div><b>Hillside depot: brake service due on 3 cargo bikes</b><span>Hillside capacity is down 12% until 16:00, and its on-time rate is under target.</span></div>
+        <button class="key sm" id="dismiss"><span class="cap">Dismiss</span></button>
+      </div>
+
+      <div class="grid">
+        <section class="mod m-kpi" aria-labelledby="h-kpi">
+          <header class="mh"><h2 id="h-kpi">At a glance</h2><span class="meta" id="kpi-meta"></span></header>
+          <div class="win vfd glass"><div class="kpis" id="kpis"></div><div class="mesh"></div></div>
+        </section>
+
+        <section class="mod m-ot" aria-labelledby="h-ot">
+          <header class="mh"><h2 id="h-ot">Service level</h2><span class="meta">% of deliveries</span></header>
+          <div class="win ledw"><div class="lads" id="lads">
+            <span class="lad-n">On time</span><div class="leds" id="led-ot" role="img"></div><div class="lread" id="rd-ot"><div class="sn"></div><small>%</small></div>
+            <span class="lad-n">First<br>attempt</span><div class="leds" id="led-fa" role="img"></div><div class="lread" id="rd-fa"><div class="sn"></div><small>%</small></div>
+            <div class="scale" id="scale" aria-hidden="true"></div>
+          </div></div>
+          <div class="ot-foot"><span class="lbl" id="lbl-sla">SLA target</span><div class="fader" id="sla" aria-labelledby="lbl-sla"><i class="tks"></i><i class="slt"></i><i class="thumb"></i></div><output id="sla-out" for="sla">95.0%</output></div>
+        </section>
+
+        <section class="mod m-chart" aria-labelledby="h-chart">
+          <header class="mh"><h2 id="h-chart">Deliveries per hour</h2><span class="meta" id="chart-meta"></span></header>
+          <div class="win oled glass"><div class="chart" id="chart" tabindex="0" role="img"><svg id="csvg" aria-hidden="true"></svg><div class="tip" id="tip" hidden></div></div><div class="pix"></div></div>
+        </section>
+
+        <section class="mod m-gauge" aria-labelledby="h-gauge">
+          <header class="mh"><h2 id="h-gauge">Fleet utilisation</h2><span class="meta" id="g-meta">bikes on the road</span></header>
+          <div class="gwrap">
+            <div class="gauge" id="gauge" role="meter" aria-labelledby="h-gauge" aria-valuemin="0" aria-valuemax="100">
+              <div class="gface"><svg viewBox="0 0 200 200" id="gsvg" aria-hidden="true"></svg><div class="odo" id="odo">41/52</div><i class="ndl-s" id="ndl-s"></i><i class="ndl" id="ndl"></i><i class="hub"></i></div>
+              <i class="gdome"></i>
+            </div>
+            <ul class="gkey" aria-label="Gauge bands"><li><i style="background:oklch(.55 .01 230)"></i>Under 60% idle</li><li><i style="background:var(--led-g)"></i>60–90% target</li><li><i style="background:var(--led-r)"></i>Over 90% stretched</li></ul>
+          </div>
+        </section>
+
+        <section class="mod m-tbl" aria-labelledby="h-tbl">
+          <header class="mh"><h2 id="h-tbl">Top routes</h2><span class="meta" id="tbl-meta"></span>
+            <div class="push"><button class="key sm" id="reassign" aria-disabled="true"><span class="cap">Reassign riders</span></button><button class="key sm danger" id="hold" aria-disabled="true"><span class="cap">Hold routes</span></button></div>
+          </header>
+          <div class="routes">
+            <table>
+              <thead><tr><th><button class="ck" id="ck-all" role="checkbox" aria-checked="false" aria-label="Select all routes"><span class="cap"></span></button></th>
+                <th>Route</th><th class="c-zone">Zone</th><th class="num c-drops">Drops</th><th class="num">On time</th><th class="num c-avg">Avg time</th><th class="c-trend">7-day trend</th><th>Status</th></tr></thead>
+              <tbody id="rows"></tbody>
+            </table>
+            <i class="flash" id="flash"></i><i class="gl"></i>
+          </div>
+          <div class="ep-foot"><span id="sel-n"><b>0</b> selected</span><span id="ep-stamp">Panel refreshed 14:20</span></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlg-t">
+  <form method="dialog" class="dlg">
+    <i class="screw s1" style="--r:40deg"></i><i class="screw s2" style="--r:-15deg"></i><i class="screw s3" style="--r:72deg"></i><i class="screw s4" style="--r:5deg"></i>
+    <h2 id="dlg-t" class="engr">Export report</h2>
+    <p class="sum engr" id="dlg-sum"></p>
+    <fieldset><legend class="engr">Format</legend>
+      <label class="jw"><input type="radio" name="fmt" value="csv" checked><span><b class="engr">CSV</b><small>Every delivery as a row, for spreadsheets</small></span></label>
+      <label class="jw"><input type="radio" name="fmt" value="pdf"><span><b class="engr">PDF</b><small>Formatted summary with charts, 4 pages</small></span></label>
+    </fieldset>
+    <label class="fl engr" for="note">Note for recipients</label>
+    <textarea id="note" class="ta" rows="3" placeholder="Optional, e.g. Hillside brake service context"></textarea>
+    <div class="act"><button type="button" class="key" id="cancel"><span class="cap">Cancel</span></button><button type="button" class="key primary" id="do-export"><span class="cap">Export</span></button></div>
+  </form>
+</dialog>
+
+<section class="tg-caption">
+  <h2>Material world</h2>
+  <p>Meridian is the operations dashboard of an invented bike-courier company, built as an instrument panel: a graphite anodised plate under a brushed aluminium header, every module a raised plate with a diamond-cut chamfer, every display set behind a mitred chrome bezel and cover glass. Each display is a different technology and lights itself, independent of the scene light: an amber VFD with ghost segments, filament wires and a grid mesh for the KPIs, an LED bar-graph ladder for service level, a mint OLED with a pixel grid for the hourly chart, a backlit analog gauge with a sprung needle, and a reflective e-paper panel for the route table that flashes when it redraws.</p>
+  <p>Everything is CSS gradients, shadows and a little SVG. Bevels, chamfers, the brushed highlight, glass reflections and every cast shadow read the shared light, so turning the light dial re-lights the panel. All figures are sample data computed from one seeded model, so range, region and live updates stay consistent across displays.</p>
+  <p>Controls: illuminated latching nav keys (<kbd>←</kbd> <kbd>→</kbd>), a smoked-glass range listbox (<kbd>↑</kbd> <kbd>↓</kbd> <kbd>Home</kbd> <kbd>End</kbd> <kbd>Enter</kbd> <kbd>Esc</kbd>, type to jump), a four-detent rotary region selector, a guarded bat-handle Live toggle, a recessed glass search well, a domed refresh key, an SLA fader, illuminated soft-keys beside the e-paper rows with bulk actions, an alert lamp with Dismiss, and an aluminium export dialog with jewel-lamp radios.</p>
+</section>
+
+<script type="module">
+import { mountBar, animate, feedback, RotaryController, LinearController, PressController, ToggleController, reduceMotion, clamp } from "./kit/objects.js";
+mountBar({ title: "Meridian dashboard", subtitle: "Graphite instrument panel, chrome bezels, backlit displays", tone: "dark" });
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const RM = () => reduceMotion.matches;
+
+/* ------------ sample data model (seeded, internally consistent) ------------ */
+const HRS = Array.from({ length: 16 }, (_, i) => i + 7); // 07..22
+const PROFILE = [.32, .55, .72, .68, .93, 1.12, 1.0, .74, .66, .78, 1.05, 1.24, 1.08, .78, .5, .28];
+const NOW_I = 7, NOW_FRAC = 20 / 60; // sample "now" = 14:20
+const Z = {
+  harbour:  { n: "Harbour",  base: 46, avg: 21.4, ot: 95.9, fa: 98.3, fleet: 18, util: .81, fare: 7.6, km: 3.2 },
+  midtown:  { n: "Midtown",  base: 62, avg: 18.2, ot: 97.1, fa: 98.9, fleet: 22, util: .84, fare: 6.9, km: 2.6 },
+  hillside: { n: "Hillside", base: 28, avg: 27.6, ot: 91.6, fa: 96.2, fleet: 12, util: .66, fare: 8.4, km: 4.6 },
+};
+const REG = ["all", "harbour", "midtown", "hillside"], REG_N = ["All regions", "Harbour", "Midtown", "Hillside"];
+const RANGES = { today: { n: "Today", days: 1 }, d7: { n: "7 days", days: 7 }, d30: { n: "30 days", days: 30 } };
+const ROUTES = [
+  ["R-01", "Quayside Loop", "harbour", .24, .8, -1.2], ["R-04", "Ferry Terminal", "harbour", .2, -1.1, 1.6], ["R-07", "Dockyard Row", "harbour", .17, .4, .3],
+  ["R-10", "Saltworks", "harbour", .13, -2.6, 2.4], ["R-13", "Lighthouse Hill", "harbour", .1, 1.2, 3.1],
+  ["R-02", "Market Street", "midtown", .26, .9, -1.8], ["R-05", "Lantern Row", "midtown", .21, .2, -.6], ["R-08", "Glasshouse Arcade", "midtown", .16, -.7, .4],
+  ["R-11", "Canal Spur", "midtown", .14, 1.1, -.9], ["R-14", "Civic Square", "midtown", .11, -1.9, 1.1],
+  ["R-03", "Ridgeway", "hillside", .27, -3.1, 3.4], ["R-06", "Old Mill Lane", "hillside", .22, 1.4, -.8], ["R-09", "University Hill", "hillside", .2, .3, 1.9],
+  ["R-12", "Orchard Rise", "hillside", .14, -5.2, 4.2], ["R-15", "Beacon Fields", "hillside", .1, 2.1, -1.4],
+].map(([id, name, zone, share, otd, avgd]) => ({ id, name, zone, share, otd, avgd }));
+
+function rng(seed) { let h = 1779033703 ^ seed.length; for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 3432918353), h = h << 13 | h >>> 19;
+  return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; }; }
+
+const S = { tab: "overview", range: "d7", region: 0, sla: 95, live: false, extra: { harbour: 0, midtown: 0, hillside: 0 }, jit: 0, uj: 0, clock: 14 * 3600 + 20 * 60,
+  sel: new Set(), flags: {}, q: "" };
+
+function hourly(zone, range, prev) {
+  const r = rng(zone + range + (prev ? "p" : "c")), z = Z[zone];
+  const rf = { today: 1.05, d7: 1, d30: .965 }[range] * (prev ? .94 : 1) * (zone === "hillside" && range === "today" && !prev ? .9 : 1);
+  return PROFILE.map((p, i) => {
+    let v = z.base * p * rf * (1 + (r() - .5) * .18);
+    if (range === "today" && !prev) { if (i > NOW_I) return null; if (i === NOW_I) v = v * NOW_FRAC + S.extra[zone]; }
+    return v;
+  });
+}
+const zonesOf = (reg) => reg === 0 ? ["harbour", "midtown", "hillside"] : [REG[reg]];
+const sum = (a) => a.reduce((s, v) => s + (v ?? 0), 0);
+
+function compute() {
+  const zs = zonesOf(S.region), R = S.range, days = RANGES[R].days, rr = rng(R + S.region);
+  const cur = HRS.map(() => 0), prev = HRS.map(() => 0);
+  const per = {};
+  for (const z of zs) {
+    const c = hourly(z, R, false), p = hourly(z, R, true);
+    if (R !== "today") c[NOW_I] += S.extra[z] / days; // live arrivals land in today's slice of the window
+    c.forEach((v, i) => cur[i] = v == null ? null : cur[i] + v); p.forEach((v, i) => prev[i] += v);
+    per[z] = { tot: R === "today" ? sum(c) : sum(c) * days, prevTot: R === "today" ? sum(p.slice(0, NOW_I)) + p[NOW_I] * NOW_FRAC : sum(p) * days };
+  }
+  const tot = sum(zs.map((z) => per[z].tot)), prevTot = sum(zs.map((z) => per[z].prevTot));
+  const w = (f) => sum(zs.map((z) => f(z) * per[z].tot)) / tot;
+  const rOff = { today: -.4, d7: 0, d30: .25 }[R];
+  const hillHit = (z) => z === "hillside" && R === "today" ? 1 : 0;
+  const ot = clamp(w((z) => Z[z].ot - hillHit(z) * 1.8) + rOff + (rr() - .5) * .4 + S.jit, 75, 100);
+  const fa = clamp(w((z) => Z[z].fa - hillHit(z) * .9) + rOff * .5 + (rr() - .5) * .3 + S.jit * .5, 75, 100);
+  const avg = w((z) => Z[z].avg + hillHit(z) * 2.3) + { today: .6, d7: 0, d30: -.3 }[R];
+  const fare = w((z) => Z[z].fare), km = w((z) => Z[z].km);
+  const fleet = sum(zs.map((z) => Z[z].fleet));
+  const utilBase = sum(zs.map((z) => Z[z].fleet * Z[z].util)) / fleet;
+  const util = clamp(R === "today" ? utilBase * .975 + S.uj : utilBase * (R === "d7" ? .9 : .88), .2, .99);
+  const onRoad = Math.round(fleet * util), charging = Math.round((fleet - onRoad) * .6), shop = fleet - onRoad - charging;
+  const riders = R === "today" ? onRoad + Math.round(fleet * .06) : Math.round(fleet * .98);
+  const hours = R === "today" ? NOW_I + NOW_FRAC : 15.5;
+  const dTot = R === "today" ? tot : tot / days;
+  const dl = (a, b) => (a - b) / b * 100;
+  // the current hour is incomplete: chart it as a pace (count / elapsed fraction), not a dip
+  const frac = (S.clock % 3600) / 3600, sofar = cur[NOW_I], rate = cur.slice();
+  if (R === "today") rate[NOW_I] = sofar / Math.max(frac, .05);
+  return { zs, cur: rate, sofar, prev, tot, prevTot, ot, fa, avg, fare, km, fleet, util, onRoad, charging, shop, riders, hours, dTot, dl, per, rr };
+}
+
+function kpiSet(m) {
+  const R = S.range, today = R === "today", vs = today ? "vs last Sat" : "vs prior " + RANGES[R].n.replace(" days", "d");
+  const d = (x, good = 1) => ({ dir: x >= 0 ? "up" : "dn", txt: `${Math.abs(x).toFixed(1)}% ${vs}`, good: x * good >= 0 });
+  const rev = m.tot * m.fare / 1000;
+  const sets = {
+    overview: [
+      { l: "Deliveries", v: m.tot, dec: 0, u: "", d: d(m.dl(m.tot, m.prevTot)) },
+      { l: "Avg delivery", v: m.avg, dec: 1, u: "min", d: d(-4.2 + (today ? 3.1 : 0) + m.zs.length * .3, -1) },
+      { l: today ? "Riders on shift" : "Riders / day", v: m.riders, dec: 0, u: "", d: d(today ? 2.3 : 4.1) },
+      { l: "Revenue", v: rev, dec: rev < 100 ? 2 : 1, u: "k€", d: d(m.dl(m.tot, m.prevTot) + 1.4) },
+    ],
+    fleet: [
+      { l: today ? "Bikes on road" : "Bikes / day", v: m.onRoad, dec: 0, u: "/" + m.fleet, d: d(today ? 1.9 : 3.3) },
+      { l: "Distance", v: m.tot * m.km, dec: 0, u: "km", d: d(m.dl(m.tot, m.prevTot) * 1.05) },
+      { l: "Avg battery", v: today ? 64 - S.extra.midtown * .2 : 71.4, dec: today ? 0 : 1, u: "%", d: d(-2.6) },
+      { l: "In workshop", v: m.shop, dec: 0, u: "bikes", d: d(m.zs.includes("hillside") ? 50 : -12, -1) },
+    ],
+    riders: [
+      { l: today ? "On shift" : "Riders / day", v: m.riders, dec: 0, u: "", d: d(2.3) },
+      { l: "Drops / rider-hr", v: m.dTot / (m.riders * m.hours), dec: 2, u: "", d: d(3.8) },
+      { l: "Rating", v: 4.86 - (m.zs.length === 1 && m.zs[0] === "hillside" ? .11 : 0), dec: 2, u: "/5", d: d(.4) },
+      { l: "Late arrivals", v: m.tot * (1 - m.ot / 100), dec: 0, u: "", d: d(-6.5, -1) },
+    ],
+    reports: [
+      { l: "Revenue", v: rev, dec: rev < 100 ? 2 : 1, u: "k€", d: d(m.dl(m.tot, m.prevTot) + 1.4) },
+      { l: "Cost / drop", v: m.fare * .71, dec: 2, u: "€", d: d(-1.9, -1) },
+      { l: "CO₂ avoided", v: m.tot * m.km * .19, dec: 0, u: "kg", d: d(m.dl(m.tot, m.prevTot)) },
+      { l: "Refunds", v: Math.round(m.tot * .0042), dec: 0, u: "", d: d(-8.1, -1) },
+    ],
+  };
+  return sets[S.tab];
+}
+
+/* ------------ seven-segment displays ------------ */
+const SEG = { "0": "abcdef", "1": "bc", "2": "abged", "3": "abgcd", "4": "fgbc", "5": "afgcd", "6": "afgedc", "7": "abc", "8": "abcdefg", "9": "abcdfg", "-": "g", " ": "" };
+function segDisplay(el, n) {
+  el.innerHTML = "";
+  const digits = [];
+  for (let k = 0; k < n; k++) {
+    const d = document.createElement("span"); d.className = "sd";
+    const segs = {};
+    for (const s of "abcdefgp") { const i = document.createElement("i"); i.className = s; d.append(i); segs[s] = i; }
+    el.append(d); digits.push(segs);
+  }
+  el.setAttribute("aria-hidden", "true");
+  return { digits, n, shown: null, cur: 0, stop: null };
+}
+function segWrite(D, v, dec) {
+  let s = Math.abs(v) >= 10 ** (D.n - dec) ? "9".repeat(D.n) : Math.abs(v).toFixed(dec);
+  const neg = v < 0, chars = s.replace(".", "").split(""), dp = s.indexOf(".") >= 0 ? s.indexOf(".") - 1 : -1;
+  const pad = D.n - chars.length;
+  D.digits.forEach((segs, k) => {
+    const j = k - pad, ch = j >= 0 ? chars[j] : (neg && j === -1 ? "-" : " "), lit = SEG[ch] ?? "";
+    for (const sg of "abcdefg") segs[sg].classList.toggle("on", lit.includes(sg));
+    segs.p.classList.toggle("on", j === dp && j >= 0);
+  });
+}
+const ease = (t) => 1 - Math.pow(1 - t, 3);
+function tweenNum(D, to, dec, ms = 520) {
+  D.stop?.();
+  const from = D.cur ?? to;
+  if (RM() || from === to || D.shown == null) { D.cur = to; D.shown = to; segWrite(D, to, dec); return; }
+  let t = 0;
+  D.stop = animate((dt) => {
+    t = Math.min(1, t + dt * 1000 / ms);
+    D.cur = from + (to - from) * ease(t);
+    segWrite(D, t < 1 ? D.cur : to, dec);
+    if (t >= 1) { D.cur = to; D.stop = null; return false; }
+  });
+  D.shown = to;
+}
+
+/* ------------ KPIs (VFD) ------------ */
+const kpiEl = $("#kpis"), KP = [];
+for (let k = 0; k < 4; k++) {
+  const c = document.createElement("div"); c.className = "kpi"; c.setAttribute("role", "group");
+  c.innerHTML = `<div class="vtx"></div><div class="krow"><div class="sn"></div><span class="vtx"></span></div><div class="vtx dim"><span></span></div><span class="tr-sr"></span>`;
+  kpiEl.append(c);
+  KP.push({ c, l: c.firstChild, D: segDisplay(c.querySelector(".sn"), 5), u: c.querySelector(".krow .vtx"), d: c.querySelector(".dim span"), sr: c.querySelector(".tr-sr") });
+}
+function renderKpis(m) {
+  kpiSet(m).forEach((k, i) => {
+    const P = KP[i];
+    P.l.textContent = k.l; P.u.textContent = k.u;
+    P.d.className = k.d.dir; P.d.textContent = k.d.txt;
+    if (!k.dec && k.v >= 99999.5) { k.v /= 1000; k.dec = 1; k.u = "k " + k.u; P.u.textContent = k.u; }
+    tweenNum(P.D, k.dec ? +k.v.toFixed(k.dec) : Math.round(k.v), k.dec);
+    P.sr.textContent = `${k.l}: ${k.v.toLocaleString("en-GB", { maximumFractionDigits: k.dec })} ${k.u}, ${k.d.dir === "up" ? "up" : "down"} ${k.d.txt}`;
+  });
+  $("#kpi-meta").textContent = S.range === "today" ? "Today so far, 07:00 – 14:20" : RANGES[S.range].n + " to Sat 14 Nov";
+}
+
+/* ------------ LED ladders ------------ */
+const LO = 80, NL = 25, STEP = (100 - LO) / NL;
+const LAD = ["ot", "fa"].map((id) => {
+  const el = $("#led-" + id), leds = [];
+  for (let i = 0; i < NL; i++) { const e = document.createElement("i"); el.append(e); leds.push(e); }
+  const rd = $("#rd-" + id);
+  return { id, el, leds, rd, D: segDisplay(rd.querySelector(".sn"), 3), cur: null, stop: null };
+});
+$("#scale").innerHTML = [80, 85, 90, 95, 100].map((v) => `<span style="left:${(v - LO) / (100 - LO) * 100 - (v === 100 ? 2 : v === LO ? -2 : 0)}%">${v}</span>`).join("") + `<b id="sla-mk"></b>`;
+function ladderZones() {
+  const ti = clamp(Math.ceil((S.sla - LO) / STEP) - 1, 0, NL - 1);
+  for (const L of LAD) L.leds.forEach((e, i) => { e.classList.toggle("tgt", i === ti); e.classList.toggle("past", i > ti); });
+  $("#sla-mk").style.left = ((S.sla - LO) / (100 - LO) * 100) + "%";
+}
+function ladderSet(L, v) {
+  const lit = Math.round((v - LO) / STEP);
+  L.leds.forEach((e, i) => e.classList.toggle("on", i < lit));
+  L.rd.dataset.c = L.el.dataset.c = v >= S.sla ? "g" : v >= S.sla - 2 ? "a" : "r";
+}
+function renderLadders(m) {
+  ladderZones();
+  for (const L of LAD) {
+    const to = +(L.id === "ot" ? m.ot : m.fa).toFixed(1);
+    L.el.setAttribute("aria-label", `${L.id === "ot" ? "On time" : "First attempt"} ${to}%, target ${S.sla.toFixed(1)}%`);
+    L.stop?.();
+    const from = L.cur ?? to;
+    tweenNum(L.D, to, 1, 600);
+    if (RM() || from === to) { L.cur = to; ladderSet(L, to); continue; }
+    let t = 0;
+    L.stop = animate((dt) => { t = Math.min(1, t + dt / .6); L.cur = from + (to - from) * ease(t); ladderSet(L, L.cur); if (t >= 1) { L.stop = null; return false; } });
+  }
+}
+
+/* ------------ OLED chart ------------ */
+const chartEl = $("#chart"), svg = $("#csvg"), tip = $("#tip");
+const CH = { shown: null, from: null, to: null, prev: null, t: 1, stop: null, hover: -1 };
+const nice = (mx) => { const st = [10, 20, 25, 50, 100]; for (const s of st) if (mx / s <= 4.5) return s; return 100; };
+function drawChart() {
+  const W = chartEl.clientWidth, H = chartEl.clientHeight;
+  if (!W) return;
+  const cur = CH.shown, prev = CH.prev, ph = W < 480;
+  const L = 44, Rp = 16, T = ph ? 40 : 34, B = 30, iw = W - L - Rp, ih = H - T - B;
+  const mx = Math.max(...prev, ...cur.map((v) => v ?? 0)) * 1.06, step = nice(mx), top = Math.ceil(mx / step) * step;
+  const x = (i) => L + i * iw / (HRS.length - 1), y = (v) => T + ih - v / top * ih;
+  let g = `<defs><linearGradient id="fa" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="oklch(.9 .16 162)" stop-opacity=".42"/><stop offset="1" stop-color="oklch(.9 .16 162)" stop-opacity=".02"/></linearGradient></defs><g class="grid">`;
+  for (let v = 0; v <= top; v += step) g += `<line x1="${L}" x2="${W - Rp}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  g += `</g>`;
+  HRS.forEach((h, i) => { if (i % (ph ? 3 : 2) === 0) g += `<text class="ax" x="${x(i)}" y="${H - 9}" text-anchor="middle">${String(h).padStart(2, "0")}</text>`; });
+  const pts = cur.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean);
+  const today = S.range === "today";
+  const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join("");
+  const solid = today ? pts.slice(0, -1).map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join("") : line;
+  const pl = prev.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join("");
+  g += `<path d="${pl}" fill="none" stroke="oklch(.75 .12 162)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".75"/>`;
+  if (pts.length) {
+    const last = pts.at(-1);
+    g += `<path d="${line}L${last[0].toFixed(1)} ${T + ih}L${L} ${T + ih}Z" fill="url(#fa)"/>`;
+    g += `<path d="${solid}" fill="none" stroke="oklch(.9 .16 162)" stroke-width="7" opacity=".16" stroke-linejoin="round"/>`;
+    g += `<path d="${solid}" fill="none" stroke="oklch(.93 .15 162)" stroke-width="2" stroke-linejoin="round"/>`;
+    if (today && pts.length > 1) { const a = pts.at(-2), b = pts.at(-1); g += `<path d="M${a[0]} ${a[1]}L${b[0]} ${b[1]}" fill="none" stroke="oklch(.93 .15 162)" stroke-width="2" stroke-dasharray="3 3"/>`; }
+    // peak label
+    let pi = 0; cur.forEach((v, i) => { if (v != null && (!today || i < NOW_I) && v > (cur[pi] ?? 0)) pi = i; });
+    const pk = [x(pi), y(cur[pi])];
+    g += `<circle cx="${pk[0]}" cy="${pk[1]}" r="3.5" fill="oklch(.95 .12 162)"/><text x="${pk[0]}" y="${pk[1] - 10}" text-anchor="middle" fill="oklch(.95 .1 162)">Peak ${Math.round(cur[pi])}</text>`;
+    if (today) {
+      g += `<g class="now"><line x1="${last[0]}" x2="${last[0]}" y1="${T - 4}" y2="${T + ih}"/></g><circle cx="${last[0]}" cy="${last[1]}" r="4" fill="oklch(.06 .003 200)" stroke="oklch(.93 .15 162)" stroke-width="2"/><text x="${last[0] + 7}" y="${T - 6}">now ${clock().slice(0, 5)} · pace</text>`;
+    }
+  }
+  // legend
+  const lx = ph ? L : W - Rp - 270;
+  g += `<g transform="translate(${lx} 16)"><rect width="16" height="8" y="-7" fill="oklch(.9 .16 162)" opacity=".85"/><text x="22" y="1">${S.range === "today" ? "Today" : "Avg day"}</text>` +
+       `<line x1="${ph ? 100 : 110}" x2="${ph ? 120 : 130}" y1="-3" y2="-3" stroke="oklch(.75 .12 162)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="${ph ? 126 : 136}" y="1">${S.range === "today" ? "Last Saturday" : "Prior period"}</text></g>`;
+  if (CH.hover >= 0) {
+    const i = CH.hover, v = cur[i];
+    g += `<line x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${T + ih}" stroke="#fff" stroke-opacity=".55"/>`;
+    if (v != null) g += `<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="#fff"/>`;
+    g += `<circle cx="${x(i)}" cy="${y(prev[i])}" r="3.5" fill="none" stroke="#fff" stroke-width="1.5"/>`;
+    tip.hidden = false;
+    tip.innerHTML = `${String(HRS[i]).padStart(2, "0")}:00–${String(HRS[i] + 1).padStart(2, "0")}:00<br>${v == null ? "not yet" : S.range === "today" && i === NOW_I ? `${Math.round(M.sofar)} so far · pace ${Math.round(v)}/h` : Math.round(v) + " deliveries"}<br><span style="opacity:.75">${Math.round(prev[i])} ${S.range === "today" ? "last Sat" : "prior"}</span>`;
+    const tw = tip.offsetWidth, tx = x(i) + 12 + tw > W - 6 ? x(i) - 12 - tw : x(i) + 12;
+    tip.style.left = tx + "px"; tip.style.top = (T + 6) + "px";
+  } else tip.hidden = true;
+  svg.innerHTML = g;
+}
+function renderChart(m) {
+  const to = m.cur, prev = m.prev;
+  CH.prev = prev;
+  CH.stop?.();
+  if (!CH.shown || RM()) { CH.shown = to.slice(); drawChart(); }
+  else {
+    const from = CH.shown.slice(), t0 = { t: 0 };
+    CH.stop = animate((dt) => {
+      t0.t = Math.min(1, t0.t + dt / .42); const e = ease(t0.t);
+      CH.shown = to.map((v, i) => v == null ? (from[i] != null && t0.t < .5 ? from[i] * (1 - t0.t * 2) : null) : (from[i] ?? 0) + (v - (from[i] ?? 0)) * e);
+      drawChart();
+      if (t0.t >= 1) { CH.shown = to.slice(); drawChart(); CH.stop = null; return false; }
+    });
+  }
+  const done = to.filter((v, i) => v != null && (S.range !== "today" || i < NOW_I)), pk = Math.max(...done);
+  chartEl.setAttribute("aria-label", `Area chart, ${S.range === "today" ? "deliveries per hour today" : "average deliveries per hour"}, ${REG_N[S.region]}. Peak ${Math.round(pk)} at ${HRS[to.indexOf(done.find((v) => v === pk))]}:00. Use arrow keys to read each hour.`);
+  $("#chart-meta").textContent = S.range === "today" ? "Today vs last Saturday" : `Average day, ${RANGES[S.range].n} vs prior period`;
+}
+new ResizeObserver(() => CH.shown && drawChart()).observe(chartEl);
+const hoverAt = (cx) => { const r = chartEl.getBoundingClientRect(), L = 44, iw = r.width - 60; CH.hover = clamp(Math.round((cx - r.left - L) / iw * (HRS.length - 1)), 0, HRS.length - 1); drawChart(); };
+chartEl.addEventListener("pointermove", (e) => hoverAt(e.clientX));
+chartEl.addEventListener("pointerdown", (e) => hoverAt(e.clientX));
+chartEl.addEventListener("pointerleave", () => { CH.hover = -1; drawChart(); });
+chartEl.addEventListener("keydown", (e) => {
+  const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+  if (d) { e.preventDefault(); CH.hover = clamp((CH.hover < 0 ? NOW_I : CH.hover) + d, 0, HRS.length - 1); drawChart(); feedback.play("tick", { intensity: .4 }); }
+  else if (e.key === "Home" || e.key === "End") { e.preventDefault(); CH.hover = e.key === "Home" ? 0 : HRS.length - 1; drawChart(); }
+  else if (e.key === "Escape") { CH.hover = -1; drawChart(); }
+});
+chartEl.addEventListener("blur", () => { CH.hover = -1; drawChart(); });
+
+/* ------------ gauge ------------ */
+(function buildGauge() {
+  const a = (p) => (-120 + p * 2.4) * Math.PI / 180, P = (p, r) => [100 + Math.sin(a(p)) * r, 100 - Math.cos(a(p)) * r];
+  const arc = (p0, p1, r) => { const [x0, y0] = P(p0, r), [x1, y1] = P(p1, r); return `M${x0} ${y0}A${r} ${r} 0 ${p1 - p0 > 75 ? 1 : 0} 1 ${x1} ${y1}`; };
+  let s = `<path d="${arc(0, 60, 78)}" stroke="oklch(.55 .01 230)" stroke-width="4" fill="none"/><path d="${arc(60, 90, 78)}" stroke="oklch(.8 .2 145)" stroke-width="4" fill="none" class="lum"/><path d="${arc(90, 100, 78)}" stroke="oklch(.66 .22 27)" stroke-width="4" fill="none" class="lum"/><g class="lum">`;
+  for (let p = 0; p <= 100; p += 2.5) { const mj = p % 10 === 0, [x0, y0] = P(p, mj ? 72 : 74.5), [x1, y1] = P(p, 82); s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="oklch(.95 .02 95)" stroke-width="${mj ? 2 : 1}" stroke-linecap="butt"/>`; }
+  for (let p = 0; p <= 100; p += 20) { const [x, y] = P(p, 58); s += `<text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14">${p}</text>`; }
+  s += `</g><text x="100" y="128" text-anchor="middle" font-size="9" letter-spacing="2" opacity=".7">UTIL %</text>`;
+  $("#gsvg").innerHTML = s;
+})();
+const GA = { x: 0, v: 0, target: 0, run: null }, ndl = $("#ndl"), ndlS = $("#ndl-s");
+function needle(pct) {
+  GA.target = -120 + pct * 2.4;
+  if (RM()) { GA.x = GA.target; GA.v = 0; setN(); return; }
+  if (GA.run) return;
+  GA.run = animate((dt) => {
+    // meter ballistics: stiff spring, light damping, so it swings past and settles
+    const k = 70, c = 2 * Math.sqrt(k) * .3, n = Math.ceil(dt / (1 / 240)), h = dt / n;
+    for (let i = 0; i < n; i++) { GA.v += (-k * (GA.x - GA.target) - c * GA.v) * h; GA.x += GA.v * h; }
+    setN();
+    if (Math.abs(GA.x - GA.target) < .02 && Math.abs(GA.v) < .05) { GA.x = GA.target; setN(); GA.run = null; return false; }
+  });
+}
+function setN() { const t = `rotate(${GA.x.toFixed(2)}deg)`; ndl.style.transform = t; ndlS.style.transform = t; }
+GA.x = -120; setN();
+function renderGauge(m) {
+  const pct = m.util * 100;
+  needle(pct);
+  const g = $("#gauge");
+  g.setAttribute("aria-valuenow", pct.toFixed(0));
+  g.setAttribute("aria-valuetext", `${pct.toFixed(0)}%, ${m.onRoad} of ${m.fleet} bikes on the road`);
+  $("#odo").textContent = `${m.onRoad}/${m.fleet} BIKES`;
+  $("#g-meta").textContent = S.range === "today" ? `${m.charging} charging · ${m.shop} in workshop` : "Average over operating hours";
+}
+
+/* ------------ e-paper table + soft keys ------------ */
+const rowsEl = $("#rows"), ROWS = 6, RK = [];
+for (let i = 0; i < ROWS; i++) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td><button class="ck" role="checkbox" aria-checked="false"><span class="cap"></span></button></td><td></td><td class="c-zone"></td><td class="num c-drops"></td><td class="num"></td><td class="num c-avg"></td><td class="c-trend"></td><td></td>`;
+  rowsEl.append(tr);
+  const b = tr.querySelector(".ck");
+  const c = new PressController(b, { mode: "latching", sound: "click", soundUp: "keyUp", latchDepth: .45,
+    onChange: (on) => { b.removeAttribute("aria-pressed"); b.setAttribute("aria-checked", String(on)); if (syncing) return; const id = RK[i].id; if (!id) return; on ? S.sel.add(id) : S.sel.delete(id); selUI(); } });
+  b.removeAttribute("aria-pressed");
+  RK.push({ tr, b, c, id: null });
+}
+let syncing = false, VIS = [];
+const allC = new PressController($("#ck-all"), { mode: "momentary", sound: "click", onActivate: () => {
+  const ids = VIS.map((r) => r.id), all = ids.length && ids.every((id) => S.sel.has(id));
+  ids.forEach((id) => all ? S.sel.delete(id) : S.sel.add(id));
+  syncKeys(); selUI();
+} });
+function syncKeys() {
+  syncing = true;
+  RK.forEach((k) => { const on = !!k.id && S.sel.has(k.id); if (k.c.pressed !== on) { k.c.setPressed(on); k.c._rest(); } k.b.setAttribute("aria-checked", String(on)); k.tr.classList.toggle("sel", on); });
+  syncing = false;
+}
+function selUI() {
+  RK.forEach((k) => k.tr.classList.toggle("sel", !!k.id && S.sel.has(k.id)));
+  const n = S.sel.size, vis = VIS.filter((r) => S.sel.has(r.id)).length;
+  $("#sel-n").innerHTML = `<b>${n}</b> selected`;
+  $("#ck-all").setAttribute("aria-checked", vis === 0 ? "false" : vis === VIS.length ? "true" : "mixed");
+  for (const id of ["reassign", "hold"]) $("#" + id).setAttribute("aria-disabled", String(n === 0));
+  $("#reassign .cap").textContent = n ? `Reassign riders (${n})` : "Reassign riders";
+  $("#hold .cap").textContent = n ? `Hold routes (${n})` : "Hold routes";
+}
+const spark = (r) => { const R0 = rng(r.id + S.range); let v = 50, pts = []; for (let i = 0; i < 7; i++) { v += (R0() - .45 + r.otd * .02) * 14; pts.push(v); }
+  const mn = Math.min(...pts), mx = Math.max(...pts), Y = (p) => 20 - (p - mn) / (mx - mn || 1) * 16;
+  return `<svg viewBox="0 0 66 24" aria-hidden="true"><polyline points="${pts.map((p, i) => `${3 + i * 10},${Y(p).toFixed(1)}`).join(" ")}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="63" cy="${Y(pts[6]).toFixed(1)}" r="2.4" fill="currentColor"/></svg>`; };
+function tableModel(m) {
+  const q = S.q.trim().toLowerCase();
+  return ROUTES.filter((r) => m.zs.includes(r.zone))
+    .map((r) => { const R0 = rng(r.id + S.range); const drops = Math.round(m.per[r.zone].tot * r.share * (1 + (R0() - .5) * .1));
+      const ot = clamp(Z[r.zone].ot + r.otd + (S.range === "today" && r.zone === "hillside" ? -1.8 : 0) + (R0() - .5) * .6, 70, 100);
+      return { ...r, drops, ot, avg: Z[r.zone].avg + r.avgd + (R0() - .5) }; })
+    .sort((a, b) => b.drops - a.drops)
+    .filter((r) => !q || (r.id + " " + r.name + " " + Z[r.zone].n).toLowerCase().includes(q))
+    .slice(0, ROWS);
+}
+function fillTable(m) {
+  VIS = tableModel(m);
+  RK.forEach((k, i) => {
+    const r = VIS[i], tds = k.tr.children;
+    k.id = r?.id ?? null;
+    k.b.setAttribute("aria-disabled", String(!r)); k.b.tabIndex = r ? 0 : -1;
+    k.b.setAttribute("aria-label", r ? `Select ${r.id} ${r.name}` : "Empty row");
+    k.tr.classList.remove("empty");
+    if (!r) { for (let j = 1; j < tds.length; j++) tds[j].textContent = ""; if (i === 0) { k.tr.classList.add("empty"); tds[1].colSpan = 1; tds[1].textContent = `No routes match “${S.q.trim()}”`; } return; }
+    const flag = S.flags[r.id], st = flag || (r.ot >= S.sla ? "On track" : r.ot >= S.sla - 3 ? "Watch" : "Late");
+    tds[1].innerHTML = `<span class="rid">${r.id}</span><span class="nm">${r.name}</span>`;
+    tds[2].textContent = Z[r.zone].n;
+    tds[3].textContent = r.drops.toLocaleString("en-GB");
+    tds[4].textContent = r.ot.toFixed(1) + "%";
+    tds[5].textContent = r.avg.toFixed(1) + " min";
+    tds[6].innerHTML = spark(r);
+    tds[7].innerHTML = `<span class="tag ${st.toLowerCase().replace(/ .*/, "")}"><b>${st}</b></span>`;
+  });
+  syncKeys(); selUI();
+  const inp = $("#search"), none = S.q.trim() && !VIS.length;
+  inp.setAttribute("aria-invalid", String(!!none));
+  $("#tbl-meta").textContent = none ? "No matching routes" : `By drops · ${RANGES[S.range].n} · ${REG_N[S.region]}`;
+  const t = clock(); $("#ep-stamp").textContent = `Panel refreshed ${t.slice(0, 5)}`;
+}
+const flashEl = $("#flash");
+function renderTable(m, flash = true) {
+  if (!flash || RM()) return fillTable(m);
+  flashEl.animate([{ opacity: 0 }, { opacity: .92, offset: .3 }, { opacity: .92, offset: .45 }, { opacity: 0 }], { duration: 300, easing: "linear" });
+  setTimeout(() => fillTable(m), 110);
+}
+
+/* ------------ status line ------------ */
+const clock = () => { const s = S.clock; return [s / 3600 | 0, (s / 60 | 0) % 60, s % 60].map((n) => String(n).padStart(2, "0")).join(":"); };
+let stT;
+function status(msg, beep) {
+  const el = $("#status"), dot = $("#st-dot");
+  el.textContent = msg; dot.classList.add("on");
+  if (!RM()) el.animate([{ opacity: .2 }, { opacity: 1 }], { duration: 160, easing: "steps(3)" });
+  if (beep) feedback.play("beep", { intensity: .6 });
+  clearTimeout(stT); stT = setTimeout(() => dot.classList.remove("on"), 1400);
+}
+
+/* ------------ render all ------------ */
+let M;
+function render({ table = true, flash = true } = {}) {
+  M = compute();
+  renderKpis(M); renderLadders(M); renderChart(M); renderGauge(M);
+  if (table) renderTable(M, flash);
+}
+
+/* ------------ nav tabs ------------ */
+const TABS = $$(".tk"), TAB_T = { overview: "Overview", fleet: "Fleet", riders: "Riders", reports: "Reports" };
+const tabCtl = TABS.map((b) => {
+  const on = b.dataset.tab === S.tab;
+  const c = new PressController(b, { mode: "latching", group: "nav", pressed: on, sound: "key", soundUp: "keyUp", latchDepth: .5,
+    onChange: (p) => { b.removeAttribute("aria-pressed"); b.setAttribute("aria-selected", String(p)); b.tabIndex = p ? 0 : -1; if (p) setTab(b.dataset.tab); } });
+  b.removeAttribute("aria-pressed"); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1;
+  return c;
+});
+function setTab(t) {
+  if (S.tab === t) return;
+  S.tab = t; $("#vtitle").textContent = TAB_T[t];
+  $("#view").setAttribute("aria-labelledby", "t-" + t);
+  renderKpis(M); status(`View ${TAB_T[t]}`);
+}
+$(".slot").addEventListener("keydown", (e) => {
+  const i = TABS.indexOf(document.activeElement); if (i < 0) return;
+  const j = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: TABS.length - 1 }[e.key];
+  if (j == null) return;
+  e.preventDefault();
+  const n = (j + TABS.length) % TABS.length;
+  TABS[n].focus(); TABS[n].click(); tabCtl[n]._rest(); feedback.play("key", { intensity: .7 });
+});
+
+/* ------------ range listbox ------------ */
+const rb = $("#range-btn"), rl = $("#range-list"), opts = $$("li", rl);
+let act = 1;
+function setAct(i) { act = (i + opts.length) % opts.length; opts.forEach((o, k) => o.classList.toggle("act", k === act)); rl.setAttribute("aria-activedescendant", opts[act].id); }
+function openMenu() { rl.hidden = false; rb.setAttribute("aria-expanded", "true"); setAct(opts.findIndex((o) => o.dataset.v === S.range)); rl.focus(); feedback.play("click", { intensity: .6 }); }
+function closeMenu(focus = true) { if (rl.hidden) return; rl.hidden = true; rb.setAttribute("aria-expanded", "false"); if (focus) rb.focus(); }
+function pick(i) {
+  const v = opts[i].dataset.v; closeMenu();
+  opts.forEach((o, k) => o.setAttribute("aria-selected", String(k === i)));
+  $("#range-val").textContent = RANGES[v].n;
+  if (v !== S.range) { S.range = v; feedback.play("detent"); render(); status(`Range ${RANGES[v].n} · ${REG_N[S.region]}`); }
+}
+opts.forEach((o, k) => o.setAttribute("aria-selected", String(o.dataset.v === S.range)));
+rb.addEventListener("click", () => rl.hidden ? openMenu() : closeMenu());
+rb.addEventListener("keydown", (e) => { if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); openMenu(); if (e.key === "ArrowUp") setAct(opts.length - 1); } });
+rl.addEventListener("keydown", (e) => {
+  const k = e.key;
+  if (k === "ArrowDown" || k === "ArrowUp") { e.preventDefault(); setAct(act + (k === "ArrowDown" ? 1 : -1)); feedback.play("tick", { intensity: .5 }); }
+  else if (k === "Home" || k === "End") { e.preventDefault(); setAct(k === "Home" ? 0 : opts.length - 1); feedback.play("tick", { intensity: .5 }); }
+  else if (k === "Enter" || k === " ") { e.preventDefault(); pick(act); }
+  else if (k === "Escape") { e.preventDefault(); closeMenu(); }
+  else if (k === "Tab") closeMenu(false);
+  else if (/^[a-z0-9]$/i.test(k)) { const i = opts.findIndex((o, j) => j !== act && o.textContent.toLowerCase().startsWith(k.toLowerCase())); if (i >= 0) { setAct(i); feedback.play("tick", { intensity: .5 }); } }
+});
+opts.forEach((o, i) => { o.addEventListener("pointermove", () => act !== i && setAct(i)); o.addEventListener("click", () => pick(i)); });
+document.addEventListener("pointerdown", (e) => { if (!rl.hidden && !e.target.closest(".sel")) closeMenu(false); });
+
+/* ------------ region rotary ------------ */
+const regEl = $("#region"), rls = $$(".rl");
+const reg = new RotaryController(regEl, { min: 0, max: 3, step: 1, value: 0, sweep: 220, wheel: "focus", sound: "detent", detentStrength: .8,
+  valueText: (v) => REG_N[v],
+  onInput: (v) => rls.forEach((l, i) => l.classList.toggle("on", i === v)),
+  onChange: (v) => { if (v === S.region) return; S.region = v; feedback.play("thunk", { intensity: .8 }); render(); status(`Region ${REG_N[v]}`); } });
+regEl.setAttribute("aria-valuetext", REG_N[0]);
+rls.forEach((l, i) => { l.classList.toggle("on", i === 0); l.addEventListener("click", () => reg.set(i, { commit: true })); });
+
+/* ------------ live toggle ------------ */
+let liveRun = null, acc = 0;
+const live = new ToggleController($("#live"), { sound: "snap", onChange: (v) => { S.live = v === 1; S.live ? startLive(true) : stopLive("Live feed off"); } });
+function startLive(announce) {
+  if (!S.live || document.hidden) return;
+  if (RM()) { status("Live paused · reduced motion"); return; }
+  if (announce) status("Live feed on", true);
+  if (liveRun) return;
+  liveRun = animate((dt) => { acc += dt; if (acc > 1.4) { acc = 0; tick(); } if (!S.live) { liveRun = null; return false; } });
+}
+function stopLive(msg) { if (liveRun) { liveRun(); liveRun = null; } if (msg) status(msg); }
+function tick() {
+  const r = Math.random;
+  for (const z of Object.keys(S.extra)) S.extra[z] += r() < .75 ? 1 + (r() * Z[z].base / 30 | 0) : 0;
+  S.jit = clamp(S.jit + (r() - .5) * .25, -1, 1); S.uj = clamp(S.uj + (r() - .5) * .03, -.08, .08); S.clock += 15;
+  render({ table: false });
+  $("#status").textContent = `Live ${clock()} · ${Math.round(M.tot).toLocaleString("en-GB")} deliveries`;
+}
+document.addEventListener("visibilitychange", () => document.hidden ? stopLive() : startLive(false));
+reduceMotion.addEventListener?.("change", () => RM() ? stopLive("Live paused · reduced motion") : startLive(true));
+
+/* ------------ search ------------ */
+const sIn = $("#search");
+sIn.addEventListener("input", () => { S.q = sIn.value; feedback.play("tick", { intensity: .25, minGapMs: 30 }); fillTable(M); });
+sIn.addEventListener("keydown", (e) => { if (e.key === "Escape" && sIn.value) { sIn.value = ""; S.q = ""; fillTable(M); } });
+
+/* ------------ buttons ------------ */
+const btn = (id, o) => new PressController($(id), { sound: "key", soundUp: "keyUp", ...o });
+btn("#refresh", { sound: "click", onActivate: () => {
+  const d = $("#refresh"); d.classList.remove("spin"); void d.offsetWidth; d.classList.add("spin");
+  KP.forEach((P) => { P.D.cur = P.D.cur * .9; }); CH.shown = CH.shown.map((v) => v == null ? null : v * .85);
+  render(); status(`Synced ${clock()}`, true);
+} });
+btn("#dismiss", { sound: "clack", onActivate: () => {
+  const a = $("#alert"); a.classList.add("out"); status("Alert dismissed");
+  setTimeout(() => { a.remove(); $("#export").focus(); }, RM() ? 0 : 260);
+} });
+function bulk(kind) {
+  if (!S.sel.size) return;
+  const ids = [...S.sel]; ids.forEach((id) => S.flags[id] = kind === "hold" ? "Held" : "Reassigned");
+  S.sel.clear();
+  renderTable(M);
+  status(`${ids.length} route${ids.length > 1 ? "s" : ""} ${kind === "hold" ? "on hold" : "queued for reassignment"}`, true);
+}
+btn("#reassign", { onActivate: () => bulk("reassign") });
+btn("#hold", { sound: "clack", onActivate: () => bulk("hold") });
+
+/* ------------ SLA fader ------------ */
+const slaEl = $("#sla"), thumb = $(".thumb", slaEl);
+const sla = new LinearController(slaEl, { min: 90, max: 99, step: .5, value: 95, sound: "tick", thumb: () => thumb, track: () => slaEl,
+  valueText: (v) => v.toFixed(1) + " percent",
+  onInput: (v) => { S.sla = v; $("#sla-out").textContent = v.toFixed(1) + "%"; ladderZones(); LAD.forEach((L) => ladderSet(L, L.cur)); },
+  onChange: (v) => { renderTable(M); status(`SLA target ${v.toFixed(1)}%`); } });
+Object.defineProperty(sla.o, "inset", { get: () => thumb.offsetWidth / 2 });
+// Kit workaround: ValueModel.glide() keeps heading to the target it started with when a second
+// set() lands mid-glide (it reads this._target, which is never written). Point it at the live value.
+for (const c of [sla, reg]) Object.defineProperty(c, "_target", { get: () => c._value, set() {} });
+
+/* ------------ export dialog ------------ */
+const dlg = $("#dlg");
+btn("#export", { onActivate: () => {
+  $("#dlg-sum").textContent = `${TAB_T[S.tab]} · ${RANGES[S.range].n} · ${REG_N[S.region]} · sample data`;
+  dlg.showModal(); feedback.play("clack", { intensity: .6 });
+} });
+btn("#cancel", { onActivate: () => dlg.close("cancel") });
+btn("#do-export", { onActivate: () => {
+  const fmt = new FormData($(".dlg")).get("fmt");
+  dlg.close("export");
+  status(`Exported meridian-${S.range}-${REG[S.region]}.${fmt}`, true);
+} });
+$$(".jw input").forEach((i) => i.addEventListener("change", () => feedback.play("click")));
+dlg.addEventListener("close", () => $("#export").focus());
+
+render({ flash: false });
+window.meridian = { S, get M() { return M; }, reg, live, sla };
+</script>
+</body>
+</html>

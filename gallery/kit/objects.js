@@ -209,14 +209,16 @@ class ValueModel {
     this.o.onChange?.(this._value);
   }
   _detentFeedback(intensity) {
-    const snd = this.o.sound ?? ((this.step || this.o.detents) ? "detent" : null);
+    // `sound: null` (or any unknown name) silences value clicks; omit it for the default.
+    const snd = "sound" in this.o ? this.o.sound : ((this.step || this.o.detents) ? "detent" : null);
     if (snd) feedback.play(snd, { intensity, pitch: this.o.soundPitch ?? 1 });
   }
-  glide(target = this._value) {
+  glide() {
     if (this._anim) return;
     this.host.dataset.trState = "settling";
     this._anim = animate((dt) => {
-      const done = springStep(this.disp, this._target ?? target, dt, this.o.springK ?? 520, this.o.springZeta ?? 0.72);
+      // Aim at the live value, so a key press during a settle retargets instead of being lost.
+      const done = springStep(this.disp, this._value, dt, this.o.springK ?? 520, this.o.springZeta ?? 0.72);
       this.render();
       if (done) { this._anim = null; if (this.host.dataset.trState === "settling") this.host.dataset.trState = "idle"; return false; }
     });
@@ -229,6 +231,8 @@ class ValueModel {
     if (txt != null) h.setAttribute("aria-valuetext", txt);
   }
   _keys(e, big) {
+    if (this.host.getAttribute("aria-disabled") === "true") return;
+    this._stopInertia?.(); // keyboard input wins over a coasting flick
     const s = this.step || (this.o.detents ? 0 : this.range / 100);
     let v = this._value, handled = true;
     const fine = e.shiftKey && !this.step ? 0.1 : 1;
@@ -561,7 +565,8 @@ export class PressController {
     if (this.o.mode !== "latching" || on === this.pressed) return;
     this.pressed = on;
     this.host.setAttribute("aria-pressed", String(on));
-    if (fromGroup) { feedback.play(this.o.releaseSound ?? "clack", { intensity: 0.5 }); this._rest(); }
+    if (fromGroup) feedback.play(this.o.releaseSound ?? "clack", { intensity: 0.5 });
+    this._rest(); // move to the new resting depth (latched keys sit lower)
     this.host.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
     this.o.onChange?.(on, this);
   }
@@ -647,6 +652,7 @@ export class ToggleController {
     });
   }
   _key(e) {
+    if (this.host.getAttribute("aria-disabled") === "true") return;
     const inc = this.o.axis === "y" ? ["ArrowUp", "ArrowDown"] : ["ArrowRight", "ArrowLeft"];
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); this.set(this.n === 2 ? 1 - this._value : (this._value + 1) % this.n); }
     else if (e.key === inc[0]) { e.preventDefault(); this.set(this._value + (this.o.invert ? -1 : 1)); }
