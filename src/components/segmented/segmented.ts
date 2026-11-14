@@ -85,6 +85,10 @@ export class TrSegmented extends FormControl {
       :host([full-width]) {
         display: flex;
       }
+      /* full-width keys are sized by the tray, not their labels, so each can be a size container */
+      :host([full-width]) ::slotted(tr-option) {
+        container: tr-segment / inline-size;
+      }
       :host([disabled]),
       :host(:state(disabled)) {
         opacity: 0.55;

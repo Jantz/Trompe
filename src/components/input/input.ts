@@ -137,6 +137,12 @@ export class TrInput extends FormControl {
       input[type='search']::-webkit-search-cancel-button {
         cursor: pointer;
       }
+      /* with clearable, Trompe's own clear key replaces the browser's */
+      :host([clearable]) input::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+        appearance: none;
+        display: none;
+      }
       ::slotted([slot='start']),
       ::slotted([slot='end']) {
         flex: none;

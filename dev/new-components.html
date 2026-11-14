@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>New components</title>
+<link rel="stylesheet" href="/src/generated/skins.css" />
+<script type="module">
+  import '/src/index.ts';
+  import { toast } from '/src/index.ts';
+  window.toast = toast;
+</script>
+<style>
+  body { margin: 0; padding: 2em; font-family: system-ui; display: grid; gap: 1.5em; }
+  .row { display: flex; gap: 1em; align-items: center; flex-wrap: wrap; }
+  .narrow { width: 360px; }
+</style>
+</head>
+<body data-tr-skin="soft">
+  <div class="row">
+    <tr-avatar name="Ada Lovelace" size="xs"></tr-avatar>
+    <tr-avatar name="Grace Hopper" size="sm" status="online"></tr-avatar>
+    <tr-avatar name="Linus Pauling" status="away"></tr-avatar>
+    <tr-avatar name="Marie Curie" size="lg" status="busy"></tr-avatar>
+    <tr-avatar name="Design team" size="xl" shape="rounded" tone="accent" status="offline"></tr-avatar>
+    <tr-avatar name="Broken Photo" src="/nope.jpg"></tr-avatar>
+  </div>
+  <div class="row">
+    <tr-number-field label="Quantity" value="1" min="1" max="10"></tr-number-field>
+    <tr-number-field label="Weight" value="82.5" step="2.5" min="0" unit="kg"></tr-number-field>
+    <tr-number-field aria-label="Guests" value="2" min="1" max="12" size="sm"></tr-number-field>
+    <tr-button tone="accent" loading>Place order</tr-button>
+    <tr-button>Save draft</tr-button>
+    <tr-button toggle pressed>Flag</tr-button>
+  </div>
+  <tr-toast open tone="success">Changes saved.</tr-toast>
+  <tr-toast open tone="danger" dismissible>Couldn't reach the server.<tr-button slot="action" size="sm">Retry</tr-button></tr-toast>
+  <tr-table autosort>
+    <table>
+      <thead><tr><th data-sort="name">Member</th><th>Role</th><th data-sort="seen">Last seen</th><th data-numeric data-sort="seats">Seats</th></tr></thead>
+      <tbody>
+        <tr><td><span class="row"><tr-avatar name="Ada Lovelace" size="sm" decorative></tr-avatar>Ada Lovelace</span></td><td>Owner</td><td>Now</td><td data-numeric>12</td></tr>
+        <tr aria-selected="true"><td>Grace Hopper</td><td>Admin</td><td>2 h ago</td><td data-numeric>4</td></tr>
+        <tr><td>Linus Pauling</td><td>Editor</td><td>Yesterday</td><td data-numeric>30</td></tr>
+      </tbody>
+    </table>
+  </tr-table>
+  <div class="narrow">
+    <tr-table>
+      <table>
+        <thead><tr><th>Order</th><th>Status</th><th data-numeric>Total</th></tr></thead>
+        <tbody>
+          <tr><td>#1042</td><td><tr-badge tone="success">Shipped</tr-badge></td><td data-numeric>$84.00</td></tr>
+          <tr><td>#1043</td><td><tr-badge tone="warning">Pending</tr-badge></td><td data-numeric>$12.50</td></tr>
+        </tbody>
+      </table>
+    </tr-table>
+  </div>
+</body>
+</html>

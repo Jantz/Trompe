@@ -46,10 +46,10 @@ export class TrBadge extends TrompeElement {
     ...TrompeElement.styles,
     css`
       :host {
-        --_success: var(--tr-badge-success, oklch(from var(--tr-color-danger) calc(l + 0.02) calc(c * 0.8) 150));
-        --_success-ink: var(--tr-badge-success-ink, var(--tr-color-danger-ink));
-        --_warning: var(--tr-badge-warning, oklch(from var(--tr-color-danger) max(l + 0.2, 0.78) calc(c * 0.85) 80));
-        --_warning-ink: var(--tr-badge-warning-ink, oklch(from var(--tr-color-danger) 0.25 0.05 70));
+        --_success: var(--tr-badge-success, var(--tr-color-success, oklch(from var(--tr-color-danger) calc(l + 0.02) calc(c * 0.8) 150)));
+        --_success-ink: var(--tr-badge-success-ink, var(--tr-color-success-ink, var(--tr-color-danger-ink)));
+        --_warning: var(--tr-badge-warning, var(--tr-color-warning, oklch(from var(--tr-color-danger) max(l + 0.2, 0.78) calc(c * 0.85) 80)));
+        --_warning-ink: var(--tr-badge-warning-ink, var(--tr-color-warning-ink, oklch(from var(--tr-color-danger) 0.25 0.05 70)));
         --_tone: var(--tr-badge-color, color-mix(in oklch, var(--tr-color-ink, currentColor) 55%, var(--tr-color-surface)));
         --_tone-ink: var(--tr-badge-ink, var(--tr-color-surface));
         display: inline-flex;
@@ -60,7 +60,7 @@ export class TrBadge extends TrompeElement {
         /* enamel colours: the tone, or the material itself for neutral */
         --_eb: var(--_tone);
         --_ei: var(--_tone-ink);
-        --_ee: color-mix(in oklch, var(--_tone), var(--tr-color-shadow, #000) 30%);
+        --_ee: color-mix(in oklab, var(--_tone), var(--tr-color-shadow, #000) 30%);
         transition:
           --_tone var(--tr-motion-duration-travel, 220ms) ease-out,
           --_tone-ink var(--tr-motion-duration-travel, 220ms) ease-out,
@@ -129,7 +129,7 @@ export class TrBadge extends TrompeElement {
         text-transform: uppercase;
         letter-spacing: 0.08em;
         font-size: 0.92em;
-        --_ink: color-mix(in oklch, var(--_tone), var(--_m-ink) 35%);
+        --_ink: color-mix(in oklab, var(--_tone), var(--_m-ink) 35%);
         /* cut letters: dark on the edge facing the light, lit on the far edge */
         text-shadow:
           0 calc(var(--_sy) * 1px) 0 color-mix(in oklch, var(--_hl) calc(var(--_r) * 70%), transparent),
@@ -145,9 +145,9 @@ export class TrBadge extends TrompeElement {
       /* well: a shallow tinted pocket */
       :host([variant='well']) .badge {
         --_tr-z: -1;
-        --_base: color-mix(in oklch, color-mix(in oklch, var(--_tone) 16%, var(--_m-base)), var(--_sh) 4%);
-        --_ink: color-mix(in oklch, var(--_tone), var(--_m-ink) 50%);
-        --_edge: color-mix(in oklch, var(--_tone) 45%, var(--tr-color-edge));
+        --_base: color-mix(in oklab, color-mix(in oklab, var(--_tone) 16%, var(--_m-base)), var(--_sh) 4%);
+        --_ink: color-mix(in oklab, var(--_tone), var(--_m-ink) 50%);
+        --_edge: color-mix(in oklab, var(--_tone) 45%, var(--tr-color-edge));
       }
       :host([variant='well'][tone='neutral']) .badge {
         --_ink: color-mix(in oklch, var(--_m-ink) 80%, var(--_base));

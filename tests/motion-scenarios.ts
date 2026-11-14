@@ -218,4 +218,21 @@ export const scenarios: MotionScenario[] = [
     markup: '<tr-panel id="t"><tr-button>Save</tr-button> <tr-switch checked>On</tr-switch></tr-panel>',
     trigger: attr('#t', 'material', 'metal'),
   },
+  // App parts (agent eval): avatar, number field, toast, table, button loading
+  { name: 'button: loading', markup: '<tr-button id="t" tone="accent">Place order</tr-button>', trigger: set('#t', 'loading', true) },
+  { name: 'avatar: status lamp appears', markup: '<tr-avatar id="t" name="Ada Lovelace"></tr-avatar>', trigger: attr('#t', 'status', 'online') },
+  { name: 'avatar: status changes', markup: '<tr-avatar id="t" name="Ada Lovelace" status="online"></tr-avatar>', trigger: attr('#t', 'status', 'busy') },
+  { name: 'number field: step up', markup: '<tr-number-field id="t" label="Guests" value="2" unit="guests"></tr-number-field>', trigger: (p) => p.evaluate(() => (document.querySelector('#t') as unknown as { stepBy(n: number): void }).stepBy(1)) },
+  {
+    name: 'table: sort',
+    markup: '<tr-table id="t" autosort style="width:640px"><table><thead><tr><th data-sort="n">Name</th><th data-sort="q" data-numeric>Qty</th></tr></thead><tbody><tr><td>Beans</td><td>12</td></tr><tr><td>Apples</td><td>3</td></tr><tr><td>Cherries</td><td>40</td></tr></tbody></table></tr-table>',
+    trigger: (p) => p.click('th[data-sort="n"]'),
+  },
+  {
+    name: 'toast: show',
+    markup: '<tr-button>Save</tr-button>',
+    trigger: (p) => p.evaluate(() => (window as unknown as { trompe: { toast(m: string, o?: object): void } }).trompe.toast('Saved', { tone: 'success', duration: 0 })),
+  },
+  { name: 'select: error appears', markup: `<tr-select id="t" label="Payee"><tr-option value="a">Ada</tr-option></tr-select>${AFTER}`, trigger: attr('#t', 'error', 'Choose who to pay.') },
+  { name: 'select: hint appears', markup: `<tr-select id="t" label="Payee"><tr-option value="a">Ada</tr-option></tr-select>${AFTER}`, trigger: attr('#t', 'hint', 'Saved payees only.') },
 ];

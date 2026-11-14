@@ -105,9 +105,9 @@ export class TrListItem extends TrompeElement {
         /* --_sel (registered) fades the selected tint in and out with the plate */
         --_sel: 0;
         --_base: color-mix(
-          in oklch,
+          in oklab,
           var(--_m-base),
-          color-mix(in oklch, color-mix(in oklch, var(--_m-base), var(--tr-color-accent) 12%), var(--_sh) calc(6% + var(--tr-lift, 0) * 10%))
+          color-mix(in oklab, color-mix(in oklab, var(--_m-base), var(--tr-color-accent) 12%), var(--_sh) calc(6% + var(--tr-lift, 0) * 10%))
             calc(var(--_sel) * 100%)
         );
         transition:

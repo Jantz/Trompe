@@ -6,6 +6,8 @@ import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync, mkdirSync } from 'node:fs';
 import { resolve, relative, extname, join, sep } from 'node:path';
 import { createRequire } from 'node:module';
+import { execSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { finding } from './rules.mjs';
 import { elements, lineCol } from './markup.mjs';
 import { sweepInteractions } from './motion.mjs';
@@ -15,9 +17,27 @@ const MOTION_RULE = { instant: 'TR120', shift: 'TR121', pop: 'TR122' };
 const MIME = { '.html': 'text/html', '.htm': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 const INTERACTIVE = ['button', 'checkbox', 'switch', 'radio', 'slider', 'tab', 'combobox', 'menuitem', 'option'];
 
-async function loadPlaywright() {
-  for (const name of ['playwright', '@playwright/test', 'playwright-core']) {
-    try { return await import(name); } catch {}
+/** Playwright is CommonJS: an ESM import may expose it only as `default`. */
+function withChromium(mod) {
+  const pw = mod?.chromium ? mod : mod?.default;
+  if (!pw?.chromium?.launch) throw new Error('no chromium export');
+  return pw;
+}
+
+async function loadPlaywright(cwd) {
+  const names = ['playwright', '@playwright/test', 'playwright-core'];
+  for (const name of names) {
+    try { return withChromium(await import(name)); } catch {}
+  }
+  // Also look where the project and the machine keep it: the project's own node_modules, NODE_PATH,
+  // and the global npm root (CI images and agent sandboxes often install Playwright globally).
+  const bases = [join(cwd, 'package.json'), ...(process.env.NODE_PATH ?? '').split(/[:;]/).filter(Boolean).map((p) => join(p, 'x'))];
+  try { bases.push(join(execSync('npm root -g', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 }).trim(), 'x')); } catch {}
+  for (const base of bases) {
+    for (const name of names) {
+      try { return withChromium(createRequire(base)(name)); } catch {}
+      try { return withChromium(await import(pathToFileURL(createRequire(base).resolve(name)).href)); } catch {}
+    }
   }
   throw new Error('--render needs Playwright. Install it with "npm i -D playwright" and "npx playwright install chromium".');
 }
@@ -39,7 +59,7 @@ function serve(root, pkgRoot) {
 
 export async function renderChecks(pages, data, { cwd, shots, chromium: exe, motion = true, motionLimit = 40 } = {}) {
   if (!pages.length) return [];
-  const { chromium } = await loadPlaywright();
+  const { chromium } = await loadPlaywright(cwd);
   const server = await serve(cwd, data.pkgRoot);
   const origin = `http://127.0.0.1:${server.address().port}`;
   const axePath = createRequire(import.meta.url).resolve('axe-core/axe.min.js');

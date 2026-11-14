@@ -312,7 +312,7 @@ export class TrProgress extends TrompeElement {
   /** Size of the bar or ring. */
   @property({ reflect: true }) size: Size = 'md';
 
-  /** Accessible text for the value, such as "3 of 10 files". Defaults to the percentage. */
+  /** Text for the value, such as "3 of 10 files" or "1:30": read out, and shown by `show-value` (in the ring's cap). Defaults to the percentage. */
   @property({ attribute: 'value-text' }) valueText = '';
 
   private hasSlotted = false;
@@ -337,7 +337,8 @@ export class TrProgress extends TrompeElement {
   }
 
   protected override render() {
-    const text = this.unknown ? '' : this.percent;
+    // show-value prints value-text when given ("1:30", "12 of 20"), else the percentage.
+    const text = this.unknown ? '' : this.valueText || this.percent;
     const label = html`<slot @slotchange=${this.onSlot}>${this.label}</slot>`;
     const hasLabel = !!this.label || this.hasSlotted;
     if (this.variant === 'ring') {

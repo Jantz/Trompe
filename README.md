@@ -33,6 +33,11 @@ import 'trompe/skins.css'; // optional: the bundled skins
 import 'trompe/components/button';
 ```
 
+**Building an app (React, Vue, Svelte or plain HTML)?** Start with [docs/guide.md](docs/guide.md)
+(`node_modules/trompe/docs/guide.md`): framework setup, page setup, which element for which need,
+how to make it look professional, skins from a description, and checking. Agents: `llms.txt` in the
+package has the same guide plus every element, attribute and token.
+
 ## The model
 
 | Input | How to set it | Values |
@@ -48,11 +53,11 @@ import 'trompe/components/button';
 
 Every material, finish and profile parameter is also a CSS variable (`--tr-m-*`, `--tr-f-*`, `--tr-p-*`), so a custom material is just a few declarations. The whole interface scales with `font-size`.
 
-All tokens are authored once in [`tokens/trompe.tokens.json`](tokens/trompe.tokens.json) (W3C Design Tokens format) and built to CSS custom properties. Skins live in [`skins/`](skins/) as JSON.
+All tokens are authored once in `tokens/trompe.tokens.json` in the repository (W3C Design Tokens format) and built to CSS custom properties; the package ships them as `trompe/tokens.json` and `trompe/tokens.css`. Skins are JSON (`trompe/skins.json`).
 
 ## Make your own skin
 
-Compose a skin in **Trompe Studio** (`npm run dev:studio`): describe a look in plain words or start
+Compose a skin in **Trompe Studio** (in the repository: `npm run dev:studio`): describe a look in plain words or start
 from a skin, then tune light, colour, real-world materials (walnut, brass, leather, ceramic, felt,
 glass and two dozen more, with procedural textures lit by the skin's own light), shape, type and
 motion against live app screens. Export skin JSON, CSS or a brief for agents.
@@ -71,18 +76,18 @@ See [docs/skins.md](docs/skins.md) and [docs/studio.md](docs/studio.md).
 
 ## Components
 
-Core: `tr-button`, `tr-input`, `tr-textarea`, `tr-checkbox`, `tr-radio-group` + `tr-radio`, `tr-switch`, `tr-select` + `tr-option`, `tr-segmented`, `tr-slider`, `tr-tabs` + `tr-tab` + `tr-tab-panel`, `tr-panel`, `tr-dialog`, `tr-menu` + `tr-menu-item`, `tr-tooltip`, `tr-progress`, `tr-badge`, `tr-toolbar`, `tr-nav` + `tr-nav-item`, `tr-list` + `tr-list-item`.
+Core: `tr-button`, `tr-input`, `tr-textarea`, `tr-number-field`, `tr-checkbox`, `tr-radio-group` + `tr-radio`, `tr-switch`, `tr-select` + `tr-option`, `tr-segmented`, `tr-slider`, `tr-tabs` + `tr-tab` + `tr-tab-panel`, `tr-panel`, `tr-table`, `tr-dialog`, `tr-menu` + `tr-menu-item`, `tr-tooltip`, `tr-toast` + `tr-toaster` (and the `toast()` helper), `tr-avatar`, `tr-progress`, `tr-badge`, `tr-toolbar`, `tr-nav` + `tr-nav-item`, `tr-list` + `tr-list-item`.
 
 Extras for instrument-like interfaces: `tr-knob`, `tr-display` (LCD, VFD, LED and OLED, with segment and dot-matrix glyphs), `tr-led`, `tr-meter`.
 
-Run `npm run build` and read `llms.txt` for every attribute, allowed value, event, slot, part and CSS property.
+`llms.txt` in the package lists every attribute, allowed value, event, slot, part and CSS property.
 
 ## Checking your markup
 
 ```sh
-npx trompe check src/            # .html, .vue, .svelte, Lit html``, .css and *.skin.json
+npx trompe check src/            # .html, .vue, .svelte, .jsx/.tsx, Lit html``, .css and *.skin.json
 npx trompe check --fix src/      # fix typos in element, attribute and value names
-npx trompe check --render page.html --format json   # + axe, contrast, target size, forced colours, motion
+npx trompe check --render dist/index.html --format json   # + axe, contrast, target size, forced colours, motion
 ```
 
 `trompe check` reads the package's own `custom-elements.json`, `tokens.json` and `skins.json`, so it always matches the installed version. It is built for agents: JSON findings with stable rule ids, the allowed values and a fix. See [docs/check.md](docs/check.md).

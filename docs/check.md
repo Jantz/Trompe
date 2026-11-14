@@ -15,11 +15,13 @@ npx trompe check --render --no-motion index.html      # rendered rules without t
 npx trompe check --rules                     # list rules
 ```
 
-Inputs: `.html`/`.htm`, `.vue` (template), `.svelte`, Lit ``html`…` `` literals in `.js/.mjs/.ts/.jsx/.tsx`, `.css`, and `*.skin.json`. Framework bindings (`:value`, `@change`, `bind:`, `${…}`) are skipped rather than guessed. JSX attribute syntax is not parsed yet.
+Inputs: `.html`/`.htm`, `.vue` (template), `.svelte` (markup, with `{#if}` blocks and `{…}` expressions), `.jsx`/`.tsx` (JSX), Lit ``html`…` `` literals in `.js/.mjs/.ts/.mts`, `.css`, and `*.skin.json`. Bound values (`:value`, `@change`, `bind:`, `{expr}`, `${…}`) are skipped rather than guessed, but the attribute names are still checked; React names (`className`, `htmlFor`) and element properties set from frameworks are accepted. URLs are not read: build the app and check the built page.
+
+The checker looks at the whole project around the files you pass (up to the nearest `package.json`): skins defined in `*.skin.json`, in CSS (`[data-tr-skin='name']`) or with `applySkin`, and skin stylesheets imported from JavaScript, count as loaded, so TR006 and TR015 do not fire for them.
 
 Exit codes: 0 no errors (warnings allowed), 1 errors found, 2 the checker itself failed.
 
-`--render` needs Playwright and Chromium (`npm i -D playwright && npx playwright install chromium`, or pass `--chromium <path>` / set `TROMPE_CHROMIUM`). Pages are served from the current directory over a local server. If a page uses `tr-*` elements without loading Trompe, the checker injects the package bundle so it can still measure them. Pages that import TypeScript directly (Vite dev pages) must be checked after building.
+`--render` needs Playwright and Chromium (`npm i -D playwright && npx playwright install chromium`; a global install is found too, or pass `--chromium <path>` / set `TROMPE_CHROMIUM`). Pages are served from the current directory over a local server. If a page uses `tr-*` elements without loading Trompe, the checker injects the package bundle so it can still measure them. Pages that import TypeScript directly (Vite dev pages) must be checked after building. The text summary says how many pages were rendered, so a clean result is never mistaken for a rendered one.
 
 ## Output
 
@@ -115,6 +117,14 @@ Error. ::part() names a part the element does not expose.
 #### TR017 unknown-variable
 
 Warning. A --tr-* custom property is set that no Trompe element or token reads.
+
+#### TR018 label-in-name
+
+Error. An interactive element has visible text and an `aria-label` that does not contain it (WCAG 2.5.3). Speech users say what they see, so `<tr-button aria-label="Submit order">Pay now</tr-button>` cannot be activated by "click Pay now". Remove the `aria-label`, or start it with the visible words.
+
+#### TR019 string-number
+
+Error. In a `.vue`, `.svelte`, `.jsx` or `.tsx` file a number property is written as a plain attribute (`max="100"`). Frameworks set known properties as properties, so the element would get the string `"100"` (and vue-tsc rejects it). Bind it: `:max="100"` in Vue, `max={100}` in Svelte and JSX. `--fix` rewrites it.
 
 ### Rendered (--render)
 

@@ -16,7 +16,9 @@ export const RULES = {
   TR014: { name: 'nested-interactive', severity: 'error', summary: 'An interactive element inside another interactive element breaks keyboard and screen reader behaviour.' },
   TR015: { name: 'skin-stylesheet', severity: 'warning', summary: 'data-tr-skin is used but the page never loads skins.css (or skins/<name>.css).' },
   TR016: { name: 'unknown-part', severity: 'error', summary: '::part() names a part the element does not expose.' },
+  TR018: { name: 'label-in-name', severity: 'error', summary: 'aria-label replaces the visible text of a control but does not contain it (WCAG 2.5.3); voice users say what they see.' },
   TR017: { name: 'unknown-variable', severity: 'warning', summary: 'A --tr-* custom property is set that no Trompe element or token reads.' },
+  TR019: { name: 'string-number', severity: 'error', summary: 'In Vue, Svelte or JSX a number property is written as a plain attribute, so the element gets a string. Bind it: :max="100" (Vue) or max={100}.' },
 
   TR101: { name: 'text-contrast', severity: 'error', summary: 'Rendered text below WCAG contrast (from axe-core).' },
   TR102: { name: 'axe', severity: 'error', summary: 'Other axe-core accessibility violations.' },

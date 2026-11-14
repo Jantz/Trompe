@@ -38,6 +38,10 @@ export { TrDialog } from './components/dialog/dialog.js';
 export { TrMenu } from './components/menu/menu.js';
 export { TrMenuItem } from './components/menu/menu-item.js';
 export { TrTooltip } from './components/tooltip/tooltip.js';
+export { TrAvatar, initialsOf } from './components/avatar/avatar.js';
+export { TrNumberField } from './components/number-field/number-field.js';
+export { TrToast, TrToaster, toast, type ToastOptions, type ToastTone } from './components/toast/toast.js';
+export { TrTable } from './components/table/table.js';
 
 // Motion: smooth size changes, enter/exit, text cross-fades and page-wide View Transitions.
 export { SizeTransition, enter, exit, removeAnimated, insertAnimated, crossfadeText, viewTransition, autoViewTransitions, afterExit } from './interaction/smooth.js';

@@ -81,6 +81,11 @@ const registered = [
 const globalCss = `/* Trompe design tokens. Generated from tokens/trompe.tokens.json. Do not edit. */
 ${registered.map((r) => `@property ${r.name} { syntax: '${r.syntax}'; inherits: true; initial-value: ${r.initial}; }`).join('\n')}
 
+/* Everything below sits in the lowest-priority layer \`trompe.tokens\`. The elements install this sheet
+   as an adopted stylesheet, which comes after the page's own sheets in the cascade; without the layer,
+   these zero-specificity defaults would beat a skin or theme set on <html> itself. In a layer, any
+   unlayered CSS (skins, your own) wins, wherever it is loaded. */
+@layer trompe.tokens {
 :where(:root) {
   color-scheme: light dark;
 ${rootDecls.join('\n')}
@@ -94,6 +99,10 @@ ${rootDecls.join('\n')}
 
 /* Sensible page defaults (zero specificity, so any page CSS wins). */
 :where(html) { color: var(--tr-color-ink); background-color: var(--tr-color-canvas); }
+/* A skin or theme on <body> paints the page: the root steps aside so body's canvas fills the viewport
+   (and a fixed backdrop at z-index: -1 still shows through glass). */
+:where(html:has(> body:is([data-tr-skin], [data-tr-theme]))) { background-color: transparent; }
+:where(body:is([data-tr-skin], [data-tr-theme])) { background-color: var(--tr-color-canvas); color: var(--tr-color-ink); }
 
 /* Themes: set data-tr-theme on any element. Default follows prefers-color-scheme. */
 :where([data-tr-theme='light']) { color-scheme: light; --tr-lift: 0; }
@@ -110,6 +119,7 @@ ${b.names.map((n) => `:where([data-tr-${b.attr}='${n}']) {\n${b.block(n)}\n}`).j
 /* Accessibility: users who ask for more contrast get less realism and stronger edges. */
 @media (prefers-contrast: more) {
   :where(:root) { --tr-realism-max: var(--tr-realism-soft); --tr-color-edge: light-dark(oklch(35% 0.01 260), oklch(85% 0.01 260)); }
+}
 }
 `;
 

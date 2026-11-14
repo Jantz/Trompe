@@ -2,8 +2,10 @@
 // Supports .html/.htm, .vue (template), .svelte, and Lit html`` literals in .js/.ts/.mjs/.jsx/.tsx.
 import { parse, parseFragment } from 'parse5';
 import { extname } from 'node:path';
+import { svelteToHtml, jsxToHtml, MARK, TEXT } from './template.mjs';
 
 export const EXPR = '⁣expr⁣'; // placeholder for template expressions
+export { MARK, TEXT }; // one-character placeholder for {expr} values in Svelte and JSX
 
 /** Returns markup regions: { offset, text, fragment } where offset is into the original source. */
 export function regions(file, src) {
@@ -15,11 +17,9 @@ export function regions(file, src) {
     const start = m.index + m[0].indexOf('>') + 1;
     return [{ offset: start, text: blankExpressions(m[1], /\{\{[\s\S]*?\}\}/g), fragment: true }];
   }
-  if (ext === '.svelte') {
-    const text = blankBlocks(src, /<(script|style)[^>]*>[\s\S]*?<\/\1>/gi);
-    return [{ offset: 0, text: blankExpressions(text, /\{[^{}]*\}/g), fragment: true }];
-  }
-  if (['.js', '.mjs', '.ts', '.mts', '.jsx', '.tsx'].includes(ext)) {
+  if (ext === '.svelte') return [{ offset: 0, text: svelteToHtml(src), fragment: true }];
+  if (ext === '.jsx' || ext === '.tsx') return [{ offset: 0, text: jsxToHtml(src), fragment: true }];
+  if (['.js', '.mjs', '.ts', '.mts'].includes(ext)) {
     const out = [];
     const re = /\bhtml`/g;
     let m;
@@ -38,9 +38,6 @@ export function regions(file, src) {
 // Replace matches with a same-length placeholder so offsets stay valid.
 function blankExpressions(text, re) {
   return text.replace(re, (s) => (s.length >= EXPR.length ? EXPR + ' '.repeat(s.length - EXPR.length) : s));
-}
-function blankBlocks(text, re) {
-  return text.replace(re, (s) => s.replace(/[^\n]/g, ' '));
 }
 function findTemplateEnd(src, i) {
   let depth = 0;

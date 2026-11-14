@@ -1,5 +1,5 @@
 import { css, html, type PropertyValues } from 'lit';
-import { afterExit, crossfadeText } from '../../interaction/smooth.js';
+import { SizeTransition, afterExit, crossfadeText } from '../../interaction/smooth.js';
 import { property, query } from 'lit/decorators.js';
 import { FormControl } from '../../internal/form-control.js';
 import { define } from '../../internal/trompe-element.js';
@@ -44,6 +44,10 @@ let nextId = 0;
  * @fires open - The listbox opened (does not bubble).
  * @fires close - The listbox closed (does not bubble).
  *
+ * @csspart hint - The help text under the field.
+ * @csspart error - The error message under the field.
+ *
+ * @example <tr-select label="Payee" hint="Saved payees only." error="Choose who to pay."><tr-option value="a">Ada</tr-option></tr-select>
  * @example <tr-select label="Country" name="country" placeholder="Choose…" required><tr-option value="nl">Netherlands</tr-option><tr-option value="jp">Japan</tr-option></tr-select>
  * @example <tr-select aria-label="Sort by" value="new" material="metal"><tr-option value="new">Newest</tr-option><tr-option value="top">Top rated</tr-option></tr-select>
  */
@@ -98,7 +102,9 @@ export class TrSelect extends FormControl {
         line-height: 1.2;
         transition:
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
-          translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out);
+          translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
+          border-color var(--tr-motion-duration-release, 160ms),
+          border-width var(--tr-motion-duration-release, 160ms);
       }
       :host(:hover) .trigger {
         --_tr-z: calc(var(--_depth) + 0.5);
@@ -228,6 +234,50 @@ export class TrSelect extends FormControl {
         --_edge: var(--tr-color-danger);
         border-width: 1.5px;
       }
+      /* hint and error under the field, as on tr-input: they fade, and the box glides to its height */
+      .messages {
+        margin-top: -0.35em;
+      }
+      .stack {
+        display: grid;
+      }
+      .msg {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.35em;
+        margin-top: calc(0.35em / 0.8125);
+        font-size: 0.8125em;
+        line-height: 1.35;
+        user-select: text;
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
+          translate var(--tr-motion-duration-travel, 220ms) cubic-bezier(0.2, 0.7, 0.2, 1),
+          display var(--tr-motion-duration-release, 160ms) allow-discrete;
+      }
+      .msg[hidden] {
+        display: none;
+        opacity: 0;
+        translate: 0 -0.3em;
+        transition-timing-function: ease-in;
+      }
+      @starting-style {
+        .msg {
+          opacity: 0;
+          translate: 0 -0.3em;
+        }
+      }
+      .hint {
+        color: color-mix(in oklch, currentColor 72%, transparent);
+      }
+      .error {
+        --_err-ink: var(--tr-color-danger-ink, #fff);
+        color: color-mix(in oklch, var(--tr-color-danger) 78%, currentColor);
+        font-weight: var(--tr-font-weight-strong, 600);
+      }
+      .error svg {
+        flex: none;
+        margin-top: 0.12em;
+      }
       @media (pointer: coarse) {
         .trigger {
           min-height: max(var(--_h), var(--tr-control-touch, 44px));
@@ -265,6 +315,23 @@ export class TrSelect extends FormControl {
 
   /** Requires a choice for the form to be valid. */
   @property({ type: Boolean, reflect: true }) required = false;
+
+  /** Help text under the field, read out with it. */
+  @property({ reflect: true }) hint = '';
+
+  /**
+   * Error message under the field. Setting it marks the field invalid (a custom validity error)
+   * and red-edged; clear it to make the field valid again.
+   */
+  @property({ reflect: true }) error = '';
+
+  /** The hint/error area glides to its new height instead of pushing content in one frame. */
+  protected readonly messageSize = new SizeTransition(this, () => ({
+    outer: this.renderRoot?.querySelector<HTMLElement>('.messages'),
+    inner: this.renderRoot?.querySelector<HTMLElement>('.stack'),
+  }));
+  /** Kept after the error clears, so the message fades out with its words still in it. */
+  private shownError = '';
 
   /** Whether the listbox is showing. */
   @property({ type: Boolean, reflect: true }) open = false;
@@ -359,6 +426,15 @@ export class TrSelect extends FormControl {
       <div part="listbox" class="listbox surface ${anchorSupport ? 'anchored' : ''}" id=${this.listboxId} role="listbox" popover="manual"
         aria-label=${this.label || this.getAttribute('aria-label') || 'Options'} @mousedown=${(e: Event) => e.preventDefault()}>
         <slot @slotchange=${() => this.requestUpdate()}></slot>
+      </div>
+      <div class="messages">
+        <div class="stack">
+          <div part="hint" class="msg hint" ?hidden=${!this.hint}>${this.hint}</div>
+          <div part="error" class="msg error" ?hidden=${!this.error}>
+            <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor" /><path d="M8 4.2v4.6M8 10.9v.9" stroke="var(--_err-ink, #fff)" stroke-width="1.8" stroke-linecap="round" /></svg>
+            <span class="error-text">${this.error || this.shownError}</span>
+          </div>
+        </div>
       </div>`;
   }
 
@@ -376,6 +452,15 @@ export class TrSelect extends FormControl {
     if (changed.has('open')) this.applyOpen(changed.get('open') !== undefined);
     this.aria('aria-expanded', String(this.open));
     this.aria('aria-required', this.required ? 'true' : null);
+    // The hint and error live in the shadow tree, so they reach the host's name as a description.
+    this.aria('aria-description', [this.error, this.hint].filter(Boolean).join('. ') || null);
+    this.aria('aria-invalid', this.error ? 'true' : null);
+    if (changed.has('error')) {
+      if (this.error) {
+        this.shownError = this.error;
+        this.setAttribute('data-user-invalid', '');
+      } else if (changed.get('error')) this.removeAttribute('data-user-invalid');
+    }
     this.syncOptions();
     // The chosen value cross-fades into the trigger instead of flicking over.
     const valueEl = this.renderRoot.querySelector<HTMLElement>('.value');
@@ -417,7 +502,9 @@ export class TrSelect extends FormControl {
     const active = this.open ? opts[this.activeIndex] : undefined;
     this.aria('aria-activedescendant', active ? active.id : null);
     this.internals.setFormValue(sel ? this.value : null, this.value);
-    if (this.required && (!sel || this.value === '')) {
+    if (this.error) {
+      this.internals.setValidity({ customError: true }, this.error, this.trigger ?? undefined);
+    } else if (this.required && (!sel || this.value === '')) {
       this.internals.setValidity({ valueMissing: true }, 'Choose an option to continue.', this.trigger ?? undefined);
     } else {
       this.internals.setValidity({});

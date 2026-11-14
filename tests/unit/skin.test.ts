@@ -172,3 +172,21 @@ describe('describe to skin', () => {
     expect(describeVocabulary.materials).toEqual(expect.arrayContaining(materialPresets.map((p) => p.id)));
   });
 });
+
+describe('describer: words agents used', () => {
+  const hueOf = (v: unknown) => parseColor(String(v))!.h;
+  it('reads "neon green accent" as a vivid green, not the neon look or a black accent', () => {
+    const { skin, notes } = skinFromDescription('dark soft-touch rubber, matte black, neon green accent');
+    expect(notes.join('\n')).not.toMatch(/Look: neon/);
+    expect(Math.abs(hueOf(skin.tokens['color.accent']) - 150)).toBeLessThan(15);
+    expect(parseColor(String(skin.tokens['color.accent']))!.c).toBeGreaterThan(0.18);
+  });
+  it('reads "dark anodised aluminium" as one dark metal', () => {
+    const { notes } = skinFromDescription('dark anodised aluminium, orange accent');
+    expect(notes.join('\n')).toMatch(/Surfaces: black anodized/);
+  });
+  it('keeps "warm white" nearly white', () => {
+    const { skin } = skinFromDescription('warm white porcelain, cobalt accent');
+    expect(parseColor(String(skin.tokens['color.surface']))!.c).toBeLessThan(0.012);
+  });
+});

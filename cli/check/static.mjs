@@ -1,5 +1,5 @@
 // Static rules: parse the markup, compare it with custom-elements.json, tokens.json and skins.json.
-import { elements, attr, inherited, textOf, lineCol, EXPR } from './markup.mjs';
+import { elements, attr, inherited, textOf, lineCol, EXPR, MARK, TEXT } from './markup.mjs';
 import { finding } from './rules.mjs';
 import { suggest } from './data.mjs';
 import { readFileSync, existsSync } from 'node:fs';
@@ -10,17 +10,22 @@ const GLOBAL_ATTRS = new Set([
   'inert', 'autofocus', 'nonce', 'popover', 'popovertarget', 'popovertargetaction', 'draggable', 'contenteditable',
   'spellcheck', 'translate', 'accesskey', 'enterkeyhint', 'inputmode', 'is', 'form', 'itemprop', 'itemscope',
   'itemtype', 'itemid', 'itemref', 'key', 'ref', 'command', 'commandfor', 'interestfor', 'writingsuggestions', 'autocapitalize',
+  // React (parse5 lowercases attribute names)
+  'classname', 'htmlfor', 'dangerouslysetinnerhtml', 'suppresshydrationwarning', 'suppresscontenteditablewarning',
 ]);
 const INTERACTIVE_ROLES = new Set(['button', 'checkbox', 'switch', 'radio', 'slider', 'tab', 'combobox', 'menuitem', 'option', 'textbox', 'spinbutton']);
 const NAME_FROM_CONTENT = new Set(['button', 'checkbox', 'switch', 'radio', 'tab', 'menuitem', 'option']);
 const NATIVE_INTERACTIVE = new Set(['button', 'a', 'input', 'select', 'textarea', 'summary']);
 const isFrameworkBinding = (n) => /^(:|@|#|\.|\?|v-|bind:|on:|use:|class:|style:|let:|transition:|in:|out:|animate:|x-|hx-)/.test(n);
-const isDynamic = (v) => v != null && (v.includes(EXPR) || /\{\{|\$\{/.test(v));
+const isDynamic = (v) => v != null && (v.includes(EXPR) || v.includes(MARK) || v.includes(TEXT) || /\{\{|\$\{/.test(v));
 // Words agents reach for from other design systems, mapped to Trompe's values.
 const SYNONYMS = { primary: 'accent', secondary: 'neutral', default: 'neutral', destructive: 'danger', error: 'danger', warning: 'danger',
   small: 'sm', medium: 'md', large: 'lg', s: 'sm', m: 'md', l: 'lg', round: 'circle', rounded: 'pill', square: 'rect', metallic: 'metal', steel: 'metal', aluminium: 'metal', aluminum: 'metal', frosted: 'glass', shiny: 'gloss', glossy: 'gloss', polished: 'mirror', realistic: 'real', subtle: 'soft' };
 const pick = (value, values) => (values.includes(SYNONYMS[value?.toLowerCase()]) ? SYNONYMS[value.toLowerCase()] : suggest(value, values));
 const CONTAINER_ENUMS = { 'data-tr-material': 'material', 'data-tr-finish': 'finish', 'data-tr-profile': 'profile', 'data-tr-realism': 'realism', 'data-tr-theme': 'theme' };
+
+const FRAMEWORK_FILE = /\.(vue|svelte|jsx|tsx)$/i;
+const isNumeric = (t) => t.kind === 'number' || (t.kind === 'enum' && t.values.every((v) => /^-?\d+(\.\d+)?$/.test(v)));
 
 export function checkMarkup(file, src, data, abs) {
   const out = [];
@@ -89,6 +94,7 @@ export function checkMarkup(file, src, data, abs) {
     for (const [name, a] of el.attrs) {
       if (GLOBAL_ATTRS.has(name) || name.startsWith('aria-') || name.startsWith('data-') || name.startsWith('on') || name.startsWith('xmlns') || isFrameworkBinding(name)) continue;
       const decl = def.attrs.get(name);
+      if (!decl && def.props?.has(name)) continue; // a JS property written in JSX (valueText)
       if (!decl) {
         const s = suggest(name, def.attrs.keys());
         push('TR002', a.start, {
@@ -113,6 +119,16 @@ export function checkMarkup(file, src, data, abs) {
         });
       } else if (t.kind === 'number' && a.value.trim() !== '' && !Number.isFinite(Number(a.value))) {
         push('TR003', a.start, { element: el.tag, attribute: name, value: a.value, message: `${name} must be a number.` });
+      } else if (FRAMEWORK_FILE.test(file) && decl.fieldName === name && isNumeric(t) && Number.isFinite(Number(a.value))) {
+        // Frameworks set a known property as a property: max="100" would hand the element the string "100".
+        const vue = /\.vue$/i.test(file);
+        const text = vue ? `:${name}="${a.value}"` : `${name}={${a.value}}`;
+        push('TR019', a.start, {
+          element: el.tag, attribute: name, value: a.value,
+          message: `${name}="${a.value}" passes a string; ${name} is a number property. Write ${text}.`,
+          fix: { kind: 'set-attribute', name, value: a.value },
+          _edits: [{ start: a.start, end: a.end, text }],
+        });
       } else if (t.kind === 'boolean' && /^false$/i.test(a.value)) {
         push('TR004', a.start, {
           element: el.tag, attribute: name, value: a.value,
@@ -132,8 +148,25 @@ export function checkMarkup(file, src, data, abs) {
         message: `<${el.tag}> has no accessible name. ${def.attrs.has('label') ? 'Add label="…", ' : 'Add visible text, '}aria-label="…" or aria-labelledby.`,
       });
     }
-    if (role === 'img' && !attr(el, 'label') && !attr(el, 'aria-label') && attr(el, 'aria-hidden') !== 'true') {
-      push('TR005', el.nameStart, { element: el.tag, severity: 'warning', message: `<${el.tag}> conveys state but has no label. Add label="…" or aria-hidden="true" if it only decorates.` });
+    // TR018 label in name: aria-label overrides the visible text, so it must contain it.
+    const ariaLabel = attr(el, 'aria-label');
+    if (interactive && ariaLabel && !isDynamic(ariaLabel) && NAME_FROM_CONTENT.has(role)) {
+      const visible = textOf(el.node);
+      const norm = (t) => t.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+      if (!visible.includes(TEXT) && !isDynamic(visible) && norm(visible) && !norm(ariaLabel).includes(norm(visible))) {
+        push('TR018', el.attrs.get('aria-label').start, {
+          element: el.tag, attribute: 'aria-label', value: ariaLabel,
+          message: `aria-label="${ariaLabel}" hides the visible text "${visible.trim().replace(/\s+/g, ' ')}". Start the label with the visible words (or drop aria-label and let the text name it).`,
+        });
+      }
+    }
+    // Images are named by label, name (tr-avatar) or ARIA, and hidden by aria-hidden or `decorative`.
+    const imgNamed = ['label', 'aria-label', 'aria-labelledby'].some((a) => attr(el, a)) || (def.attrs.has('name') && attr(el, 'name'));
+    const imgHidden = attr(el, 'aria-hidden') === 'true' || (def.attrs.has('decorative') && el.attrs.has('decorative') && attr(el, 'decorative') !== 'false');
+    if (role === 'img' && !imgNamed && !imgHidden) {
+      const fix = def.attrs.has('name') ? 'Add name="…"' : 'Add label="…"';
+      const hide = def.attrs.has('decorative') ? 'decorative' : 'aria-hidden="true"';
+      push('TR005', el.nameStart, { element: el.tag, severity: 'warning', message: `<${el.tag}> conveys something but has no name. ${fix}, or ${hide} if it only decorates.` });
     }
     if (interactive) checkNested(el);
 
@@ -166,7 +199,7 @@ export function checkMarkup(file, src, data, abs) {
   const loadsSkins = (text) => /skins(\/[\w-]+)?\.css|trompe\.bundle|\/skins\//.test(text);
   const linked = () => els.filter((e) => e.tag === 'link' && /stylesheet/.test(attr(e, 'rel') ?? '') && attr(e, 'href') && !/^[a-z]+:|^\/\//i.test(attr(e, 'href')))
     .some((e) => { const p = abs && resolve(dirname(abs), attr(e, 'href').split(/[?#]/)[0]); return p && existsSync(p) && loadsSkins(readFileSync(p, 'utf8')); });
-  if (skinUser && /\.html?$/i.test(file) && /<html[\s>]|<!doctype/i.test(src) && !loadsSkins(src) && !linked()) {
+  if (skinUser && /\.html?$/i.test(file) && /<html[\s>]|<!doctype/i.test(src) && !loadsSkins(src) && !linked() && !data.projectLoadsSkins) {
     push('TR015', skinUser.attrs.get('data-tr-skin').start, { element: skinUser.tag, message: 'data-tr-skin has no effect until the page loads trompe/skins.css or trompe/skins/<name>.css.' });
   }
 

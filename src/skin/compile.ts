@@ -100,5 +100,14 @@ export function compileSkin(skin: Skin, options: CompileOptions = {}): string {
     }
     if (spec.style) out.push(`${scope} :where(${target}) {\n  ${decls(spec.style).join('\n  ')}\n}`);
   }
+  if (!options.scope) {
+    // Upgrade cloak: a page whose <html> or <body> wears this skin stays transparent until its
+    // custom elements are defined (at most 1.2s), then fades in, so nothing jumps while they render.
+    out.push(
+      `:where(html, body)${scope} {\n  transition: opacity var(--tr-motion-duration-lift, 240ms) ease-out;\n}`,
+      `:where(html, body)${scope}:has(:not(:defined)) {\n  opacity: 0;\n  animation: tr-uncloak 0s 1.2s forwards;\n}`,
+      `@keyframes tr-uncloak {\n  to {\n    opacity: 1;\n  }\n}`,
+    );
+  }
   return out.join('\n') + '\n';
 }

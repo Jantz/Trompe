@@ -99,6 +99,38 @@ test('--render: upgrades the page and finds nothing on a clean page', { timeout:
   assert.deepEqual(rendered.map((f) => `${f.id} ${f.message}`), []);
 });
 
+test('JSX and Svelte: expressions, nested JSX, spreads and props are understood', async () => {
+  const r = await run({ inputs: [fx('App.tsx'), fx('App.svelte')] });
+  assert.deepEqual(new Set(ids(r, 'App.tsx')), new Set(['TR003@9', 'TR005@10', 'TR002@16', 'TR018@17']));
+  assert.deepEqual(ids(r, 'App.svelte'), ['TR003@8']);
+  // {expr} values are dynamic: no number or attribute errors for min={-100}, label={`…`}, oninput={(e) => …}
+  assert.ok(!r.findings.some((f) => f.file.endsWith('App.svelte') && f.attribute !== 'tone'));
+});
+
+test('project context: custom skins and skins imported from JS are known', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trompe-ctx-'));
+  const { writeFileSync, mkdirSync } = await import('node:fs');
+  writeFileSync(join(dir, 'package.json'), '{"name":"x"}');
+  mkdirSync(join(dir, 'src'));
+  writeFileSync(join(dir, 'src', 'main.js'), "import 'trompe/skins/soft.css';\nimport './velo.css';\n");
+  writeFileSync(join(dir, 'src', 'velo.css'), ":where([data-tr-skin='velo']) { --tr-color-accent: lime; }\n");
+  writeFileSync(join(dir, 'index.html'), '<!doctype html><html><body data-tr-skin="velo"><tr-button>Go</tr-button><script type="module" src="./src/main.js"></script></body></html>');
+  const r = await run({ inputs: ['index.html'], cwd: dir });
+  assert.deepEqual(r.findings.map((f) => f.id), []);
+});
+
+test('TR019: numbers written as plain attributes in framework files; TR005 knows avatar names', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trompe-num-'));
+  const { writeFileSync } = await import('node:fs');
+  writeFileSync(join(dir, 'package.json'), '{"name":"x"}');
+  writeFileSync(join(dir, 'A.vue'), '<template>\n  <tr-panel depth="2"><tr-slider label="Vol" :max="100" min="0"></tr-slider></tr-panel>\n</template>\n');
+  writeFileSync(join(dir, 'B.tsx'), 'export const B = () => <tr-slider label="Vol" max="100" min={0} />;\n');
+  writeFileSync(join(dir, 'c.html'), '<tr-slider label="Vol" max="100"></tr-slider><tr-avatar name="Ada"></tr-avatar><tr-avatar decorative></tr-avatar><tr-avatar></tr-avatar>\n');
+  const r = await run({ inputs: ['A.vue', 'B.tsx', 'c.html'], cwd: dir });
+  assert.deepEqual(r.findings.map((f) => `${f.file}:${f.id}:${f.attribute ?? f.element}`).sort(), ['A.vue:TR019:depth', 'A.vue:TR019:min', 'B.tsx:TR019:max', 'c.html:TR005:tr-avatar']);
+  assert.match(r.findings.find((f) => f.file === 'A.vue').message, /:depth="2"/);
+});
+
 test('--render motion: cuts, jumps and pop-ins are found; a transition is clean', { timeout: 120_000 }, async (t) => {
   let pw;
   try { pw = await import('@playwright/test'); const b = await pw.chromium.launch(); await b.close(); }
