@@ -173,11 +173,18 @@ function install() {
           return g.getImageData(0, 0, bmp.width, bmp.height).data;
         }),
       );
+      // A pixel changed when its brightness moved, or when its colour moved while both versions
+      // are coloured. Text that switches from subpixel (LCD) to greyscale anti-aliasing as an
+      // animation gives it its own layer changes colour fringes only, not brightness: that is
+      // not a visible change and must not count as one.
+      const lum = (d, i) => 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+      const spread = (d, i) => Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]);
       const count = (x, y) => {
         let n = 0;
         const len = Math.min(x.length, y.length);
         for (let i = 0; i < len; i += 4) {
-          if (Math.abs(x[i] - y[i]) > threshold || Math.abs(x[i + 1] - y[i + 1]) > threshold || Math.abs(x[i + 2] - y[i + 2]) > threshold) n++;
+          if (Math.abs(lum(x, i) - lum(y, i)) > threshold) n++;
+          else if (spread(x, i) > 32 && spread(y, i) > 32 && (Math.abs(x[i] - y[i]) > threshold || Math.abs(x[i + 1] - y[i + 1]) > threshold || Math.abs(x[i + 2] - y[i + 2]) > threshold)) n++;
         }
         return n;
       };

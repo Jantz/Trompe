@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { mount } from './helpers';
 import { scenarios } from './motion-scenarios';
 // @ts-expect-error plain ESM module shared with the CLI
-import { measureChange, motionProblems } from '../cli/check/motion.mjs';
+import { measureChange, motionProblems, MOTION_LIMITS } from '../cli/check/motion.mjs';
 
 /**
  * Smoothness guard. Every state change in tests/motion-scenarios.ts must be animated (nothing
@@ -34,6 +34,22 @@ test.describe('motion: every change is animated and shift-free', () => {
       const problems: string[] = motionProblems(m, s.limits);
       if (process.env.TROMPE_MOTION_REPORT) console.log(JSON.stringify({ name: s.name, ...m, problems }));
       expect(problems, `${s.name}\n${JSON.stringify(m, null, 1)}`).toEqual([]);
+    });
+  }
+});
+
+test.describe('motion probe catches what is not animated', () => {
+  const cases: Array<[string, string, (el: HTMLElement) => void]> = [
+    ['a hue swap at the same brightness', '<div id="t" style="width:200px;height:80px;background:#cc3333"></div>', (el) => (el.style.background = '#3333cc')],
+    ['text that appears at once', '<p id="t" style="font:16px sans-serif;width:300px;height:24px"></p>', (el) => (el.textContent = 'Saved to your library just now')],
+  ];
+  for (const [name, markup, change] of cases) {
+    test(name, async ({ page }) => {
+      await page.setViewportSize({ width: 800, height: 600 });
+      await mount(page, markup);
+      const m = await measureChange(page, (p) => p.evaluate(`(${change.toString()})(document.getElementById('t'))`), { clip: { x: 0, y: 0, width: 800, height: 600 } });
+      expect(m.instant).toBeGreaterThan(MOTION_LIMITS.instant);
+      expect(motionProblems(m).length).toBeGreaterThan(0);
     });
   }
 });
