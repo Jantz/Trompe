@@ -56,11 +56,11 @@ export default async (page, { out, name }) => {
   // 2. Quantity steppers.
   const tot0 = await page.textContent("#t-total");
   await page.click('.item[data-id="bowl"] .kn[data-d="1"]'); await page.waitForTimeout(450);
-  ok(await page.textContent('.item[data-id="bowl"] .qv') === "2", "bowl qty 2 after +");
+  ok(await page.textContent('.item[data-id="bowl"] .qv span:last-child') === "2", "bowl qty 2 after +");
   ok(await page.textContent('.item[data-id="bowl"] .tot') === "¥36,800", "bowl line total updates");
   ok(await page.textContent("#t-total") !== tot0, "total changes");
   await page.focus('.item[data-id="hashi"] .kn[data-d="-1"]'); await page.keyboard.press("Enter"); await page.waitForTimeout(450);
-  { const q = await page.textContent('.item[data-id="hashi"] .qv'); ok(q === "1", "chopsticks qty 1 via keyboard (" + q + ")"); }
+  { const q = await page.textContent('.item[data-id="hashi"] .qv span:last-child'); ok(q === "1", "chopsticks qty 1 via keyboard (" + q + ")"); }
   ok(await attr('.item[data-id="hashi"] .kn[data-d="-1"]', "aria-disabled") === "true", "minus disabled at 1");
 
   // 3. Shipping cards.

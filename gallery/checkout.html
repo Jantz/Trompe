@@ -425,7 +425,7 @@ legend { padding: 0; margin-bottom: .6em; }
 .cvc-box { position: absolute; right: 1.3em; top: 5.1em; width: 3.7em; height: 2.2em; display: grid; place-items: center; border-radius: .25em;
   background: oklch(0.95 0.01 85); color: oklch(0.2 0.01 60); font: 500 .95em/1 var(--mono); letter-spacing: .12em;
   box-shadow: inset 0 1px 2px #0006, 0 0 0 1.5px oklch(0.85 0.12 84 / calc(var(--cvc-hl, 0))); }
-.back .fine { position: absolute; left: 2.6em; right: 2.6em; bottom: 2em; font: 500 .58em/1.5 var(--sans); letter-spacing: .06em; }
+.back .fine { position: absolute; left: 2.6em; right: 2.6em; bottom: 2em; font: 500 .6em/1.5 var(--sans); letter-spacing: .05em; color: oklch(0.26 0.01 60); }
 .pay-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
 .pay-fields .wide { grid-column: 1 / -1; }
 .pay-fields input { font-family: var(--mono); letter-spacing: .06em; }
@@ -819,8 +819,10 @@ function bump(it, d) {
   const q = Math.min(9, Math.max(1, it.qty + d));
   if (q === it.qty) return;
   it.qty = q;
-  const box = it.el.querySelector(".qv"), old = box.firstElementChild, n = document.createElement("span");
-  n.textContent = q; box.append(n);
+  const box = it.el.querySelector(".qv");
+  while (box.children.length > 1) box.firstElementChild.remove();
+  const old = box.firstElementChild, n = document.createElement("span");
+  old.setAttribute("aria-hidden", "true"); n.textContent = q; box.append(n);
   if (motion()) {
     const o = { duration: 300, easing: "cubic-bezier(.2,1.25,.4,1)" };
     old.animate([{ transform: "none", opacity: 1 }, { transform: `translateY(${-d * 110}%)`, opacity: 0 }], o).onfinish = () => old.remove();

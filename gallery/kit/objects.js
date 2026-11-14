@@ -611,6 +611,7 @@ export class ToggleController {
     this.hostConnected();
   }
   get n() { return this.o.positions; }
+  get value() { return this._value; }
   hostConnected() {
     const h = this.host;
     if (!h.hasAttribute("role")) h.setAttribute("role", this.n === 2 ? "switch" : "slider");
