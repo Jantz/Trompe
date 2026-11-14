@@ -37,6 +37,8 @@ export const hostStyles = css`
     --_curve: var(--tr-p-curve, var(--_curve-default, 0));
     --_chamfer: var(--tr-p-chamfer, var(--_chamfer-default, 0px));
 
+    /* private reflection damping set by large surfaces (panels, dialogs); never leaks into children */
+    --_reflect: initial;
     box-sizing: border-box;
     font-family: var(--tr-font-family);
     -webkit-tap-highlight-color: transparent;
@@ -74,7 +76,8 @@ export const hostStyles = css`
  *   --_base     base color (defaults to the material base)
  *   --_ink      text color (defaults to the material ink)
  *   --_edge     border color (defaults to --tr-color-edge, which meets 3:1)
- *   --tr-reflect-scale  0..1 damping of gloss and mirror reflections (public: large text-bearing surfaces use < 1)
+ *   --_reflect  0..1 damping of gloss, mirror and brushed bands for large surfaces (private, reset on every host);
+ *               --tr-reflect-scale is the public, inherited equivalent. Legacy line: damping of gloss and mirror reflections (public: large text-bearing surfaces use < 1)
  */
 export const surfaceStyles = css`
   .surface {
@@ -118,25 +121,25 @@ export const surfaceStyles = css`
       /* clear-coat window reflection toward the light: crisp-edged, like a softbox in lacquer */
       radial-gradient(
         ellipse 82% 50% at calc(50% - var(--_sx) * 14%) calc(50% - var(--_sy) * 30%),
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--tr-reflect-scale, 1) * 85%), transparent) 0%,
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--tr-reflect-scale, 1) * 32%), transparent) 92%,
+        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 85%), transparent) 0%,
+        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 32%), transparent) 92%,
         transparent 100%
       ),
       /* clear-coat caustic: light passing through and glowing on the far side */
       radial-gradient(
         ellipse 70% 38% at calc(50% + var(--_sx) * 30%) calc(50% + var(--_sy) * 42%),
-        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--tr-reflect-scale, 1) * 38%), transparent) 0%,
+        color-mix(in oklch, var(--_hl) calc(var(--_gloss) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 38%), transparent) 0%,
         transparent 100%
       ),
       /* mirror: sky, dark horizon, ground bounce. The environment stays upright; the light only tilts it a little. */
       linear-gradient(
         calc(var(--tr-light-environment, 180deg) + (var(--tr-light-angle, 330deg) - 360deg) * 0.15),
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 90%), transparent) 0%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 40%), transparent) 38%,
-        color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 60%), transparent) 50%,
-        color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 28%), transparent) 58%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 18%), transparent) 74%,
-        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--tr-reflect-scale, 1) * 75%), transparent) 100%
+        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 90%), transparent) 0%,
+        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 45%), transparent) 46%,
+        color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 55%), transparent) 64%,
+        color-mix(in oklch, var(--_sh) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 25%), transparent) 72%,
+        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 18%), transparent) 84%,
+        color-mix(in oklch, var(--_hl) calc(var(--_mirror) * var(--_rg) * var(--_reflect, var(--tr-reflect-scale, 1)) * 70%), transparent) 100%
       ),
       /* spun metal: concentric anisotropic reflections */
       conic-gradient(
@@ -179,16 +182,16 @@ export const surfaceStyles = css`
       linear-gradient(
         calc(var(--tr-light-angle, 330deg) + 180deg),
         transparent 20%,
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * 45%), transparent) 33%,
+        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * var(--_reflect, var(--tr-reflect-scale, 1)) * 45%), transparent) 33%,
         transparent 45%,
         transparent 62%,
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * 26%), transparent) 71%,
+        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * var(--_reflect, var(--tr-reflect-scale, 1)) * 26%), transparent) 71%,
         transparent 80%
       ),
       /* brushed: two hairline periods so the grain never looks regular */
       repeating-linear-gradient(
         0deg,
-        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * 22%), transparent) 0 1px,
+        color-mix(in oklch, var(--_hl) calc(var(--_r) * var(--_brush) * (0.06 + 0.1 * var(--_reflect, var(--tr-reflect-scale, 1))) * 100%), transparent) 0 1px,
         transparent 1px 3px
       ),
       repeating-linear-gradient(

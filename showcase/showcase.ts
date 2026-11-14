@@ -76,9 +76,9 @@ for (const id of ['#delete-cancel', '#delete-confirm']) {
 
 /* ---------- extras ---------- */
 const knob = $<Valued>('#extra-knob');
-const readout = $('#extra-readout');
+const readout = $<HTMLElement & { value: string }>('#extra-readout');
 knob?.addEventListener('input', () => {
-  if (readout) readout.textContent = knob.value.toFixed(1);
+  if (readout) readout.value = knob.value.toFixed(1);
 });
 
 /* ---------- primitives matrix ---------- */

@@ -198,15 +198,23 @@ h3 {
   outline-offset: 2px;
 }
 
+.form tr-input,
+.form tr-textarea,
+.form tr-select,
+.compose tr-input,
+.compose tr-textarea {
+  width: 100%;
+}
+
 /* Soft: settings */
 .app-settings {
   display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr);
+  grid-template-columns: 16rem minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
-.app-side {
-  padding: 0.75rem;
+.app-side tr-nav {
+  --tr-nav-width: 100%;
 }
 
 /* Studio: dashboard */
@@ -267,7 +275,7 @@ h3 {
   display: block;
 }
 .dash-main {
-  padding: 0.75rem 1.25rem 1.25rem;
+  display: block;
 }
 .bars {
   display: flex;
@@ -395,6 +403,7 @@ h3 {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
   gap: 1.5rem;
   max-width: 52rem;
+  align-items: start;
 }
 .extra {
   display: block;
@@ -404,7 +413,7 @@ h3 {
 }
 .extra-display {
   display: block;
-  font-size: 2.5rem;
+  font-size: 1.6rem;
 }
 .leds {
   display: flex;
@@ -432,11 +441,7 @@ h3 {
 
 /* Matrix */
 .stage-matrix {
-  background: var(--page);
-  color: var(--page-ink);
-}
-.stage-matrix .stage-head p {
-  color: var(--page-muted);
+  background: radial-gradient(100% 80% at 50% 0%, oklch(97% 0.006 85), transparent 70%), var(--tr-color-canvas);
 }
 .matrix {
   display: grid;
@@ -449,7 +454,7 @@ h3 {
   font-size: 0.8125rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--page-muted);
+  color: var(--tr-color-ink-muted);
 }
 .matrix-row {
   display: flex;
@@ -458,13 +463,17 @@ h3 {
   align-items: center;
 }
 .swatch {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 7.5rem;
   height: 5rem;
-  border-radius: 14px;
   font-size: 0.8125rem;
   font-weight: 600;
+  --tr-panel-padding: 0;
+}
+.swatch::part(chassis) {
+  height: 100%;
+  display: grid;
+  place-items: center;
 }
 
 /* Agents */

@@ -31,6 +31,7 @@ const SCREW_ANGLES = [-28, 63, 14, -71];
  *
  * @cssprop --tr-panel-container-type - container-type of the panel. Defaults to inline-size, which means the panel takes its width from its container, not its content: in shrink-to-fit layouts (auto grid tracks, inline-flex) give it a width or set this to normal.
  * @cssprop --tr-panel-radius - Corner radius. Defaults to --tr-radius-lg.
+ * @cssprop --tr-panel-reflect - 0..1 strength of gloss, mirror and brushed reflections on the panel face. Defaults to 0.4.
  * @cssprop --tr-panel-padding - Inner padding. Defaults by the `padding` attribute.
  * @cssprop --tr-panel-gap - Space between header, content and footer. Defaults to 0.75em.
  * @cssprop --tr-panel-bezel-width - Width of the chamfered lip around the well. Defaults to 0.3em.
@@ -70,6 +71,8 @@ export class TrPanel extends TrompeElement {
         --_pad: var(--tr-panel-padding, 2em);
       }
       .chassis {
+        /* big faces read better with calmer reflections */
+        --_reflect: var(--tr-panel-reflect, 0.4);
         --_tr-z: var(--_depth);
         display: flex;
         flex-direction: column;
