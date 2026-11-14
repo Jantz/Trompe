@@ -37,8 +37,8 @@ color-scheme: dark;
 
 --gold-leaf: linear-gradient(var(--away), var(--gold-hi), var(--gold) 28%, var(--gold-deep) 62%, var(--gold-mid));
 
---tex-slub: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='140'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.018 .38' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .94 0 0 0 0 .8 0 0 0 2 -1.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
---tex-weave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='3'%3E%3Cpath d='M0 0h6v1H0z' fill='%23fff' fill-opacity='.045'/%3E%3Cpath d='M0 2h6v1H0z' fill='%23000' fill-opacity='.2'/%3E%3Cpath d='M2 0h1v3H2z' fill='%23000' fill-opacity='.08'/%3E%3C/svg%3E");
+--tex-slub: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.028 .42' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .86 0 0 0 0 .76 0 0 0 0 .6 0 0 0 1.1 -.73'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+--tex-weave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7 1.4' numOctaves='1' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .88 0 0 0 0 .75 0 0 0 .3 -.08'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E");
 
 --tex-nashiji: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='1' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .96 0 0 0 0 .8 0 0 0 0 .45 32 0 0 0 -23.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -76,13 +76,20 @@ calc(var(--sx) * 26px * var(--len)) calc(var(--sy) * 34px * var(--len)) 70px #00
 }
 
 .board::before {
+/* The board is a mirror: a shoji screen reflected in the urushi. Kumiko bars and the paper panes are
+   crisp because lacquer is a true mirror; brightness falls off away from the light. Slides with the light. */
 content: ""; position: absolute; z-index: -1; pointer-events: none;
-width: 54em; height: 30em; max-width: 86%;
-left: calc(50% - var(--sx) * 36%); top: clamp(12em, calc(46% - var(--sy) * 44%), calc(100% - 14em));
-translate: -50% -50%; border-radius: 1.5em;
-background: linear-gradient(calc(var(--la) + 165deg), oklch(1 .005 85 / .2), #fff1 50%, #fff0);
--webkit-mask: linear-gradient(90deg, #0000, #000 7%, #000 93%, #0000), linear-gradient(#0000, #000 6%, #000 82%, #0000),
-linear-gradient(90deg, #000 47.5%, #0003 49.3% 50.7%, #000 52.5%);
+width: 44em; height: 27em; max-width: 64%;
+left: calc(50% - var(--sx) * 40%); top: clamp(11em, calc(44% - var(--sy) * 46%), calc(100% - 13em));
+translate: -50% -50%; border-radius: .5em;
+background:
+radial-gradient(70% 80% at calc(50% - var(--sx) * 45%) calc(50% - var(--sy) * 45%), oklch(.98 .02 85 / .1), #fff0 70%),
+linear-gradient(var(--away), oklch(.97 .025 85 / .15), oklch(.95 .02 80 / .07) 42%, oklch(.9 .02 75 / .02) 80%, #fff0);
+--m:
+linear-gradient(90deg, #0000, #000 1.2%, #000 92%, #0000), linear-gradient(#0000, #000 1.5%, #000 88%, #0000),
+repeating-linear-gradient(90deg, #000 0 calc(25% - .22em), #0000 calc(25% - .22em) 25%),
+repeating-linear-gradient(#000 0 calc(33.333% - .2em), #0000 calc(33.333% - .2em) 33.333%);
+-webkit-mask: var(--m); mask: var(--m);
 -webkit-mask-composite: source-in; mask-composite: intersect;
 }
 
@@ -99,6 +106,7 @@ display: block; font: 600 .7em/1.2 var(--sans); letter-spacing: .17em; text-tran
 text-shadow: var(--on1) 0 #000, calc(var(--sx) * .6px) calc(var(--sy) * .6px) 0 oklch(.95 .05 90 / .22);
 }
 .eyebrow { font: 500 .72em/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--gold-mid); margin-bottom: .7em; }
+h2.title, h3.sub { scroll-margin-top: 84px; }
 h2.title { font: 500 2.05em/1.05 var(--serif); letter-spacing: .005em; color: var(--ink); }
 h3.sub { font: 600 1.28em/1.1 var(--serif); letter-spacing: .01em; }
 .lede { color: var(--ink-3); font-size: .93em; margin-top: .55em; max-width: 34ch; text-wrap: pretty; }
@@ -157,7 +165,7 @@ li[data-state="done"] .stud svg { opacity: 1; }
 
 /* Panes */
 .board > .hair { margin: 0 2.25em; }
-.panes { display: grid; grid-template-columns: minmax(19em, 22em) minmax(0, 1fr) minmax(21em, 25em); grid-template-areas: "acc chk sum"; }
+.panes { display: grid; grid-template-columns: minmax(19em, 22em) minmax(0, 1fr) minmax(22em, 27em); grid-template-areas: "acc chk sum"; }
 .pane { position: relative; padding: 2.4em 2.25em 2.6em; min-width: 0; }
 .p-acc { grid-area: acc; } .p-chk { grid-area: chk; } .p-sum { grid-area: sum; }
 .pane + .pane::before {
@@ -173,10 +181,10 @@ box-shadow: 1px 0 0 #000;
 .well { position: relative; display: flex; align-items: center; min-height: 3.15em; border-radius: .78em; }
 .well, .silk {
 background:
-linear-gradient(var(--away), #0009, #0000 38%),
-linear-gradient(100deg, #0000 15%, oklch(.9 .03 80 / .07) 42%, #0000 62%, oklch(.9 .03 80 / .035) 82%, #0000),
-var(--tex-slub) 0 0 / 320px 140px, var(--tex-weave),
-linear-gradient(oklch(.25 .014 64), oklch(.215 .012 60));
+linear-gradient(var(--away), #000a, #0000 34%),
+linear-gradient(calc(var(--la) + 100deg), #0000 18%, oklch(.92 .04 82 / .055) 40%, #0000 58%, oklch(.92 .04 82 / .03) 80%, #0000),
+var(--tex-slub) 0 0 / 300px 120px, var(--tex-weave) 0 0 / 140px 140px,
+linear-gradient(oklch(.215 .013 62), oklch(.19 .011 58));
 box-shadow:
 inset calc(var(--sx) * .32em) calc(var(--sy) * .38em) .55em #000b,
 inset 0 0 0 1px #000d,
@@ -195,7 +203,7 @@ box-shadow: inset 0 0 0 1px oklch(.86 .11 86 / .8), inset 0 0 1.3em -.35em oklch
 appearance: none; flex: 1 1 0; width: 0; min-width: 0; height: 3.15em; border: 0; background: none; padding: 0 1em; outline: none;
 color: var(--ink); caret-color: var(--gold-hi); font: 500 max(16px, 1em)/1 var(--sans); letter-spacing: .01em;
 }
-.well input::placeholder { color: oklch(.6 .014 75); }
+.well input::placeholder { color: oklch(.66 .016 75); }
 .well input:-webkit-autofill { -webkit-text-fill-color: var(--ink); transition: background-color 1e5s; }
 .msg { display: flex; gap: .5em; align-items: center; min-height: 1.2em; font-size: .82em; color: var(--shu-ink); }
 .msg:empty { display: none; }
@@ -223,7 +231,7 @@ filter: drop-shadow(calc(var(--sx) * .7px) calc(var(--sy) * .7px) 0 oklch(.97 .0
 .box {
 position: relative; flex: none; width: 1.45em; height: 1.45em; border-radius: .34em;
 background: radial-gradient(140% 140% at calc(50% - var(--sx) * 55%) calc(50% - var(--sy) * 55%), oklch(.36 .01 40), oklch(.12 .006 35) 52%, oklch(.05 0 0));
-box-shadow: inset var(--o1) 0 #fff4, 0 0 0 1px #000, 0 0 0 2px oklch(.55 .08 70 / .35),
+box-shadow: inset var(--o1) 0 #fff4, inset 0 0 0 1px oklch(.72 .1 80 / .55), 0 0 0 1px #000, 0 0 0 2px oklch(.6 .08 72 / .3),
 calc(var(--sx) * 2px) calc(var(--sy) * 2.5px) 3px #000d;
 }
 .box svg { position: absolute; inset: .14em; opacity: 0; transform: scale(.4) rotate(-12deg); transition: opacity .1s, transform .32s var(--tr-ease-spring); }
@@ -251,14 +259,14 @@ box-shadow: inset 0 0 0 1px #000a, inset calc(var(--sx) * -.45em) calc(var(--sy)
 transform: translate(calc(var(--sx) * var(--tr-press, 0) * .14em), calc(var(--sy) * var(--tr-press, 0) * .14em)) scale(calc(1 - var(--tr-press, 0) * .014));
 }
 .pf::before {
-content: ""; position: absolute; left: 4%; right: 4%; top: 4%; height: 58%; pointer-events: none; border-radius: 3em 3em 45% 45% / 100% 100% 60% 60%;
-background: radial-gradient(48% 90% at 50% 0%, #fff6, #fff2 45%, #fff0 80%, #0000);
-box-shadow: inset 0 1px 0 #fff3;
-translate: calc(var(--sx) * -6%) calc((var(--sy) - .7) * -70%);
-transition: transform .45s var(--tr-ease-out), opacity .25s; opacity: .8;
+content: ""; position: absolute; left: 7%; right: 7%; top: 5%; height: 52%; pointer-events: none; border-radius: 3em 3em 50% 50% / 100% 100% 70% 70%;
+background: radial-gradient(60% 120% at calc(50% - var(--sx) * 22%) 0%, #fff5, #fff2 40%, #fff1 62%, #fff0 82%);
+translate: calc(var(--sx) * -5%) calc((var(--sy) - .7) * -60%);
+transition: transform .45s var(--tr-ease-out), opacity .25s; opacity: .75;
 }
 .pf::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: #0005; opacity: calc(var(--tr-press, 0) * .8); }
-.pebble:hover .pf::before, .plq:hover .pf::before { transform: translateX(calc(var(--sx) * 5% + 3%)); opacity: 1; }
+.pebble:hover .pf::before { transform: translateX(calc(var(--sx) * 5% + 3%)); opacity: 1; }
+.plq:hover .pf::before { opacity: 1; }
 .pf > * { position: relative; z-index: 1; }
 .pebble.big { min-height: 3.9em; }
 .pebble.big .pf { justify-content: space-between; font-size: 1em; }
@@ -270,7 +278,7 @@ background: var(--lacquer);
 box-shadow: inset var(--o1) 0 #fff4, inset var(--on1) 0 #0009,
 0 0 0 1px #000, inset 0 0 0 1px oklch(.6 .07 70 / .16);
 }
-.plq .pf::before, .ship .sf::before { inset: 0; height: auto; border-radius: inherit; translate: none; background: linear-gradient(var(--away), #fff2, #0000 45%); }
+.plq .pf::before, .ship .sf::before { inset: 0; height: auto; border-radius: inherit; translate: none; background: linear-gradient(var(--away), #fff2, #0000 45%); opacity: .6; }
 .plq svg { width: 1.15em; height: 1.15em; fill: none; stroke: var(--gold); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .plq[aria-disabled="true"], .pebble[aria-disabled="true"] { cursor: not-allowed; }
 .plq[aria-disabled="true"] .pf, .pebble[aria-disabled="true"] .pf { color: var(--ink-3); opacity: .55; }
@@ -281,7 +289,7 @@ box-shadow: inset var(--o1) 0 #fff4, inset var(--on1) 0 #0009,
 .or::after { transform: scaleX(-1); }
 
 /* Account (signed in) + maker plaque */
-.acct { display: grid; grid-template-columns: auto 1fr; gap: .9em 1em; align-items: center; padding: 1.1em; border-radius: 1em;
+.acct { margin-top: 1.4em; display: grid; grid-template-columns: auto 1fr; gap: .9em 1em; align-items: center; padding: 1.1em; border-radius: 1em;
 background: oklch(.06 .004 30 / .6); box-shadow: inset 0 0 0 1px oklch(.6 .08 70 / .3), inset var(--o1) 0 #fff1; }
 .acct .avatar { width: 2.8em; height: 2.8em; border-radius: 50%; display: grid; place-items: center; font: 600 1.1em/1 var(--serif); color: oklch(.25 .04 60);
 background: var(--gold-dome); box-shadow: 0 0 0 1px #000, calc(var(--sx) * 1.5px) calc(var(--sy) * 2px) 3px #000c; }
@@ -314,7 +322,7 @@ box-shadow: inset var(--o1) 0 #fff4, inset var(--on1) 0 #0009, 0 0 0 1px #000;
 transition: transform .32s var(--tr-ease-spring);
 }
 .ship .sf::before { content: ""; position: absolute; pointer-events: none; transition: transform .45s var(--tr-ease-out), opacity .25s; opacity: .8; }
-.ship:hover .sf::before { transform: translateX(4%); opacity: 1; }
+.ship:hover .sf::before { opacity: 1; }
 .ship .sf::after {
 content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .2s;
 box-shadow: inset 0 0 0 1.5px var(--gold), inset calc(var(--sx) * .35em) calc(var(--sy) * .45em) .7em #000c, inset 0 0 1.2em -.2em oklch(.8 .12 84 / .22);
@@ -366,8 +374,9 @@ transform-origin: 50% 0; animation: lb-in .2s var(--tr-ease-out);
 .gift .txt { cursor: pointer; } .gift .txt b { display: block; font-weight: 600; } .gift .txt span { color: var(--ink-3); font-size: .85em; }
 .sw { position: relative; flex: none; width: 4.6em; height: 2.75em; border-radius: 2em; }
 .sw .ch { position: absolute; inset: .4em 0; border-radius: 2em;
-background: linear-gradient(var(--away), #000a, #0000 60%), oklch(.1 .006 35);
-box-shadow: inset calc(var(--sx) * .2em) calc(var(--sy) * .25em) .35em #000, inset 0 0 0 1px #000, var(--o1) 0 #fff2; overflow: hidden; }
+background: linear-gradient(var(--away), #000c, #0000 65%), var(--tex-slub) 0 0 / 300px 120px, oklch(.2 .011 58);
+box-shadow: inset calc(var(--sx) * .2em) calc(var(--sy) * .25em) .35em #000, inset 0 0 0 1px #000,
+0 0 0 1px oklch(.66 .09 74 / .55), var(--o1) 0 1px oklch(.9 .06 88 / .25); overflow: hidden; }
 .sw .ch::before {
 content: ""; position: absolute; inset: .62em 1em .62em .9em; border-radius: 1em; background: var(--gold-leaf); box-shadow: 0 0 .6em oklch(.85 .12 86 / .5);
 transform-origin: 0 50%; transform: scaleX(var(--tr-value-ratio, 0)); opacity: calc(.25 + var(--tr-value-ratio, 0) * .75);
@@ -384,7 +393,7 @@ box-shadow: 0 0 0 1px oklch(.18 .02 50), inset var(--o1) 0 oklch(.98 .05 92 / .7
 calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px #000d, calc(var(--sx) * 5px * var(--len)) calc(var(--sy) * 7px * var(--len)) 9px #0008;
 }
 .sw:focus-visible { outline-offset: 2px; border-radius: 2em; }
-.sw-state { font: 600 .7em/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); width: 3.2em; text-align: right; }
+.sw-state { font: 600 .7em/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); min-width: 5.4em; text-align: left; }
 .sw[aria-checked="true"] + .sw-state { color: var(--gold); }
 
 /* Payment: shibuichi brushed card that flips */
@@ -395,11 +404,12 @@ calc(var(--sx) * 2px) calc(var(--sy) * 3px) 3px #000d, calc(var(--sx) * 5px * va
 position: absolute; inset: 0; border-radius: .95em; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden;
 color: oklch(.3 .012 60); font-family: var(--mono);
 background:
-linear-gradient(calc(var(--la) + 205deg), #0000 14%, #fff4 27%, #0000 40%, oklch(.1 .01 60 / .22) 66%, #0000 84%),
+linear-gradient(calc(var(--la) + 200deg), #0000 12%, #fff3 26%, #fff0 42%, oklch(.2 .01 60 / .1) 68%, #0000 86%),
 var(--tr-tex-brushed) 0 0 / 30em 6em, var(--tr-tex-brushed) 7em 0 / 11em 2.5em,
 linear-gradient(var(--away), oklch(.76 .013 76), oklch(.62 .014 70) 45%, oklch(.5 .013 64) 85%, oklch(.56 .013 66));
 background-blend-mode: normal, overlay, overlay, normal;
-box-shadow: inset var(--o1) 0 #fffa, inset var(--on1) 0 oklch(.2 .01 60 / .5), inset 0 0 0 1px oklch(.3 .01 60 / .5);
+box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 0 -.5px #fffc, inset calc(var(--sx) * -1.5px) calc(var(--sy) * -1.5px) 0 -.5px oklch(.25 .01 60 / .6),
+inset 0 0 0 1px oklch(.3 .01 60 / .55), inset 0 0 0 2.5px oklch(.88 .01 80 / .25);
 }
 .cf::after {
 content: ""; position: absolute; top: -10%; bottom: -10%; left: 30%; width: 40%; pointer-events: none;
@@ -414,10 +424,13 @@ box-shadow: calc(var(--sx) * 4px) calc(var(--sy) * 5px) 5px #000c, calc(var(--sx
 .engr { text-shadow: calc(var(--sx) * .8px) calc(var(--sy) * .8px) 0 #fff8, calc(var(--sx) * -.6px) calc(var(--sy) * -.6px) 0 oklch(.15 .01 60 / .45); }
 .cf .issuer { position: absolute; left: 2em; top: 1.85em; font: 600 .74em/1 var(--sans); letter-spacing: .3em; }
 .cf .mark { position: absolute; right: 1.35em; top: 1.1em; width: 2.4em; height: 1.4em; }
-.chip { position: absolute; left: 1.5em; top: 2.95em; width: 2.55em; height: 1.95em; border-radius: .38em; overflow: hidden;
-background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 51 39' fill='none' stroke='%23704f1c' stroke-opacity='.75' stroke-width='1'%3E%3Cpath d='M0 13h16M0 26h16M35 13h16M35 26h16M16 0v39M35 0v39M16 19.5h19'/%3E%3Crect x='20' y='9' width='11' height='21' rx='3'/%3E%3C/svg%3E") 0 0 / 100% 100%,
-var(--gold-dome);
-box-shadow: 0 0 0 1px oklch(.35 .05 60 / .6), inset var(--o1) 0 oklch(1 .05 90 / .7); }
+.chip { position: absolute; left: 1.5em; top: 2.95em; width: 2.55em; height: 1.95em; border-radius: .34em; overflow: hidden;
+background:
+url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 51 39' fill='none' stroke-width='1.1'%3E%3Cg stroke='%23fff3c8' stroke-opacity='.75' transform='translate(.7 .7)'%3E%3Cpath d='M0 13h15M0 26h15M36 13h15M36 26h15M15 0v39M36 0v39M15 19.5h5M31 19.5h5'/%3E%3Crect x='20' y='8' width='11' height='23' rx='3.5'/%3E%3C/g%3E%3Cg stroke='%235a3d12' stroke-opacity='.85'%3E%3Cpath d='M0 13h15M0 26h15M36 13h15M36 26h15M15 0v39M36 0v39M15 19.5h5M31 19.5h5'/%3E%3Crect x='20' y='8' width='11' height='23' rx='3.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100%,
+linear-gradient(calc(var(--la) + 200deg), #0000 30%, #fff5 45%, #0000 60%),
+radial-gradient(130% 110% at calc(50% - var(--sx) * 40%) calc(50% - var(--sy) * 40%), oklch(.93 .08 90), oklch(.8 .11 82) 45%, oklch(.6 .1 70) 90%);
+box-shadow: inset 0 0 0 .5px oklch(.4 .06 62 / .8), inset var(--o1) 0 oklch(1 .05 90 / .6),
+0 0 0 1px oklch(.38 .012 62 / .55), var(--o1) 0 1.5px oklch(.95 .01 85 / .7), var(--on1) 0 1.5px oklch(.3 .01 60 / .35); }
 .cnum { position: absolute; left: 1.35em; right: 1em; top: 5.25em; display: flex; gap: .75em; font: 500 1.08em/1 var(--mono); letter-spacing: .07em; white-space: nowrap; }
 .cmeta { position: absolute; left: 2em; right: 2em; bottom: 1.6em; display: flex; justify-content: space-between; align-items: end; font: 500 .74em/1.25 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
 .cmeta small { display: block; font: 500 .62em/1 var(--sans); letter-spacing: .2em; opacity: .7; margin-bottom: .35em; }
@@ -436,6 +449,13 @@ box-shadow: inset 0 1px 2px #0006, 0 0 0 1.5px oklch(.85 .12 84 / calc(var(--cvc
 background: repeating-linear-gradient(-45deg, oklch(.8 .11 84 / .06) 0 .5em, #0000 .5em 1em); box-shadow: inset 0 0 0 1px oklch(.75 .1 80 / .35); }
 .demo svg { width: 1.2em; height: 1.2em; flex: none; stroke: var(--gold); fill: none; stroke-width: 1.5; }
 
+/* Phone only: a plaque that shows the order total up top and jumps to the summary. */
+.peek { display: none; }
+.peek .pf { justify-content: flex-start; }
+.peek .peek-n { color: var(--ink-3); font-size: .86em; }
+.peek b { margin-left: auto; color: var(--gold-hi); font-weight: 600; }
+.peek .peek-c { width: 1em; height: 1em; margin-right: -.2em; }
+
 /* Order summary: raised lacquer lid */
 .lid { position: sticky; top: 76px;
 padding: 1.6em 1.5em 1.5em; border-radius: 1.3em;
@@ -453,18 +473,26 @@ content: ""; position: absolute; inset: .55em; border-radius: .95em; pointer-eve
 .lid-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1em; }
 .lid-h span { color: var(--ink-3); font-size: .85em; }
 .items { list-style: none; margin: 0; padding: 0; }
-.item { display: grid; grid-template-columns: 3.7em 1fr auto; grid-template-areas: "th nm tot" "th qt rm"; gap: .35em .9em; align-items: center; padding: 1em 0; position: relative; }
+.item { display: grid; grid-template-columns: 4.4em 1fr auto; grid-template-areas: "th nm tot" "th qt rm"; gap: .35em .85em; align-items: center; padding: 1em 0; position: relative; }
 .item + .item::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, #0000, oklch(.6 .09 72 / .45) 20%, oklch(.6 .09 72 / .45) 80%, #0000); box-shadow: 0 1px 0 #000; }
 .item.out { animation: out .32s var(--tr-ease-out) forwards; }
 @keyframes out { to { opacity: 0; transform: translateX(1.5em); } }
-.thumb { grid-area: th; position: relative; width: 3.7em; height: 3.7em; border-radius: .7em; overflow: hidden; }
+/* Product shots: each piece photographed on undyed (kinari) raw silk, lit by the scene light. Drawn on a 3.7em grid, shown at 1.19x. */
+.thumb { grid-area: th; position: relative; font-size: 1.19em; width: 3.7em; height: 3.7em; border-radius: .55em; overflow: hidden;
+background:
+radial-gradient(120% 90% at calc(50% - var(--sx) * 40%) calc(50% - var(--sy) * 45%), oklch(.93 .022 88), oklch(.82 .03 80) 55%, oklch(.66 .036 70)),
+var(--tex-slub) 0 0 / 180px 72px;
+background-blend-mode: normal, multiply;
+box-shadow: inset 0 0 0 1px #0003, inset calc(var(--sx) * -.15em) calc(var(--sy) * -.15em) .3em -.1em #0006,
+0 0 0 1px #000, var(--o1) 0 1px oklch(.85 .08 86 / .3); }
 .nm { grid-area: nm; min-width: 0; } .nm b { display: block; font: 600 1.08em/1.15 var(--serif); letter-spacing: .01em; } .nm span { display: block; color: var(--ink-3); font-size: .78em; margin-top: .2em; }
 .tot { grid-area: tot; align-self: start; font-weight: 600; text-align: right; display: inline-block; }
 .rm { grid-area: rm; justify-self: end; border: 0; background: none; padding: 0; min-height: 44px; min-width: 44px; color: oklch(.72 .1 38); font: 500 .8em/1 var(--sans); }
 .rm:hover { color: var(--shu-ink); text-decoration: underline; text-underline-offset: .25em; }
 
 .t-bowl::before { content: ""; position: absolute; left: .55em; right: .55em; top: 1.55em; height: 1.45em; border-radius: 0 0 1.4em 1.4em / 0 0 1.45em 1.45em;
-background: radial-gradient(60% 70% at calc(50% - var(--sx) * 35%) 30%, oklch(.42 .01 40), oklch(.1 .005 30) 60%); box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 2px) 3px #000c; }
+background: radial-gradient(60% 70% at calc(50% - var(--sx) * 35%) 30%, oklch(.48 .01 40), oklch(.13 .006 30) 55%, oklch(.07 0 0));
+box-shadow: calc(var(--sx) * 1.5px) calc(var(--sy) * 2.5px) 2px #0007, calc(var(--sx) * 5px) calc(var(--sy) * 6px) 6px #0004; }
 .t-bowl::after { content: ""; position: absolute; left: .55em; right: .55em; top: 1.25em; height: .62em; border-radius: 50%;
 background: radial-gradient(70% 90% at 50% 70%, oklch(.5 .17 32), oklch(.36 .13 30)); box-shadow: inset 0 1px 0 oklch(.75 .12 40 / .7), 0 0 0 1px oklch(.08 0 0); }
 .t-hashi::before, .t-hashi::after { content: ""; position: absolute; left: 1.35em; top: .35em; width: .26em; height: 3em; clip-path: polygon(0 0, 100% 0, 72% 100%, 28% 100%);
@@ -472,7 +500,7 @@ background: linear-gradient(90deg, #0000 0, #fff4 35%, #0000 60%), linear-gradie
 .t-hashi::after { left: 1.95em; top: .45em; }
 .t-caddy::before { content: ""; position: absolute; left: 1.05em; width: 1.6em; top: .85em; height: 2.2em; border-radius: .2em .2em .25em .25em / .12em .12em .2em .2em;
 background: linear-gradient(#0000 26%, oklch(.3 .05 60) 26% 29%, #0000 29%), linear-gradient(90deg, oklch(.45 .07 66), oklch(.88 .08 88) 32%, oklch(.7 .1 78) 55%, oklch(.4 .06 62));
-box-shadow: calc(var(--sx) * 2px) calc(var(--sy) * 2px) 3px #000c; }
+box-shadow: inset 0 0 0 .5px oklch(.35 .05 60 / .6), calc(var(--sx) * 1.5px) calc(var(--sy) * 2.5px) 2px #0007, calc(var(--sx) * 5px) calc(var(--sy) * 6px) 6px #0004; }
 .t-caddy::after { content: ""; position: absolute; left: 1.05em; width: 1.6em; top: .72em; height: .3em; border-radius: 50%; background: linear-gradient(90deg, oklch(.6 .08 70), oklch(.92 .06 90), oklch(.6 .08 70)); }
 
 
@@ -557,6 +585,8 @@ text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85)
 .kn { width: 3em; height: 3em; } .kn .kf { width: 1.85em; height: 1.85em; }
 .sw { height: 3em; } .sw .ch { inset: .5em 0; } .sw .th { top: .32em; }
 .foot { padding: 1em 1.2em 1.4em; }
+.peek { display: flex; width: calc(100% - 2.4em); margin: 1.2em 1.2em 0; }
+.board::before { opacity: .75; }
 }
 @media (prefers-reduced-motion: reduce) { .seal, dialog[open] .dlg, .lb { animation: none; } }
 @media (forced-colors: active) { .well, .ship .sf, .box, .sw .ch { border: 1px solid CanvasText; } }
@@ -597,6 +627,7 @@ text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85)
 </div>
 </header>
 <hr class="hair">
+<button class="plq peek" type="button" id="peek" aria-controls="h-sum"><span class="pf"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 7h11l-1 10h-9z"/><path d="M7.5 7V5.5a2.5 2.5 0 0 1 5 0V7"/></svg><span>Order summary</span><span class="peek-n" id="peek-n"></span><b class="num" id="peek-t"></b><svg class="peek-c" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5l5 5-5 5"/></svg></span></button>
 
 <div class="panes">
 <!-- 1. Account -->
@@ -638,7 +669,7 @@ text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85)
 <div class="maker" aria-label="A note from the workshop">
 <hr class="hair" style="position:absolute;left:0;right:0;top:0">
 <svg viewBox="0 0 300 116" fill="none" stroke="url(#g-gold)" stroke-linecap="round" aria-hidden="true">
-<circle cx="222" cy="42" r="26" fill="url(#g-gold)" fill-opacity=".3" stroke-width=".7"/>
+<circle cx="222" cy="42" r="26" fill="url(#g-gold)" fill-opacity=".62" stroke-width=".7"/>
 <g stroke-width=".9"><path d="M40 116C66 80 106 54 160 42"/><path d="M54 116c26-28 60-46 112-52"/><path d="M68 116c22-20 52-32 98-34"/><path d="M30 116c14-18 38-28 70-30"/><path d="M80 116c10-12 26-18 48-17"/></g>
 <g stroke-width=".55"><path d="M136 48l8 9M144 46l8 8M152 44l7 7M160 42l6 5M146 62l7 8M154 61l7 6M162 60l5 5M144 83l6 7M152 82l6 6M160 81l5 5"/></g>
 <g fill="#d9b56a" stroke="none" opacity=".7"><circle cx="262" cy="86" r="1"/><circle cx="276" cy="66" r=".7"/><circle cx="244" cy="98" r=".6"/><circle cx="190" cy="20" r=".7"/></g>
@@ -714,7 +745,7 @@ text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85)
 <!-- Summary -->
 <aside class="pane p-sum" aria-labelledby="h-sum">
 <div class="lid">
-<div class="lid-h"><h3 class="sub" id="h-sum">Your order</h3><span id="pieces">4 pieces</span></div>
+<div class="lid-h"><h3 class="sub" id="h-sum" tabindex="-1">Your order</h3><span id="pieces">4 pieces</span></div>
 <hr class="hair">
 <ul class="items" id="items"></ul>
 <hr class="hair" style="margin-bottom:1.2em">
@@ -759,7 +790,7 @@ text-shadow: var(--on1) 0 oklch(.33 .06 58), var(--o1) 0 oklch(.98 .05 94 / .85)
 
 <section class="tg-caption">
 <h2>Kurogane</h2>
-<p>Sign-in and checkout for an invented shop of hand-made goods, as if every control came from one lacquer workshop. The board is black urushi with a mirror gloss; the softbox reflected in it slides toward the light as you turn the light dial. Inputs are recessed wells lined with raw silk, labels are gilded, the hardware is brushed brass, and the card preview is brushed shibuichi with a gold inlay line. It turns over when you reach the security code.</p>
+<p>Sign-in and checkout for an invented shop of hand-made goods, as if every control came from one lacquer workshop. The board is black urushi with a mirror gloss; the shoji screen reflected in it slides toward the light as you turn the light dial. Inputs are recessed wells lined with slubbed raw silk, the order pieces are shot on undyed silk, labels are gilded, the hardware is brushed brass, and the card preview is brushed shibuichi with a gold inlay line. It turns over when you reach the security code.</p>
 <p>No images: every surface is gradients, shadows and procedural SVG noise (silk slubs, brushing, nashiji gold dust), and every shadow, rim and gloss reads the scene light.</p>
 <ul>
 <li>Email and password wells with validation, a brass latch to show the password, a lacquer checkbox with a gold check</li>
@@ -782,9 +813,9 @@ const motion = () => !reduceMotion.matches;
 /* ---------- State ---------- */
 const S = { signedIn: false, ship: "std", country: "Japan", gift: false, promo: false, paid: false, payTouched: false, ordered: false };
 const ITEMS = [
-  { id: "bowl", name: "Tsuki bowl", meta: "Black urushi, vermilion well · 12 cm", price: 18400, qty: 1, th: "t-bowl" },
+  { id: "bowl", name: "Tsuki bowl", meta: "Black urushi, vermilion well · 12\u00a0cm", price: 18400, qty: 1, th: "t-bowl" },
   { id: "hashi", name: "Yūgure chopsticks", meta: "Persimmon wood, gilded tips · pair", price: 4200, qty: 2, th: "t-hashi" },
-  { id: "caddy", name: "Kumo tea caddy", meta: "Brushed brass, hand-turned · 80 g", price: 9800, qty: 1, th: "t-caddy" },
+  { id: "caddy", name: "Kumo tea caddy", meta: "Brushed brass, hand\u2011turned · 80\u00a0g", price: 9800, qty: 1, th: "t-caddy" },
 ];
 const ZONES = { jp: [0, 1200, "2–3 days · tracked", "Tomorrow · signed for"], asia: [1800, 3600, "5–8 days · tracked", "2–3 days · signed for"], world: [2800, 5600, "8–14 days · tracked", "3–5 days · signed for"] };
 const COUNTRIES = [["Australia", "world"], ["Canada", "world"], ["France", "world"], ["Germany", "world"], ["Hong Kong", "asia"], ["Italy", "world"], ["Japan", "jp"], ["Netherlands", "world"], ["New Zealand", "world"], ["Norway", "world"], ["Singapore", "asia"], ["South Korea", "asia"], ["Spain", "world"], ["Sweden", "world"], ["Switzerland", "world"], ["Taiwan", "asia"], ["United Kingdom", "world"], ["United States", "world"]];
@@ -803,7 +834,7 @@ const knurl = (d) => `<span class="kf"><svg viewBox="0 0 12 12" aria-hidden="tru
 for (const it of ITEMS) {
   const li = document.createElement("li");
   li.className = "item"; li.dataset.id = it.id;
-  li.innerHTML = `<span class="thumb silk ${it.th}" aria-hidden="true"></span>
+  li.innerHTML = `<span class="thumb ${it.th}" aria-hidden="true"></span>
     <div class="nm"><b>${it.name}</b><span>${it.meta}</span></div>
     <span class="tot num"></span>
     <div class="qty" role="group" aria-label="Quantity, ${it.name}">
@@ -856,7 +887,8 @@ function total(dir = 1) {
   for (const [k, v] of [["gift", gift], ["disc", disc]]) { $(`#t-${k}`).hidden = $(`#t-${k}-l`).hidden = !v; setText($(`#t-${k}`), yen(v)); }
   setText($("#t-total"), yen(tot), dir);
   setText($("#place-t"), yen(tot), dir);
-  $("#pieces").textContent = n === 1 ? "1 piece" : `${n} pieces`;
+  $("#pieces").textContent = $("#peek-n").textContent = n === 1 ? "1 piece" : `${n} pieces`;
+  $("#peek-t").textContent = yen(tot);
   $("#bag-n").textContent = n; $("#bag-n").setAttribute("aria-label", `${n} pieces`);
   $("#p-std").textContent = z[0] ? yen(z[0]) : "Free"; $("#p-exp").textContent = yen(z[1]);
   $("#e-std").textContent = z[2]; $("#e-exp").textContent = z[3];
@@ -883,6 +915,10 @@ document.querySelectorAll(".steps button").forEach((b) => b.addEventListener("cl
   h.scrollIntoView({ behavior: motion() ? "smooth" : "auto", block: "center" });
   h.focus({ preventScroll: true });
 }));
+
+new PressController($("#peek"), { sound: "click", onActivate: () => {
+  $("#h-sum").scrollIntoView({ behavior: motion() ? "smooth" : "auto", block: "start" }); $("#h-sum").focus({ preventScroll: true });
+} });
 
 /* ---------- Sign in ---------- */
 const email = $("#email"), pw = $("#pw");

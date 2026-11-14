@@ -136,7 +136,8 @@ export default async (page, { out, name }) => {
   await shot("signed-in-full", { fullPage: true });
 
   // 9. Remove (destructive) then place order -> dialog.
-  await page.click('.item[data-id="hashi"] .rm'); await page.waitForTimeout(500);
+  await page.click('.item[data-id="hashi"] .rm');
+  await page.waitForSelector('.item[data-id="hashi"]', { state: "detached", timeout: 3000 }).catch(() => {});
   ok(!(await page.$('.item[data-id="hashi"]')), "item removed");
   await page.click("#place"); await page.waitForTimeout(1100);
   ok(await page.$eval("#done", (d) => d.open), "dialog opens on place order");
@@ -161,6 +162,10 @@ export default async (page, { out, name }) => {
   ok(small.length === 0, "touch targets >= 44px at 390: " + JSON.stringify(small));
   await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(200);
   await shot("phone-signed-in", { fullPage: true });
+  ok(await page.isVisible("#peek") && (await page.textContent("#peek-t")).startsWith("¥"), "phone: order peek shows total");
+  await page.click("#peek"); await page.waitForTimeout(900);
+  ok(await page.evaluate(() => document.activeElement.id) === "h-sum", "phone: peek jumps to the summary");
+  await shot("phone-peek", { fullPage: false });
 
   ok(errors.length === 0, "no console errors " + errors.join(" | "));
   console.log(fails ? `${fails} FAILED` : "ALL PASSED");
