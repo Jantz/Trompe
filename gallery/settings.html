@@ -15,6 +15,10 @@
  > face (lit by --tr-light-angle) > texture (bead blast / brushing)
  > environment + gloss > engraved glyph > emissive (LED, LCD).
  ================================================================ */
+@property --lit { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --kd { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --bad { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --c { syntax: "<color>"; inherits: false; initial-value: oklch(0.8 0.15 236); }
 :root { color-scheme: dark; }
 [hidden] { display: none !important; }
 html { background: oklch(0.13 0.005 250); }
@@ -90,11 +94,14 @@ body {
 .rail .host { display: flex; align-items: center; gap: .55em; font: var(--lab); font-size: .68em; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); text-shadow: var(--engr); }
 .vent { width: 7em; height: .6em; border-radius: .3em; background: repeating-linear-gradient(90deg, oklch(0 0 0 / .45) 0 .14em, transparent .14em .5em); box-shadow: var(--engr); opacity: .55; }
 .led { display: inline-block; flex: none; width: .5em; height: .5em; border-radius: 50%;
- background: radial-gradient(circle at 38% 32%, oklch(1 0 0 / .55), oklch(0.45 0.01 250) 60%);
- box-shadow: inset 0 0 0 1px oklch(0 0 0 / .45), var(--engr); }
-.led.on, [aria-current="page"] .led, [aria-pressed="true"] .led, [aria-checked="true"] ~ .led {
- --c: var(--led); background: radial-gradient(circle at 40% 35%, oklch(1 0 0), var(--c) 55%);
- box-shadow: inset 0 0 0 1px oklch(0 0 0 / .2), 0 0 .35em var(--c), 0 0 1em color-mix(in oklch, var(--c) 55%, transparent); }
+ /* One gradient for both states, mixed by --lit (0 off, 1 lit) so switching on and off fades. */
+ --c: var(--led); --on: calc(var(--lit) * 100%);
+ background: radial-gradient(circle at calc(38% + var(--lit) * 2%) calc(32% + var(--lit) * 3%), oklch(1 0 0 / calc(.55 + var(--lit) * .45)), color-mix(in oklch, oklch(0.45 0.01 250), var(--c) var(--on)) calc(60% - var(--lit) * 5%));
+ box-shadow: inset 0 0 0 1px oklch(0 0 0 / calc(.45 - var(--lit) * .25)),
+ calc(var(--sx) * (1 - var(--lit)) * 1px) calc(var(--sy) * (1 - var(--lit)) * 1px) calc(var(--lit) * .35em) color-mix(in oklch, var(--hi) calc(100% - var(--on)), var(--c)),
+ 0 0 1em color-mix(in oklch, var(--c) calc(var(--lit) * 55%), transparent);
+ transition: --lit .22s var(--tr-ease-out), --c .3s; }
+.led.on, [aria-current="page"] .led, [aria-pressed="true"] .led, [aria-checked="true"] ~ .led { --c: var(--led); --lit: 1; }
 .led.amber { --c: var(--amber) !important; } .led.green { --c: var(--green); } .led.red { --c: var(--red); }
 .side { display: flex; flex-direction: column; gap: 1em; padding: .4em 1.1em 1.4em 1.4em; min-width: 0; }
 .well-glass {
@@ -102,7 +109,14 @@ body {
  background:
  linear-gradient(168deg, oklch(1 0 0 / .13), oklch(1 0 0 / .03) 38%, transparent 38.5%),
  linear-gradient(calc(var(--la) + 180deg), oklch(0.13 0.012 255), oklch(0.24 0.014 250));
- box-shadow: var(--well), inset 0 0 0 1px oklch(1 0 0 / .05);
+ /* Rest, keyboard focus (--fv, instant: rings never animate) and invalid (--bad, fades) share one
+  shadow list; the invalid glow takes priority over focus, as before. */
+ --fv: 0;
+ box-shadow: var(--well),
+ inset 0 0 0 1px color-mix(in oklch, color-mix(in oklch, oklch(1 0 0 / .05), oklch(0.75 0.15 245 / .9) calc(var(--fv) * 100%)), oklch(0.68 0.2 27 / .95) calc(var(--bad) * 100%)),
+ inset 0 0 calc(.7em + var(--bad) * .1em) color-mix(in oklch, color-mix(in oklch, oklch(0.7 0.16 245 / 0), oklch(0.7 0.16 245 / .45) calc(var(--fv) * 100%)), oklch(0.6 0.2 27 / .45) calc(var(--bad) * 100%)),
+ 0 0 0 .2em oklch(0.7 0.16 245 / calc(var(--fv) * (1 - var(--bad)) * .28));
+ transition: --bad .2s var(--tr-ease-out);
 }
 .search { height: 2.75em; padding: 0 .85em; }
 .search svg { width: 1.15em; height: 1.15em; flex: none; color: oklch(0.85 0.01 240 / .7); filter: drop-shadow(0 0 .5px oklch(1 0 0 / .4)); }
@@ -110,7 +124,7 @@ body {
 .well-glass input, .well-glass textarea { flex: 1; min-width: 0; border: 0; background: none; color: inherit; font: 500 .95em/1.4 "Manrope", sans-serif; outline: none; padding: 0; }
 .well-glass ::placeholder { color: oklch(0.8 0.01 240 / .5); }
 .well-glass input[type=search]::-webkit-search-cancel-button { filter: invert(1) opacity(.6); }
-.well-glass:has(:focus-visible) { box-shadow: var(--well), inset 0 0 0 1px oklch(0.75 0.15 245 / .9), inset 0 0 .7em oklch(0.7 0.16 245 / .45), 0 0 0 .2em oklch(0.7 0.16 245 / .28); }
+.well-glass:has(:focus-visible) { --fv: 1; }
 .who { display: flex; align-items: center; gap: .8em; padding: .1em .2em; }
 .who b { display: block; font-size: .95em; color: var(--ink); }
 .who small { font-size: .76em; color: var(--ink2); }
@@ -190,7 +204,7 @@ body {
 #app[data-theme="dark"] .pv-in > div { background: oklch(0.3 0.008 262); }
 .pv-in i { border-radius: 1.5px; background: oklch(0.55 0.02 255 / .3); }
 .pv-in i:first-child { grid-row: span 3; }
-.pv-in b { position: absolute; right: 18%; bottom: 10%; font: 700 calc(var(--ts, 14) * .062em)/1 "Manrope", sans-serif; color: oklch(0.35 0.02 255); }
+.pv-in b { position: absolute; right: 18%; bottom: 10%; font: 700 calc(var(--ts, 14) * .062em)/1 "Manrope", sans-serif; color: oklch(0.35 0.02 255); transition: font-size .22s var(--tr-ease-out); }
 #app[data-theme="dark"] .pv-in b { color: oklch(0.92 0.006 250); }
 .pv-in::after { content: ""; position: absolute; inset: 0; background: oklch(0.8 0.13 65); mix-blend-mode: multiply; opacity: calc(var(--night, 0) * .22); transition: opacity .5s; }
 .pv-in::before { content: ""; position: absolute; inset: 0; z-index: 2; background: #000; opacity: var(--dim, .12); }
@@ -234,20 +248,22 @@ body {
  background: linear-gradient(calc(var(--la) + 180deg), oklch(0.18 0.01 255), oklch(0.3 0.01 255)); box-shadow: var(--well); }
 .key {
  --p: var(--tr-press, 0);
- position: relative; isolation: isolate; border: 0; cursor: pointer; color: var(--ink); background: var(--face);
+ position: relative; isolation: isolate; border: 0; cursor: pointer; color: var(--ink);
+ /* --face and --face-dn as one gradient mixed by --kd (0 up, 1 latched down), so a latch fades. */
+ background: linear-gradient(calc(var(--la) + 180deg), color-mix(in oklch, var(--a1), var(--a2) calc(var(--kd) * 100%)), color-mix(in oklch, var(--a2), color-mix(in oklch, var(--a2), var(--a3)) calc(var(--kd) * 100%)) calc(52% - var(--kd) * 2%), var(--a3));
  box-shadow: var(--bevel), 0 0 0 1px var(--edge);
+ transition: --kd .2s var(--tr-ease-out), color .2s var(--tr-ease-out);
  translate: calc(var(--sx) * var(--p) * .07em) calc(var(--sy) * var(--p) * .07em + var(--p) * .03em);
  scale: calc(1 - var(--p) * .012);
 }
-.key::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; box-shadow: var(--cast-s); opacity: calc(1 - var(--p) * .9); }
+.key::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; box-shadow: var(--cast-s); opacity: calc((1 - var(--p) * .9) * (1 - var(--kd))); }
 .key::after { 
  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .22s;
  background: linear-gradient(calc(var(--la) + 135deg), transparent 25%, oklch(1 0 0 / .4) 46%, oklch(1 0 0 / .1) 54%, transparent 72%);
 }
 .key:hover::after { opacity: 1; }
 #app[data-theme="dark"] .key::after { background: linear-gradient(calc(var(--la) + 135deg), transparent 25%, oklch(1 0 0 / .14) 46%, transparent 70%); }
-.key[aria-pressed="true"] { background: var(--face-dn); color: var(--acc); }
-.key[aria-pressed="true"]::before { opacity: 0; }
+.key[aria-pressed="true"] { --kd: 1; color: var(--acc); }
 .rk { height: 3.7em; border-radius: .22em; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .55em; padding: 0 .85em; font: var(--lab); font-size: .8em; letter-spacing: .14em; text-transform: uppercase; text-shadow: var(--engr); }
 .rk:first-child { border-radius: .62em .22em .22em .62em; } .rk:last-child { border-radius: .22em .62em .62em .22em; }
 .rk svg { width: 1.45em; height: 1.45em; filter: drop-shadow(var(--engr)); }
@@ -264,6 +280,7 @@ body {
 .dome:active { background:
  radial-gradient(circle at calc(50% + var(--sx) * 10%) calc(50% + var(--sy) * 10%), var(--h1), var(--h2) 55%, var(--h3)) padding-box,
  linear-gradient(calc(var(--la) + 180deg), oklch(0.25 0.01 255), var(--a1)) border-box; box-shadow: 0 0 0 1px var(--edge); }
+.dome { transition: opacity .2s var(--tr-ease-out); }
 .dome[aria-disabled="true"] { opacity: .55; cursor: default; }
 .lcd { position: relative; overflow: hidden; display: flex; align-items: flex-end; gap: .35em; height: 2.7em; padding: .42em .7em .42em .65em; border-radius: .4em; color: var(--lcd-ink);
  background: radial-gradient(130% 160% at 25% -30%, var(--lcd0), var(--lcd1) 75%);
@@ -272,8 +289,8 @@ body {
 .lcd::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(165deg, oklch(1 0 0 / .2), oklch(1 0 0 / .04) 45%, transparent 45.5%); }
 .digits { display: flex; gap: .2em; transform: skewX(-7deg); }
 .dg { position: relative; width: .95em; height: 1.75em; }
-.sg { position: absolute; background: oklch(0.7 0.1 240 / .1); }
-.sg.on { background: currentColor; box-shadow: 0 0 .3em oklch(0.82 0.14 225 / .8); }
+.sg { position: absolute; background-color: oklch(0.7 0.1 240 / .1); box-shadow: 0 0 .3em oklch(0.82 0.14 225 / 0); transition: background-color .16s var(--tr-ease-out), box-shadow .16s var(--tr-ease-out); }
+.sg.on { background-color: currentColor; box-shadow: 0 0 .3em oklch(0.82 0.14 225 / .8); }
 .sg.h { left: .14em; right: .14em; height: .17em; clip-path: polygon(.09em 0, calc(100% - .09em) 0, 100% 50%, calc(100% - .09em) 100%, .09em 100%, 0 50%); }
 .sg.v { width: .17em; top: .09em; height: calc(50% - .09em); clip-path: polygon(50% 0, 100% .09em, 100% calc(100% - .09em), 50% 100%, 0 calc(100% - .09em), 0 .09em); }
 .sg.a { top: 0; } .sg.g { top: calc(50% - .085em); } .sg.d { bottom: 0; }
@@ -332,60 +349,71 @@ body {
  opacity: 1; transform: none; transition: opacity .16s, transform .22s var(--tr-ease-out), overlay .22s allow-discrete, display .22s allow-discrete; }
 @starting-style { .menu:popover-open { opacity: 0; transform: translateY(-.4em) scale(.98); } }
 .menu:not(:popover-open) { opacity: 0; transform: translateY(-.3em); }
-.opt { display: flex; align-items: center; gap: .7em; min-height: 2.5em; padding: 0 .8em; border-radius: .5em; cursor: pointer; font-weight: 600; font-size: .92em; }
+.opt { display: flex; align-items: center; gap: .7em; min-height: 2.5em; padding: 0 .8em; border-radius: .5em; cursor: pointer; font-weight: 600; font-size: .92em;
+ background: linear-gradient(180deg, oklch(1 0 0 / calc(var(--lit) * .16)), oklch(1 0 0 / calc(var(--lit) * .07)));
+ box-shadow: inset 0 0 0 1px oklch(1 0 0 / calc(var(--lit) * .14)), inset 0 1px 0 oklch(1 0 0 / calc(var(--lit) * .2));
+ transition: --lit .14s var(--tr-ease-out); }
 .opt small { margin-left: auto; color: var(--gink2); font: 500 .8em/1 "IBM Plex Mono", monospace; }
-.opt .led { opacity: 0; }
+.opt .led { opacity: 0; transition: opacity .18s var(--tr-ease-out); }
 .opt[aria-selected="true"] .led { opacity: 1; --c: var(--led); background: radial-gradient(circle at 40% 35%, #fff, var(--c) 55%); box-shadow: 0 0 .35em var(--c), 0 0 1em color-mix(in oklch, var(--c) 55%, transparent); }
-.opt.active { background: linear-gradient(180deg, oklch(1 0 0 / .16), oklch(1 0 0 / .07)); box-shadow: inset 0 0 0 1px oklch(1 0 0 / .14), inset 0 1px 0 oklch(1 0 0 / .2); }
+.opt.active { --lit: 1; }
 .jewels { display: grid; }
 .jrow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1em; padding: .7em .2em; cursor: pointer; }
 .jrow + .jrow { border-top: 2px solid transparent; border-image: linear-gradient(oklch(0 0 0 / .17) 50%, var(--hi) 50%) 1; }
 .jewel { appearance: none; -webkit-appearance: none; margin: 0; flex: none; width: 1.75em; height: 1.75em; border-radius: 50%; cursor: pointer;
- border: .3em solid transparent; transition: scale .12s var(--tr-ease-out);
+ border: .3em solid transparent; transition: scale .12s var(--tr-ease-out), --lit .22s var(--tr-ease-out);
+ /* Unchecked and checked looks share one set of layers, mixed by --lit, so a pick fades in. */
+ --on: calc(var(--lit) * 100%);
  background:
- radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), oklch(1 0 0 / .85) 0 7%, transparent 18%) padding-box,
- radial-gradient(circle at 50% 50%, oklch(0.32 0.03 250), oklch(0.12 0.02 255) 75%) padding-box,
+ radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), oklch(1 0 0 / calc(.85 + var(--lit) * .15)) 0 calc(7% + var(--lit) * 2%), transparent calc(18% + var(--lit) * 4%)) padding-box,
+ radial-gradient(circle at 50% 50%, color-mix(in oklab, oklch(0.32 0.03 250), oklch(0.94 0.08 220) var(--on)), color-mix(in oklab, color-mix(in oklab, oklch(0.32 0.03 250), oklch(0.12 0.02 255) 50.7%), oklch(0.7 0.17 240) var(--on)) 38%, color-mix(in oklab, oklch(0.12 0.02 255), oklch(0.38 0.16 262) var(--on)) calc(75% + var(--lit) * 10%)) padding-box,
  conic-gradient(from var(--la), #fff, oklch(0.55 0.01 255) 50deg, oklch(0.9 0.004 250) 95deg, oklch(0.3 0.01 255) 150deg, oklch(0.75 0.006 250) 200deg, oklch(0.35 0.01 255) 260deg, oklch(0.92 0.004 250) 310deg, #fff) border-box;
- box-shadow: 0 0 0 1px oklch(0 0 0 / .5), calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 2px oklch(0 0 0 / .4); }
-.jewel:checked { background:
- radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), #fff 0 9%, transparent 22%) padding-box,
- radial-gradient(circle at 50% 50%, oklch(0.94 0.08 220), oklch(0.7 0.17 240) 38%, oklch(0.38 0.16 262) 85%) padding-box,
- conic-gradient(from var(--la), #fff, oklch(0.55 0.01 255) 50deg, oklch(0.9 0.004 250) 95deg, oklch(0.3 0.01 255) 150deg, oklch(0.75 0.006 250) 200deg, oklch(0.35 0.01 255) 260deg, oklch(0.92 0.004 250) 310deg, #fff) border-box;
- box-shadow: 0 0 0 1px oklch(0 0 0 / .5), 0 0 .7em oklch(0.72 0.16 240 / .75), 0 0 1.6em oklch(0.7 0.16 240 / .35); }
+ box-shadow: 0 0 0 1px oklch(0 0 0 / .5), calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 2px oklch(0 0 0 / calc(.4 - var(--lit) * .4)),
+ 0 0 .7em oklch(0.72 0.16 240 / calc(var(--lit) * .75)), 0 0 1.6em oklch(0.7 0.16 240 / calc(var(--lit) * .35)); }
+.jewel:checked { --lit: 1; }
 .jrow:active .jewel { scale: .92; }
 .jrow .lbl b { font-family: "IBM Plex Mono", monospace; font-weight: 500; letter-spacing: .02em; }
 .ratio { width: 2.4em; text-align: center; font: 700 calc(1.05em * var(--s)) / 1 "Manrope", sans-serif; color: var(--ink2); text-shadow: var(--engr); }
 .chk { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1em; padding: .75em .2em; cursor: pointer; }
 .chk + .chk, .chk + .row, .row + .chk { border-top: 2px solid transparent; border-image: linear-gradient(oklch(0 0 0 / .17) 50%, var(--hi) 50%) 1; }
-.tk { --sock: .2em; appearance: none; -webkit-appearance: none; margin: var(--sock); width: 2.25em; height: 2.25em; border-radius: .38em; cursor: pointer; flex: none;
- --p: 0; translate: calc(var(--sx) * var(--p) * .09em) calc(var(--sy) * var(--p) * .09em + var(--p) * .05em); transition: translate .09s var(--tr-ease-out);
- --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%23000' stroke-opacity='.38' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 11l3.8 3.8L15.5 6.8' fill='none' stroke='%23fff' stroke-opacity='.45' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
- --pip: radial-gradient(circle at calc(100% - .4em) .4em, oklch(0.38 0.01 255) 0 .09em, oklch(0 0 0 / .3) .11em, transparent .15em);
- background: var(--pip), var(--glyph) 50% 56% / 62% no-repeat,
-  radial-gradient(75% 75% at calc(50% + var(--sx) * 12%) calc(50% + var(--sy) * 12%), oklch(1 0 0 / calc(var(--sheen) * .8)), transparent 70%),
-  radial-gradient(circle at 50% 50%, oklch(0 0 0 / .1), transparent 66%), var(--face);
- box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 var(--hi), inset calc(var(--sx) * -2px) calc(var(--sy) * -2.5px) 0 -.5px oklch(0 0 0 / .18), inset 0 0 0 .2em oklch(1 0 0 / calc(var(--sheen) * .25)),
-  0 0 0 1px var(--edge), calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 0 .5px var(--wall), calc(var(--sx) * 1.5px) calc(var(--sy) * 2.5px) 2px oklch(0 0 0 / .45),
+.tk { --sock: .2em; appearance: none; -webkit-appearance: none; position: relative; margin: var(--sock); width: 2.25em; height: 2.25em; border-radius: .38em; cursor: pointer; flex: none;
+ --p: 0; translate: calc(var(--sx) * var(--p) * .09em) calc(var(--sy) * var(--p) * .09em + var(--p) * .05em); transition: translate .09s var(--tr-ease-out), --lit .2s var(--tr-ease-out);
+ /* Up and latched looks share one set of layers mixed by --lit, so the key fades as it latches.
+  The etched and backlit check glyphs are images, so they sit in ::before / ::after and cross-fade. */
+ --on: calc(var(--lit) * 100%); --off: calc(100% - var(--lit) * 100%);
+ background:
+  radial-gradient(circle at calc(100% - .4em) .4em, oklch(1 0 0 / var(--lit)) 0 .04em, oklch(0.8 0.15 236 / var(--lit)) .1em, oklch(0.75 0.16 240 / calc(var(--lit) * .4)) .2em, transparent .32em),
+  radial-gradient(circle at calc(100% - .4em) .4em, oklch(0.38 0.01 255 / calc(1 - var(--lit))) 0 .09em, oklch(0 0 0 / calc(.3 - var(--lit) * .3)) .11em, transparent .15em),
+  radial-gradient(circle at 50% 56%, oklch(0.7 0.15 240 / calc(var(--lit) * .3)), transparent 60%),
+  radial-gradient(75% 75% at calc(50% + var(--sx) * 12%) calc(50% + var(--sy) * 12%), oklch(1 0 0 / calc(var(--sheen) * .8 * (1 - var(--lit)))), transparent 70%),
+  radial-gradient(circle at 50% 50%, oklch(0 0 0 / .1), transparent 66%),
+  linear-gradient(calc(var(--la) + 180deg), color-mix(in oklch, var(--a1), var(--a2) var(--on)), color-mix(in oklch, var(--a2), color-mix(in oklch, var(--a2), var(--a3)) var(--on)) calc(52% - var(--lit) * 2%), var(--a3));
+ box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 2px oklch(0 0 0 / calc(var(--lit) * .35)), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 color-mix(in oklch, var(--hi) var(--on), transparent),
+  inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 color-mix(in oklch, var(--hi) var(--off), transparent), inset calc(var(--sx) * -2px) calc(var(--sy) * -2.5px) 0 -.5px oklch(0 0 0 / calc(.18 * (1 - var(--lit)))), inset 0 0 0 .2em oklch(1 0 0 / calc(var(--sheen) * .25 * (1 - var(--lit)))),
+  0 0 0 1px var(--edge), calc(var(--sx) * 1px) calc(var(--sy) * 1.5px) 0 .5px color-mix(in oklch, var(--wall) var(--off), transparent), calc(var(--sx) * 1.5px) calc(var(--sy) * 2.5px) 2px oklch(0 0 0 / calc(.45 * (1 - var(--lit)))),
   0 0 0 var(--sock) var(--sockc, oklch(0.3 0.01 255)), 0 0 0 calc(var(--sock) + 1px) var(--hi); }
-.tk:checked { --p: 1;
- --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%233aa6ff' stroke-opacity='.45' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%2373c6ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%23f2fbff' stroke-width='.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
- --pip: radial-gradient(circle at calc(100% - .4em) .4em, #fff 0 .04em, oklch(0.8 0.15 236) .1em, oklch(0.75 0.16 240 / .4) .2em, transparent .32em);
- background: var(--pip), var(--glyph) 50% 56% / 62% no-repeat, radial-gradient(circle at 50% 56%, oklch(0.7 0.15 240 / .3), transparent 60%), radial-gradient(circle at 50% 50%, oklch(0 0 0 / .1), transparent 66%), var(--face-dn);
- box-shadow: inset calc(var(--sx) * 1.5px) calc(var(--sy) * 1.5px) 2px oklch(0 0 0 / .35), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 var(--hi), 0 0 0 1px var(--edge),
-  0 0 0 var(--sock) var(--sockc, oklch(0.3 0.01 255)), 0 0 0 calc(var(--sock) + 1px) var(--hi); }
+.tk::before, .tk::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%23000' stroke-opacity='.38' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 11l3.8 3.8L15.5 6.8' fill='none' stroke='%23fff' stroke-opacity='.45' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 50% 56% / 62% no-repeat; transition: opacity .2s var(--tr-ease-out); }
+.tk::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%233aa6ff' stroke-opacity='.45' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%2373c6ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.5 10.2l3.8 3.8L15.5 6' fill='none' stroke='%23f2fbff' stroke-width='.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); opacity: 0; }
+.tk:checked { --p: 1; --lit: 1; }
+.tk:checked::before { opacity: 0; }
+.tk:checked::after { opacity: 1; }
 .chk:active .tk { --p: 1.25; }
 .tk:checked:active { --p: 1.35; }
 .field { display: grid; gap: .45em; padding: .3em .2em .9em; }
 .field label { font: var(--lab); font-size: .68em; letter-spacing: .18em; text-transform: uppercase; color: var(--ink2); text-shadow: var(--engr); }
 .field .well-glass { padding: 0 .9em; min-height: 2.8em; }
 .field textarea { resize: none; padding: .7em 0; min-height: 4.6em; }
-.field .well-glass:has([aria-invalid="true"]) { box-shadow: var(--well), inset 0 0 0 1px oklch(0.68 0.2 27 / .95), inset 0 0 .8em oklch(0.6 0.2 27 / .45); }
-.msg { margin: 0; min-height: 1.2em; display: flex; align-items: center; gap: .5em; font-size: .8em; font-weight: 600; color: var(--ink2); }
+.field .well-glass:has([aria-invalid="true"]) { --bad: 1; }
+.msg { margin: 0; min-height: 1.2em; display: flex; align-items: center; gap: .5em; font-size: .8em; font-weight: 600; color: var(--ink2); transition: color .2s var(--tr-ease-out); }
 .msg.err { color: oklch(0.5 0.19 27); }
 #app[data-theme="dark"] .msg.err { color: oklch(0.75 0.15 27); }
+/* The hint and the error share one cell and cross-fade; the hidden one is out of the a11y tree. */
+#dname-txt { display: grid; }
+#dname-txt > span { grid-area: 1 / 1; transition: opacity .2s var(--tr-ease-out), visibility .2s; }
+.msg.err .hint, .msg:not(.err) .bad { opacity: 0; visibility: hidden; }
 .count { margin-left: auto; font: 500 .9em/1 "IBM Plex Mono", monospace; }
 .foot { display: flex; align-items: center; gap: .9em; padding: 0 .4em; }
-.status { display: flex; align-items: center; gap: .6em; font: var(--lab); font-size: .7em; letter-spacing: .16em; text-transform: uppercase; color: var(--ink2); text-shadow: var(--engr); margin-right: auto; }
+.status { display: flex; align-items: center; gap: .6em; white-space: nowrap; font: var(--lab); font-size: .7em; letter-spacing: .16em; text-transform: uppercase; color: var(--ink2); text-shadow: var(--engr); margin-right: auto; }
 .btn { height: 3em; padding: 0 1.5em; border-radius: .7em; display: inline-flex; align-items: center; gap: .6em; font: 750 .9em/1 "Manrope", sans-serif; letter-spacing: .01em; white-space: nowrap; }
 .btn.danger { color: oklch(0.5 0.2 27); text-shadow: var(--engr); }
 #app[data-theme="dark"] .btn.danger { color: oklch(0.74 0.16 27); }
@@ -410,10 +438,13 @@ body {
 .dlg::backdrop { background: oklch(0.14 0.012 252 / .5); -webkit-backdrop-filter: blur(5px) saturate(1.2); backdrop-filter: blur(5px) saturate(1.2); }
 .dlg[open] { animation: rise .42s var(--tr-ease-spring); }
 .dlg[open]::backdrop { animation: fade .25s ease-out; }
-.dlg.closing { animation: sink .2s ease-in forwards; }
-.dlg.closing::backdrop { animation: fade .2s reverse forwards; }
+/* Closing: the dialog leaves the top layer at once (so focus returns at once) but stays painted
+   while it sinks and its backdrop clears. */
+.dlg { transition: opacity .2s ease-in, translate .2s ease-in, overlay .2s allow-discrete, display .2s allow-discrete; }
+.dlg:not([open]) { opacity: 0; translate: 0 1.6em; }
+.dlg::backdrop { transition: opacity .2s ease-in, overlay .2s allow-discrete, display .2s allow-discrete; }
+.dlg:not([open])::backdrop { opacity: 0; }
 @keyframes rise { from { transform: translateY(2.4em); opacity: 0; } 30% { opacity: 1; } }
-@keyframes sink { to { transform: translateY(1.6em); opacity: 0; } }
 @keyframes fade { from { opacity: 0; } }
 .dlg .card { padding: 1.8em 1.9em 1.5em; border-radius: 1.3em; }
 .dlg .card::after { border-radius: 1.05em; }
@@ -469,7 +500,7 @@ body {
  .status { width: 100%; }
  .foot .btn { flex: 1; justify-content: center; min-height: 48px; padding: 0 1em; }
 }
-@media (prefers-reduced-motion: reduce) { .dlg[open], .dlg.closing { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .dlg[open], .dlg[open]::backdrop { animation: none; } }
 @media (prefers-contrast: more) { .face::before, .card::before { opacity: .15; } .lbl small, .msg { color: var(--ink); } }
 @media (forced-colors: active) { .card, .glass, .well-glass, .tab, .key, .sw, .jewel, .tk { border: 1px solid CanvasText; } .jewel:checked, .tk:checked { background: Highlight; } }
 </style>
@@ -574,7 +605,7 @@ body {
                 <div class="field">
                   <label for="dname">Display name</label>
                   <div class="well-glass"><input id="dname" value="Studio Left" maxlength="32" required aria-describedby="dname-msg" autocomplete="off"></div>
-                  <p class="msg" id="dname-msg"><span id="dname-txt">Shown when you share or mirror this screen</span><span class="count" id="dname-n">11/32</span></p>
+                  <p class="msg" id="dname-msg"><span id="dname-txt"><span class="hint">Shown when you share or mirror this screen</span><span class="bad"><i class="led red on" aria-hidden="true"></i> Name is required</span></span><span class="count" id="dname-n">11/32</span></p>
                 </div>
                 <div class="field groove" style="padding-top:.9em">
                   <label for="notes">Calibration notes</label>
@@ -627,11 +658,41 @@ body {
 </main>
 
 <script type="module">
-import { mountBar, feedback, morph, PressController, LinearController, ToggleController } from "./kit/objects.js";
+import { mountBar, feedback, morph, swapText, PressController, LinearController, ToggleController } from "./kit/objects.js";
 mountBar({ title: "Alloy Settings", subtitle: "Milled aluminium, smoked glass, chrome hardware", tone: "dark" });
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const app = $("#app");
+
+// Text swap that never cuts: the old text fades out first, then kit swapText fades the new text in
+// and eases the box to its new width. (swapText alone replaces the old text at once.)
+const fadeOut = matchMedia("(prefers-reduced-motion: reduce)");
+function swap(el, text) {
+  if (el.dataset.next == null && el.textContent === text) return;
+  if (el.dataset.next === text) return;
+  if (fadeOut.matches || !el.isConnected) { delete el.dataset.next; el.textContent = text; return; }
+  const first = el.dataset.next == null;
+  el.dataset.next = text;
+  if (!first) return; // a fade-out is already running; it will show the latest text
+  const out = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 90, easing: "ease-in", fill: "forwards" });
+  out.finished.then(() => {
+    const t = el.dataset.next; delete el.dataset.next;
+    if (el.textContent === t) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" }); else swapText(el, t);
+    out.cancel();
+  }, () => {});
+}
+// View transitions cannot overlap (a new one skips the running one, and kit morph() leaves the
+// skipped one's rejection unhandled). Run one at a time; changes that arrive meanwhile are
+// batched into the next one.
+let vtBusy = null, vtQueue = [], vtNext = null;
+const smooth = (update) => {
+  if (vtBusy) { vtQueue.push(update); return vtBusy.then(() => vtNext); }
+  vtBusy = morph(update).then(() => {
+    vtBusy = null; vtNext = null;
+    if (vtQueue.length) { const q = vtQueue; vtQueue = []; vtNext = smooth(() => q.forEach((u) => u())); }
+  });
+  return vtBusy;
+};
 
 
 for (const c of $$("#display-pane .card")) for (let i = 0; i < 4; i++) {
@@ -644,18 +705,19 @@ const st = { ...DEF };
 let applied = JSON.stringify(st);
 const dirty = () => {
   const d = JSON.stringify(st) !== applied;
-  $("#st-txt").textContent = d ? "Unsaved changes" : "All changes applied";
+  swap($("#st-txt"), d ? "Unsaved changes" : "All changes applied");
   $("#st-led").className = "led on " + (d ? "amber" : "green");
 };
 
 
 const dark = matchMedia("(prefers-color-scheme: dark)");
 const applyTheme = () => { app.dataset.theme = st.theme === "auto" ? (dark.matches ? "dark" : "light") : st.theme; };
-dark.addEventListener("change", applyTheme);
+dark.addEventListener("change", () => smooth(applyTheme));
 const rks = $$("#bank .rk");
 const rkc = rks.map((el) => new PressController(el, {
   mode: "latching", group: "appearance", sound: "clack", pressed: el.dataset.theme === st.theme,
-  onChange: (on) => { if (on) { st.theme = el.dataset.theme; applyTheme(); dirty(); } },
+  // Re-theming re-paints the whole slab: run it as a view transition so it cross-fades.
+  onChange: (on) => { if (on) { st.theme = el.dataset.theme; smooth(() => { applyTheme(); dirty(); }); } },
 }));
 $("#bank").addEventListener("keydown", (e) => {
   const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
@@ -711,6 +773,9 @@ showBright(st.bright);
 
 const night = new ToggleController($("#night"), { axis: "x", sound: "latch", value: st.night, onChange: (v) => { st.night = v; app.style.setProperty("--night", v); dirty(); } });
 app.style.setProperty("--night", st.night);
+// ToggleController focuses the switch on pointerdown; take focus first without the keyboard ring,
+// so a click never flashes a focus ring (keyboard focus still shows it).
+$("#night").addEventListener("pointerdown", (e) => { if (e.button === 0) e.currentTarget.focus({ preventScroll: true, focusVisible: false }); }, true);
 new ToggleController($("#hdr"), { axis: "x", value: 0 });
 // kit gap: ToggleController's keyboard path ignores aria-disabled; stop keys before they reach it.
 $("#hdr").parentElement.addEventListener("keydown", (e) => { if (e.target.getAttribute("aria-disabled") === "true" && [" ", "Enter", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) { e.stopPropagation(); e.preventDefault(); feedback.play("tick", { intensity: .3, pitch: .6 }); } }, true);
@@ -728,7 +793,7 @@ const setActive = (i, snd = true) => {
   list.setAttribute("aria-activedescendant", opts[act].id);
   if (snd) feedback.play("tick", { intensity: .5 });
 };
-const renderSel = () => { opts.forEach((o) => o.setAttribute("aria-selected", o.dataset.v === st.sched)); $("#sched-val").textContent = OPTS.find((o) => o[0] === st.sched)[1]; };
+const renderSel = () => { opts.forEach((o) => o.setAttribute("aria-selected", o.dataset.v === st.sched)); swap($("#sched-val"), OPTS.find((o) => o[0] === st.sched)[1]); };
 function openList() {
   const r = trig.getBoundingClientRect();
   list.style.minWidth = r.width + "px";
@@ -774,7 +839,6 @@ const validate = () => {
   const ok = nm.value.trim().length > 0;
   nm.setAttribute("aria-invalid", !ok);
   $("#dname-msg").classList.toggle("err", !ok);
-  $("#dname-txt").innerHTML = ok ? "Shown when you share or mirror this screen" : '<i class="led red on" aria-hidden="true"></i> Name is required';
   $("#dname-n").textContent = `${nm.value.length}/32`;
   return ok;
 };
@@ -783,12 +847,19 @@ nm.addEventListener("blur", validate);
 
 
 const dlg = $("#dlg");
-const closeDlg = () => { if (!dlg.open) return; dlg.classList.add("closing"); setTimeout(() => { dlg.classList.remove("closing"); dlg.close(); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 190); };
-dlg.addEventListener("cancel", (e) => { e.preventDefault(); closeDlg(); });
+const closeDlg = (then) => {
+  if (!dlg.open) return;
+  dlg.close();
+  if (!then) return;
+  getComputedStyle(dlg).opacity; // start the exit transition now, then wait for it to end
+  Promise.all(dlg.getAnimations().map((a) => a.finished)).then(then, then);
+};
 dlg.addEventListener("click", (e) => { if (e.target === dlg) closeDlg(); });
 new PressController($("#restore"), { sound: "click", onActivate: () => { dlg.showModal(); feedback.play("slide", { intensity: .8 }); } });
-new PressController($("#d-cancel"), { sound: "click", onActivate: closeDlg });
-new PressController($("#d-ok"), { sound: "clack", onActivate: () => { restore(); closeDlg(); } });
+new PressController($("#d-cancel"), { sound: "click", onActivate: () => closeDlg() });
+// Let the dialog sink first, then every control glides back to its default (each animates on its
+// own); a theme change re-paints the slab, so that case runs as one view transition.
+new PressController($("#d-ok"), { sound: "clack", onActivate: () => closeDlg(() => (st.theme !== DEF.theme ? smooth(restore) : restore())) });
 new PressController($("#apply"), { sound: "clack", onActivate: () => {
   if (!validate()) { nm.focus(); feedback.play("beep"); return; }
   applied = JSON.stringify(st); dirty(); feedback.play("latch", { intensity: .6 });
@@ -825,15 +896,25 @@ const go = (sec) => {
   other.innerHTML = `<div class="card"><i class="screw" style="--r:14deg"></i><i class="screw" style="--r:48deg"></i><i class="screw" style="--r:3deg"></i><i class="screw" style="--r:66deg"></i><h3>${t}</h3><div class="list">${rows.map(([a, b]) => `<button class="key lrow"><b>${a}</b><span class="v">${b}</span>${CHEV}</button>`).join("")}</div></div>`;
   $$(".lrow", other).forEach((b) => new PressController(b, { sound: "click" }));
 };
-tabs.forEach((t) => new PressController(t, { sound: "clack", onActivate: () => { if (t.getAttribute("aria-current") !== "page") morph(() => go(t.dataset.sec)); } }));
+tabs.forEach((t) => new PressController(t, { sound: "clack", onActivate: () => { if (t.getAttribute("aria-current") !== "page") smooth(() => go(t.dataset.sec)); } }));
 const navEl = $("#nav");
 const navEnd = () => navEl.toggleAttribute("data-end", navEl.scrollLeft + navEl.clientWidth >= navEl.scrollWidth - 2);
 navEl.addEventListener("scroll", navEnd, { passive: true }); new ResizeObserver(navEnd).observe(navEl);
+let navRun = 0, navShown = tabs.map(() => true).join();
+const navItems = [...tabs.map((t) => t.parentElement), $("#nav .none")];
 $("#q").addEventListener("input", (e) => {
   const q = e.target.value.trim().toLowerCase();
-  let n = 0;
-  tabs.forEach((t) => { const hit = !q || t.textContent.toLowerCase().includes(q) || (t.dataset.sec === "display" && /bright|night|resol|text|hdr|refresh|motion|dark|light/.test(q)); t.parentElement.hidden = !hit; n += hit; });
-  $("#nav .none").hidden = n > 0; navEnd();
+  const hits = tabs.map((t) => !q || t.textContent.toLowerCase().includes(q) || (t.dataset.sec === "display" && /bright|night|resol|text|hdr|refresh|motion|dark|light/.test(q)));
+  const none = !hits.some(Boolean), key = hits.join();
+  // Compare with the last requested result, not the DOM: a running transition applies it a frame later.
+  if (key === navShown) return;
+  navShown = key;
+  // The filtered list re-flows: name its items for the transition only, so the ones that stay
+  // glide into place and the rest fade, then drop the names (they would escape the nav's clip).
+  const run = ++navRun;
+  navItems.forEach((li, i) => (li.style.viewTransitionName = "nav-" + i));
+  smooth(() => { tabs.forEach((t, i) => (t.parentElement.hidden = !hits[i])); $("#nav .none").hidden = !none; navEnd(); })
+    .then(() => { if (run === navRun) navItems.forEach((li) => (li.style.viewTransitionName = "")); });
 });
 
 setSize(st.size); dirty();

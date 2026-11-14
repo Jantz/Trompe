@@ -54,23 +54,44 @@ export function animate(fn) { tickers.add(fn); if (!rafId) rafId = requestAnimat
  */
 export function morph(update) {
   if (reduceMotion.matches || !document.startViewTransition || document.visibilityState === "hidden") { update(); return Promise.resolve(); }
+  // One transition at a time: changes that arrive while one plays are batched into the next,
+  // instead of skipping the running one.
+  if (morphBusy) { morphQueue.push(update); return morphBusy.then(() => morphNext); }
   const vt = document.startViewTransition(update);
-  return vt.finished.catch(() => {});
+  vt.ready.catch(() => {});
+  vt.updateCallbackDone.catch(() => {});
+  morphBusy = vt.finished.catch(() => {}).then(() => {
+    morphBusy = null;
+    morphNext = null;
+    if (morphQueue.length) { const q = morphQueue; morphQueue = []; morphNext = morph(() => q.forEach((u) => u())); }
+  });
+  return morphBusy;
 }
+let morphBusy = null, morphQueue = [], morphNext = null;
 
 /**
- * Swaps an element's text with a short cross-fade: the old text fades out in place while
- * the new one fades in, and the box eases to its new width instead of snapping.
+ * Swaps an element's text: the old text fades out, then the new one fades in while the box eases
+ * to its new width, so no part of the change is instant. Rapid calls end on the latest text.
  */
+const swapping = new WeakMap();
 export function swapText(el, text) {
-  if (!el || el.textContent === text) return;
+  if (!el) return;
+  const pending = swapping.get(el);
+  if (pending) { pending.text = text; return; }
+  if (el.textContent === text) return;
   if (reduceMotion.matches || !el.isConnected) { el.textContent = text; return; }
-  const w0 = el.getBoundingClientRect().width;
-  el.textContent = text;
-  const w1 = el.getBoundingClientRect().width;
-  el.animate([{ opacity: 0, filter: "blur(2px)" }, { opacity: 1, filter: "none" }], { duration: 200, easing: "ease-out" });
-  if (Math.abs(w1 - w0) > 0.5 && getComputedStyle(el).display !== "inline")
-    el.animate([{ width: w0 + "px" }, { width: w1 + "px" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" });
+  const job = { text };
+  swapping.set(el, job);
+  el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 90, easing: "ease-in", fill: "forwards" }).finished.then((out) => {
+    swapping.delete(el);
+    const w0 = el.getBoundingClientRect().width;
+    el.textContent = job.text;
+    const w1 = el.getBoundingClientRect().width;
+    out.cancel();
+    el.animate([{ opacity: 0, filter: "blur(2px)" }, { opacity: 1, filter: "none" }], { duration: 180, easing: "ease-out" });
+    if (Math.abs(w1 - w0) > 0.5 && getComputedStyle(el).display !== "inline")
+      el.animate([{ width: w0 + "px" }, { width: w1 + "px" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" });
+  }, () => swapping.delete(el));
 }
 
 /* Critically-ish damped spring. zeta < 1 overshoots a little, which is what sells a snap. */
@@ -324,7 +345,7 @@ export class RotaryController extends ValueModel {
   _down(e) {
     if (e.button !== 0 || this.host.getAttribute("aria-disabled") === "true") return;
     e.preventDefault();
-    this.host.focus({ preventScroll: true });
+    this.host.focus({ preventScroll: true, focusVisible: false });
     this._stopInertia?.();
     const h = this.host, c = this._center();
     const mode = this.o.drag === "auto" ? (Math.hypot(e.clientX - c.x, e.clientY - c.y) > c.r * 0.3 ? "rotate" : "vertical") : this.o.drag;
@@ -447,7 +468,7 @@ export class LinearController extends ValueModel {
   _down(e) {
     if (e.button !== 0 || this.host.getAttribute("aria-disabled") === "true") return;
     e.preventDefault();
-    this.host.focus({ preventScroll: true });
+    this.host.focus({ preventScroll: true, focusVisible: false });
     const h = this.host;
     const thumb = this.o.thumb?.();
     const onThumb = thumb ? thumb.contains(e.target) : false; // no thumb part: whole host is track
@@ -698,7 +719,7 @@ export class ToggleController {
     if (e.button !== 0 || this.host.getAttribute("aria-disabled") === "true") return;
     e.preventDefault();
     const h = this.host;
-    h.focus({ preventScroll: true });
+    h.focus({ preventScroll: true, focusVisible: false });
     h.setPointerCapture(e.pointerId);
     const start = { x: e.clientX, y: e.clientY, v: this._value };
     let moved = false;
