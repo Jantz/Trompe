@@ -37,6 +37,12 @@ jobs:
       - name: Component tests
         run: npx playwright test
 
+      - name: trompe check tests
+        run: npm run test:check
+
+      - name: trompe check on the plain HTML example
+        run: node bin/trompe.mjs check examples/html
+
       - name: Framework examples (build + typecheck + smoke tests)
         run: |
           npm run examples:build

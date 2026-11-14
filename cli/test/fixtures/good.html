@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" data-tr-theme="dark">
+<head>
+  <meta charset="utf-8"><title>Good</title>
+  <link rel="stylesheet" href="../../../dist/skins.css">
+  <script type="module" src="../../../dist/trompe.bundle.js"></script>
+</head>
+<body data-tr-skin="studio" style="--tr-light-angle: 330deg">
+  <tr-panel screws>
+    <tr-display type="vfd" value="12:34" aria-label="Clock"></tr-display>
+    <tr-button tone="accent" shape="pill">Play</tr-button>
+    <tr-button toggle pressed material="metal">Loop</tr-button>
+    <tr-button shape="circle" aria-label="Stop"><svg viewBox="0 0 16 16"><path d="M3 3h10v10H3z"/></svg></tr-button>
+    <tr-slider label="Volume" value="40"></tr-slider>
+    <tr-knob label="Gain" value="3"></tr-knob>
+    <tr-switch checked>Monitor</tr-switch>
+    <tr-led on label="Recording"></tr-led>
+    <tr-segmented aria-label="Mode"><tr-option value="a">A</tr-option><tr-option value="b">B</tr-option></tr-segmented>
+  </tr-panel>
+  <style>tr-button::part(control) { letter-spacing: .02em; }</style>
+</body>
+</html>

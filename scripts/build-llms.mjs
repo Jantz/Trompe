@@ -210,7 +210,8 @@ Rules for correct markup:
 - Use only the attributes and values listed here; enumerated values are exact strings.
 - Boolean attributes are present/absent (\`disabled\`, \`toggle\`, \`checked\`); numbers are written as strings in HTML.
 - Interactive elements (they take focus and need an accessible name): ${interactive.join(', ') || 'none'}.${namedRoles.length ? `\n- Non-interactive elements with a role (give them an accessible name too, e.g. aria-label): ${namedRoles.join(', ')}.` : ''}
-- Read values in event handlers from \`event.target.value\` / \`.checked\` / \`.pressed\`.`;
+- Read values in event handlers from \`event.target.value\` / \`.checked\` / \`.pressed\`.
+- Check your output: \`npx trompe check <files>\` (add \`--format json\` to read findings, \`--fix\` for typos, \`--render\` for contrast, axe, target size and forced colours). It validates markup (.html, .vue, .svelte, Lit html\`\`), CSS and skin files against this package, and exits 1 on errors.`;
 }
 
 function build(full) {

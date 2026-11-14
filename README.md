@@ -58,6 +58,16 @@ Extras for instrument-like interfaces: `tr-knob`, `tr-display` (LCD, VFD, LED an
 
 Run `npm run build` and read `llms.txt` for every attribute, allowed value, event, slot, part and CSS property.
 
+## Checking your markup
+
+```sh
+npx trompe check src/            # .html, .vue, .svelte, Lit html``, .css and *.skin.json
+npx trompe check --fix src/      # fix typos in element, attribute and value names
+npx trompe check --render page.html --format json   # + axe, contrast, target size, forced colours
+```
+
+`trompe check` reads the package's own `custom-elements.json`, `tokens.json` and `skins.json`, so it always matches the installed version. It is built for agents: JSON findings with stable rule ids, the allowed values and a fix. See [docs/check.md](docs/check.md).
+
 ## Accessibility
 
 Every interactive control follows the WAI-ARIA Authoring Practices pattern for its role, is keyboard operable, and carries real ARIA attributes. State is never shown by depth or color alone. Controls keep a 3:1 boundary, grow to 44px touch targets on coarse pointers, and have defined fallbacks for forced colors, reduced motion, reduced transparency (glass becomes opaque) and increased contrast (realism is capped).
@@ -70,6 +80,8 @@ npm run dev        # showcase at /showcase/
 npm test           # Playwright: behaviour, axe and visual snapshots
 npm run build      # dist/, bundle, custom-elements.json, llms.txt, framework types
 npm run test:frameworks  # React, Vue, Svelte and plain HTML smoke tests
+npm run test:check # trompe check: rules, skin validation, --fix, --render (after npm run build)
+npm run check -- showcase skins  # run the checker on the repo itself
 ```
 
 Generated files (`src/generated/`, `dist/`, `custom-elements.json`, `llms*.txt`) are not committed. Edit `tokens/trompe.tokens.json` and `skins/*.skin.json`, then `npm run tokens`.
