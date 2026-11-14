@@ -740,7 +740,7 @@ export function mountBar(o) {
     if (d) { e.preventDefault(); setA(angle + d); }
   });
 
-  // Sound + haptics switch. Default on in the gallery (it's a demo of feel); persisted.
+  // Optional sound + haptics switch. Off by default, like the interaction layer; persisted.
   const btn = bar.querySelector("[data-sound]");
   const setS = (on) => {
     feedback.configure({ sound: on, haptics: on });
@@ -749,7 +749,7 @@ export function mountBar(o) {
     btn.title = on ? "Sound and haptics on" : "Sound and haptics off";
     store.set("sound", on);
   };
-  setS(store.get("sound", true));
+  setS(store.get("sound", false));
   btn.addEventListener("click", () => { setS(!feedback.sound); if (feedback.sound) feedback.play("click"); });
   return bar;
 }
