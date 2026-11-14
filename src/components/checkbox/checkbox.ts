@@ -3,6 +3,7 @@ import { property } from 'lit/decorators.js';
 import { FormControl } from '../../internal/form-control.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
+import { PressController } from '../../interaction/press.js';
 
 /**
  * A checkbox set into the surface: an empty recessed well that, when checked, fills with a
@@ -34,6 +35,9 @@ import type { Size } from '../../internal/types.js';
  * @example <tr-checkbox indeterminate material="metal">Select all</tr-checkbox>
  */
 export class TrCheckbox extends FormControl {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.isDisabled });
+
   static override styles = [
     ...FormControl.styles,
     css`
@@ -91,7 +95,7 @@ export class TrCheckbox extends FormControl {
         scale: 0.55;
         transition:
           opacity var(--tr-motion-duration-press, 70ms),
-          scale var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
+          scale var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out);
       }
       :host([checked]) .key,
@@ -99,7 +103,7 @@ export class TrCheckbox extends FormControl {
         opacity: 1;
         scale: 1;
       }
-      :host(:active) .key {
+      :host([data-tr-pressed]) .key {
         --_tr-z: 0;
       }
       .mark {

@@ -3,6 +3,8 @@ import { property } from 'lit/decorators.js';
 import { FormControl } from '../../internal/form-control.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
+import { PressController } from '../../interaction/press.js';
+import { ToggleController } from '../../interaction/toggle.js';
 
 /**
  * A physical slide switch: a raised thumb travelling in a recessed track. When on, the track
@@ -33,6 +35,9 @@ import type { Size } from '../../internal/types.js';
  * @example <tr-switch name="alerts" material="metal" size="lg">Alerts</tr-switch>
  */
 export class TrSwitch extends FormControl {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.isDisabled });
+
   static override styles = [
     ...FormControl.styles,
     css`
@@ -119,14 +124,25 @@ export class TrSwitch extends FormControl {
         width: calc(var(--_h) - 2 * var(--_gap) - 2px);
         height: calc(var(--_h) - 2 * var(--_gap) - 2px);
         border-radius: var(--tr-switch-thumb-radius, 50%);
+        /* Rest position comes from the state; while the hand is on the thumb, --tr-value-ratio
+           (written by the toggle controller) takes over, then the thumb throws home on a spring. */
+        translate: calc(var(--tr-value-ratio, var(--_rest)) * (var(--_w) - var(--_h))) 0;
         transition:
-          translate var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out),
+          translate var(--tr-motion-duration-throw, 220ms) var(--tr-motion-easing-throw, ease-out),
           --_tr-z var(--tr-motion-duration-release, 160ms);
       }
-      :host([checked]) .thumb {
-        translate: calc(var(--_w) - var(--_h)) 0;
+      :host {
+        --_rest: 0;
       }
-      :host(:active) .thumb {
+      :host([checked]) {
+        --_rest: 1;
+      }
+      :host([data-dragging]) .thumb {
+        transition:
+          translate 50ms linear,
+          --_tr-z var(--tr-motion-duration-release, 160ms);
+      }
+      :host([data-tr-pressed]) .thumb {
         --_tr-z: calc(var(--_depth) - 0.5);
       }
       .label {
@@ -175,6 +191,15 @@ export class TrSwitch extends FormControl {
 
   private defaultChecked = false;
   private hasLabel = false;
+
+  /** Grab the thumb and throw it: resists in its own half, snaps over centre (see docs/interaction.md). */
+  protected readonly throwCtl = new ToggleController(this, {
+    checked: () => this.checked,
+    toggle: () => this.toggle(),
+    thumb: () => this.renderRoot?.querySelector('.thumb') ?? null,
+    track: () => this.renderRoot?.querySelector('.track') ?? null,
+    disabled: () => this.isDisabled,
+  });
 
   constructor() {
     super();

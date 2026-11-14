@@ -44,6 +44,9 @@ test.describe('tr-slider', () => {
     await page.mouse.click(track.x + track.width / 2, track.y + track.height / 2);
     expect(await page.evaluate(() => (document.getElementById('s') as any).value)).toBe(50);
 
+    // the value jumps at once; the cap glides there on a spring, so wait for it to land
+    await expect(page.locator('#s')).toHaveAttribute('data-tr-state', 'idle');
+
     // grab the cap slightly off-centre and move it: the value moves by the distance, not to the pointer
     const cap = (await page.locator('#s .thumb').boundingBox())!;
     const x = cap.x + cap.width - 3;

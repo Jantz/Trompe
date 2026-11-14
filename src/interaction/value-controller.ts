@@ -148,9 +148,12 @@ export abstract class ValueController {
     return this.pointerId !== null;
   }
 
+  private synced = false;
+
   /**
    * Updates range and value from the host's own properties (call it from a component's `updated`).
-   * A changed value glides there; while the user is dragging, outside changes are ignored.
+   * The first call snaps; a later changed value glides there; while the user is dragging, outside
+   * changes are ignored.
    */
   sync(next: { min?: number; max?: number; step?: number; value?: number; defaultValue?: number }): void {
     let rangeChanged = false;
@@ -165,11 +168,18 @@ export abstract class ValueController {
     if (next.defaultValue !== undefined) this.defaultValue = this.quantize(next.defaultValue);
     if (next.value !== undefined && !this.dragging) {
       const v = this.quantize(next.value);
-      if (v !== this.model || rangeChanged) {
+      if (!this.synced) {
+        // First sync after the host renders: take the value as the starting point, no glide in.
+        this.model = v;
+        this.raw = v;
+        this.display.snap(v);
+        this.write();
+      } else if (v !== this.model || rangeChanged) {
         this.model = v;
         this.raw = v;
         this.animateTo(v, this.o.glide);
       }
+      this.synced = true;
     } else if (rangeChanged) {
       this.write();
     }
@@ -520,7 +530,11 @@ export abstract class ValueController {
     this.readSounds(this.gestureRect);
     this.state = 'dragging';
     this.write();
+    this.afterGrab(e);
   };
+
+  /** Hook right after a grab is set up (a track press starts the cap moving here). */
+  protected afterGrab(_e: PointerEvent): void {}
 
   private onPointerMove = (e: PointerEvent): void => {
     if (e.pointerId !== this.pointerId) return;

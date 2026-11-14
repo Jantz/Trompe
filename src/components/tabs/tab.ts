@@ -1,6 +1,7 @@
 import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
+import { PressController } from '../../interaction/press.js';
 
 let nextId = 0;
 
@@ -33,6 +34,9 @@ let nextId = 0;
  * @example <tr-tab disabled>Billing</tr-tab>
  */
 export class TrTab extends TrompeElement {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.disabled });
+
   static override styles = [
     ...TrompeElement.styles,
     css`
@@ -64,7 +68,7 @@ export class TrTab extends TrompeElement {
         --_mirror: calc(var(--tr-f-mirror, var(--tr-m-mirror, 0)) * 0.3);
         transition:
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
-          translate var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
+          translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
           background-color var(--tr-motion-duration-release, 160ms),
           color var(--tr-motion-duration-release, 160ms);
       }
@@ -200,7 +204,7 @@ export class TrTab extends TrompeElement {
       :host([data-variant='keys']:hover:not([selected]):not([disabled])) .tab {
         --_tr-z: 1.5;
       }
-      :host([data-variant='keys']:active:not([disabled])) .tab,
+      :host([data-variant='keys'][data-tr-pressed]:not([disabled])) .tab,
       :host([data-variant='keys'][selected]) .tab {
         --_tr-z: -1;
         translate: calc(var(--_sx) * 1px) calc(var(--_sy) * 1px);

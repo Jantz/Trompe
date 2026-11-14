@@ -20,6 +20,18 @@ Live demo: the Touch Lab (`npm run` not needed: `node scripts/build-interaction-
 | Menu, popover, dialog, sheet, toast appearing | `present()` / `dismiss()` / `dialogMotion()` | WAAPI on `transform`/`opacity` | promise resolves when done |
 | Invalid input | `shake(el)` | `data-tr-alert` while shaking (and instead of shaking under reduced motion) | promise |
 
+### Where Trompe's own components use it
+
+| Component | Controllers |
+| --- | --- |
+| `tr-button`, `tr-checkbox`, `tr-radio`, `tr-tab`, `tr-list-item`, `tr-nav-item`, `tr-menu-item`, `tr-option`, `tr-select` | `PressController` (CSS keys off `[data-tr-pressed]` instead of `:active`, so quick taps stay visible and dragging off cancels) |
+| `tr-switch` | `PressController` + `ToggleController` (the thumb follows `--tr-value-ratio` while held, rests on `--_rest` otherwise) |
+| `tr-slider` | `LinearController` with `aria: false`, `keyboard: false` (the component keeps its own ARIA and keys), `inertia: 0`, `wheel: 'focus'`; `updated()` calls `sync()` and `setOrientation()` |
+
+Tabs and the segmented control keep their own roving keyboard and per-key press; they do not use a sliding indicator, so `ChoiceController` is left for skins that want one. `tr-knob` wiring to `RotaryController` is next.
+
+When a component passes `track`, presses elsewhere on the host (label, readout) never start a drag. The first `sync()` after render snaps to the value; later changes glide.
+
 ## What "physical" means here, concretely
 
 - **Every press is seen.** A tap shorter than a frame used to produce no visual change. `PressController` holds the pressed state for at least 90 ms (`--tr-motion-duration-press-min`).
@@ -51,7 +63,7 @@ Off by default. `feedback.configure({ sound: true, haptics: true, volume: 0.6 })
 
 ```css
 /* Press: move the cap with transform; cross-fade fixed shadow layers instead of animating box-shadow. */
-.cap { transition: transform var(--tr-motion-duration-release) var(--tr-motion-easing-release); }
+.cap { transition: transform var(--tr-motion-duration-return) var(--tr-motion-easing-return); }
 :host([data-tr-pressed]) .cap { transform: translateY(1.5px); transition: transform var(--tr-motion-duration-press) ease-out; }
 .cap::before { /* raised shadow */ transition: opacity var(--tr-motion-duration-release); }
 :host([data-tr-pressed]) .cap::before { opacity: 0; }

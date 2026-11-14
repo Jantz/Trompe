@@ -1,6 +1,7 @@
 import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
+import { PressController } from '../../interaction/press.js';
 
 let nextId = 0;
 
@@ -33,6 +34,9 @@ let nextId = 0;
  * @example <tr-segmented aria-label="View"><tr-option value="list">List</tr-option><tr-option value="grid">Grid</tr-option></tr-segmented>
  */
 export class TrOption extends TrompeElement {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.disabled });
+
   static override styles = [
     ...TrompeElement.styles,
     css`
@@ -122,13 +126,13 @@ export class TrOption extends TrompeElement {
         font-weight: var(--tr-font-weight-strong, 600);
         transition:
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
-          translate var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
+          translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
           background-color var(--tr-motion-duration-release, 160ms);
       }
       :host([data-mode='segment']:hover) .row {
         --_tr-z: 1.5;
       }
-      :host([data-mode='segment']:active) .row,
+      :host([data-mode='segment'][data-tr-pressed]) .row,
       :host([data-mode='segment'][selected]) .row {
         --_tr-z: -1;
         translate: calc(var(--_sx) * 1px) calc(var(--_sy) * 1px);

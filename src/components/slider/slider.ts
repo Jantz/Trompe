@@ -2,6 +2,7 @@ import { css, html, nothing } from 'lit';
 import { property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { RangeControl } from '../../internal/range-control.js';
+import { LinearController } from '../../interaction/linear.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Orientation, Size } from '../../internal/types.js';
 
@@ -413,7 +414,7 @@ export class TrSlider extends RangeControl {
         : nothing}
       <div class="body">
         ${vertical ? scale : nothing}
-        <div class="track focus-ring" style=${styleMap({ '--_f': String(this.fraction) })} @pointerdown=${this.onPointerDown}>
+        <div class="track focus-ring" style=${styleMap({ '--_f': `var(--tr-value-ratio, ${this.fraction})` })}>
           ${vertical ? ticks : nothing}
           <div part="groove" class="groove surface"><div part="fill" class="fill"></div></div>
           <div part="thumb" class="thumb surface"></div>
@@ -423,48 +424,32 @@ export class TrSlider extends RangeControl {
     `;
   }
 
+  /**
+   * Drag physics from trompe/interaction: the cap never jumps when grabbed, a track press glides it
+   * to the pointer, Shift is fine control, on touch moving sideways slows it down, double-click
+   * resets, the wheel works while focused, release lands exactly where it is let go, and keyboard
+   * or programmatic changes glide.
+   */
+  protected readonly dragCtl = new LinearController(this, {
+    aria: false,
+    keyboard: false,
+    wheel: 'focus',
+    // Everyday sliders land where they are let go; inertia is for knobs and throwable surfaces.
+    inertia: 0,
+    track: () => this.renderRoot?.querySelector('.track') ?? null,
+    thumb: () => this.renderRoot?.querySelector('.thumb') ?? null,
+    disabled: () => this.isDisabled,
+    onInput: (v) => this.setFromUser(v, false),
+    onCommit: () => this.commitDrag(),
+  });
+
   override updated(changed: Map<PropertyKey, unknown>): void {
     super.updated(changed);
     this.aria('aria-orientation', this.orientation);
+    if (changed.has('orientation')) this.dragCtl.setOrientation(this.orientation === 'vertical' ? 'vertical' : 'horizontal');
+    this.dragCtl.sync({ min: this.min, max: this.max, step: this.step, value: this.value });
   }
 
-  private valueAt(event: PointerEvent): number {
-    const track = this.renderRoot.querySelector('.track') as HTMLElement;
-    const thumb = this.renderRoot.querySelector('.thumb') as HTMLElement;
-    const r = track.getBoundingClientRect();
-    const t = thumb.getBoundingClientRect();
-    const vertical = this.orientation === 'vertical';
-    const cap = vertical ? t.height : t.width;
-    const f = vertical
-      ? (r.bottom - cap / 2 - event.clientY) / Math.max(1, r.height - cap)
-      : (event.clientX - r.left - cap / 2) / Math.max(1, r.width - cap);
-    return this.min + Math.min(1, Math.max(0, f)) * (this.max - this.min);
-  }
-
-  private onPointerDown = (event: PointerEvent): void => {
-    if (this.isDisabled || event.button !== 0) return;
-    event.preventDefault();
-    this.focus();
-    const target = event.currentTarget as HTMLElement;
-    target.setPointerCapture(event.pointerId);
-    this.setAttribute('data-dragging', '');
-    // Grabbing the cap itself keeps its offset, so it does not jump under the pointer.
-    const thumb = this.renderRoot.querySelector('.thumb') as HTMLElement;
-    const onCap = event.composedPath().includes(thumb);
-    const offset = onCap ? this.valueAt(event) - this.value : 0;
-    if (!onCap) this.setFromUser(this.valueAt(event), false);
-    const move = (e: PointerEvent) => this.setFromUser(this.valueAt(e) - offset, false);
-    const up = () => {
-      target.removeEventListener('pointermove', move);
-      target.removeEventListener('pointerup', up);
-      target.removeEventListener('pointercancel', up);
-      this.removeAttribute('data-dragging');
-      this.commitDrag();
-    };
-    target.addEventListener('pointermove', move);
-    target.addEventListener('pointerup', up);
-    target.addEventListener('pointercancel', up);
-  };
 }
 
 define('tr-slider', TrSlider);

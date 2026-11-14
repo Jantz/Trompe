@@ -1,6 +1,7 @@
 import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
+import { PressController } from '../../interaction/press.js';
 
 let nextId = 0;
 
@@ -33,6 +34,9 @@ let nextId = 0;
  * @example <tr-list-item value="plan" selected>Plan.md<span slot="end">2 KB</span></tr-list-item>
  */
 export class TrListItem extends TrompeElement {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.disabled });
+
   static override styles = [
     ...TrompeElement.styles,
     css`
@@ -87,7 +91,7 @@ export class TrListItem extends TrompeElement {
       :host([role='option']:hover:not([disabled])) .plate {
         opacity: 1;
       }
-      :host([role='option']:active:not([disabled])) .plate {
+      :host([role='option'][data-tr-pressed]:not([disabled])) .plate {
         --_tr-z: -0.5;
       }
       :host([role='option'][selected]) .plate {

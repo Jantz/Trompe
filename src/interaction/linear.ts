@@ -79,7 +79,10 @@ export class LinearController extends ValueController {
   }
 
   protected beginDrag(e: PointerEvent): boolean {
-    const track = this.trackFn?.() ?? this.host;
+    const trackEl = this.trackFn?.();
+    // With an explicit track, presses elsewhere on the host (label, readout) are not drags.
+    if (trackEl && !e.composedPath().includes(trackEl)) return false;
+    const track = trackEl ?? this.host;
     const thumb = this.thumbFn?.() ?? null;
     // One layout read per gesture, before any writes.
     const tr = track.getBoundingClientRect();
@@ -171,6 +174,17 @@ export class LinearController extends ValueController {
     }
     this.lastPos = p;
     return next;
+  }
+
+  protected override afterGrab(e: PointerEvent): void {
+    // A press on the track (not the cap): the value goes to the pointer at once, the cap glides there.
+    if (this.following) {
+      const v = this.toValue(this.pos(e));
+      this.setRaw(v, 'pointer', true);
+      // Velocity starts from here, not from the jump.
+      this.samples = [];
+      this.record(this.raw, e.timeStamp);
+    }
   }
 
   protected override onDragMove(e: PointerEvent): void {

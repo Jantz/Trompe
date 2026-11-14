@@ -4,6 +4,7 @@ import { FormControl } from '../../internal/form-control.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
 import { TrOption } from './option.js';
+import { PressController } from '../../interaction/press.js';
 
 const anchorSupport = typeof CSS !== 'undefined' && CSS.supports('anchor-name', '--a');
 let nextId = 0;
@@ -46,6 +47,9 @@ let nextId = 0;
  * @example <tr-select aria-label="Sort by" value="new" material="metal"><tr-option value="new">Newest</tr-option><tr-option value="top">Top rated</tr-option></tr-select>
  */
 export class TrSelect extends FormControl {
+  /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
+  protected readonly pressCtl = new PressController(this, { disabled: () => this.isDisabled });
+
   static override styles = [
     ...FormControl.styles,
     css`
@@ -93,12 +97,12 @@ export class TrSelect extends FormControl {
         line-height: 1.2;
         transition:
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
-          translate var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out);
+          translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out);
       }
       :host(:hover) .trigger {
         --_tr-z: calc(var(--_depth) + 0.5);
       }
-      :host(:active) .trigger,
+      :host([data-tr-pressed]) .trigger,
       :host([open]) .trigger {
         --_tr-z: -1;
         translate: calc(var(--_sx) * 1px) calc(var(--_sy) * 1px);
