@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overlays</title>
+<link rel="stylesheet" href="/src/generated/skins.css">
+<script type="module" src="/src/index.ts"></script>
+<style>
+  html,body{margin:0;min-height:100%}
+  body{background:var(--tr-color-canvas);color:var(--tr-color-ink);font:15px/1.45 system-ui,sans-serif;padding:28px;min-height:100vh;box-sizing:border-box}
+  body[data-tr-skin='aurora']{background:radial-gradient(circle at 20% 20%,oklch(60% 0.2 330),transparent 50%),radial-gradient(circle at 80% 70%,oklch(55% 0.2 200),transparent 50%),oklch(22% 0.06 290)}
+  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .doc{margin-top:24px;max-width:640px;display:grid;gap:10px;opacity:.9}
+  .doc p{margin:0}
+  .line{height:12px;border-radius:6px;background:color-mix(in oklch,var(--tr-color-ink) 14%,transparent)}
+</style></head>
+<body>
+<div class="bar">
+  <tr-button id="file">File</tr-button>
+  <tr-menu id="m1">
+    <tr-menu-item value="new" shortcut="Ctrl+N">New document</tr-menu-item>
+    <tr-menu-item value="open" shortcut="Ctrl+O">Open…</tr-menu-item>
+    <tr-menu-item value="recent">Open recent
+      <tr-menu slot="submenu">
+        <tr-menu-item>Quarterly report.doc</tr-menu-item>
+        <tr-menu-item>Roadmap 2027.doc</tr-menu-item>
+      </tr-menu>
+    </tr-menu-item>
+    <tr-menu-item separator></tr-menu-item>
+    <tr-menu-item type="checkbox" checked>Autosave</tr-menu-item>
+    <tr-menu-item type="checkbox">Show ruler</tr-menu-item>
+    <tr-menu-item separator></tr-menu-item>
+    <tr-menu-item type="radio" name="zoom" value="75">Zoom 75%</tr-menu-item>
+    <tr-menu-item type="radio" name="zoom" value="100" checked>Zoom 100%</tr-menu-item>
+    <tr-menu-item separator></tr-menu-item>
+    <tr-menu-item value="print" disabled shortcut="Ctrl+P">Print</tr-menu-item>
+    <tr-menu-item value="close">Close window</tr-menu-item>
+  </tr-menu>
+  <tr-button id="share" tone="accent">Share</tr-button>
+  <tr-tooltip for="share">Copy a link anyone in your team can open</tr-tooltip>
+  <tr-button id="del" tone="danger">Delete…</tr-button>
+  <tr-tooltip for="del" placement="bottom">Delete the selected files</tr-tooltip>
+</div>
+<div class="doc">
+  <h1 style="margin:0">Quarterly report</h1>
+  <p>Revenue grew 18% over the previous quarter, led by the new subscription tier.</p>
+  <div class="line" style="width:92%"></div><div class="line" style="width:80%"></div><div class="line" style="width:86%"></div><div class="line" style="width:60%"></div>
+</div>
+<tr-dialog id="dlg" alert>
+  <h2 slot="heading">Delete 3 files?</h2>
+  <p style="margin:0">“Quarterly report”, “Roadmap 2027” and “Notes” will be moved to the bin. You can restore them for 30 days.</p>
+  <tr-button slot="footer" onclick="this.closest('tr-dialog').close('cancel')">Cancel</tr-button>
+  <tr-button slot="footer" tone="danger" onclick="this.closest('tr-dialog').close('delete')">Delete files</tr-button>
+</tr-dialog>
+<script type="module">
+  const q = new URLSearchParams(location.search);
+  if (q.get('skin')) document.body.dataset.trSkin = q.get('skin');
+  if (q.get('theme')) document.documentElement.dataset.trTheme = q.get('theme');
+  if (q.get('realism')) document.body.dataset.trRealism = q.get('realism');
+  if (q.get('material')) for (const el of document.querySelectorAll('tr-menu,tr-dialog,tr-tooltip')) el.setAttribute('material', q.get('material'));
+  await customElements.whenDefined('tr-dialog');
+  await new Promise(r => setTimeout(r, 50));
+  const show = q.get('show') || 'menu';
+  if (show === 'dialog') document.getElementById('dlg').show();
+  if (show === 'menu') {
+    const m = document.getElementById('m1'); m.show();
+    m.items[1].focus(); 
+    if (q.get('sub')) { m.items[2].focus(); m.items[2].submenu.show('first'); }
+    document.querySelector('tr-tooltip[for=share]').show();
+  }
+  document.addEventListener('select', e => console.log('select', e.detail.value));
+</script>
+</body></html>

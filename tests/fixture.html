@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trompe test fixture</title>
+    <style>
+      body { margin: 0; padding: 24px; background: var(--tr-color-canvas); color: var(--tr-color-ink); font: 16px/1.4 system-ui, sans-serif; }
+    </style>
+    <script type="module">
+      import * as trompe from '/src/index.ts';
+      window.trompe = trompe;
+      window.trompeReady = true;
+    </script>
+  </head>
+  <body>
+    <main id="root"></main>
+  </body>
+</html>

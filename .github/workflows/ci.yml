@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build (tokens, dist, bundle, manifest, llms.txt, framework types)
+        run: npm run build
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Component tests
+        run: npx playwright test
+
+      - name: Framework examples (build + typecheck + smoke tests)
+        run: |
+          npm run examples:build
+          npm run examples:typecheck
+          npx playwright test -c playwright.frameworks.config.ts
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+      - name: Upload package build
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trompe-dist
+          path: |
+            dist/
+            custom-elements.json
+            llms.txt
+            llms-full.txt
+          retention-days: 7

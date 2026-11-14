@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><script type="module" src="/src/index.ts"></script>
+<style>body{margin:0;padding:24px;background:var(--tr-color-canvas);color:var(--tr-color-ink);font-family:system-ui}
+.row{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;padding:20px;background:var(--tr-color-canvas)}
+.bank{display:flex;gap:10px}
+.h{display:grid;gap:18px;width:320px}</style></head>
+<body>
+<div class="row">
+<div class="bank">
+<tr-slider orientation="vertical" label="Kick" value="70" hide-value marks="+12,+6,0,-6,-12,-24" min="-24" max="12" material="rubber"></tr-slider>
+<tr-slider orientation="vertical" label="Snare" value="40" hide-value ticks="7" material="rubber"></tr-slider>
+<tr-slider orientation="vertical" label="Hat" value="55" hide-value ticks="7"></tr-slider>
+<tr-slider orientation="vertical" label="Bass" value="20" hide-value ticks="7" material="metal"></tr-slider>
+<tr-slider orientation="vertical" label="Master" value="80" unit=" dB" ticks="7" material="chrome" size="lg" style="--tr-slider-fill-color:oklch(60% 0.18 25)"></tr-slider>
+</div>
+<div class="h">
+<tr-slider label="Volume" value="60" unit="%"></tr-slider>
+<tr-slider label="Pan" value="50" ticks="5" material="metal" marks="L,,C,,R"></tr-slider>
+<tr-slider label="Rubber" value="30" material="rubber" size="lg" marks="0,25,50,75,100"></tr-slider>
+<tr-slider label="Small" value="80" size="sm"></tr-slider>
+</div>
+</div>
+<div class="row" data-tr-theme="dark">
+<div class="bank">
+<tr-slider orientation="vertical" label="Kick" value="70" hide-value marks="+12,+6,0,-6,-12,-24" min="-24" max="12" material="rubber"></tr-slider>
+<tr-slider orientation="vertical" label="Snare" value="40" hide-value ticks="7" material="rubber"></tr-slider>
+<tr-slider orientation="vertical" label="Hat" value="55" hide-value ticks="7"></tr-slider>
+<tr-slider orientation="vertical" label="Bass" value="20" hide-value ticks="7" material="metal"></tr-slider>
+<tr-slider orientation="vertical" label="Master" value="80" unit=" dB" ticks="7" material="chrome" size="lg"></tr-slider>
+</div>
+<div class="h">
+<tr-slider label="Volume" value="60" unit="%"></tr-slider>
+<tr-slider label="Pan" value="50" ticks="5" material="metal"></tr-slider>
+<tr-slider label="Rubber" value="30" material="rubber" size="lg" marks="0,25,50,75,100"></tr-slider>
+</div>
+</div>
+</body></html>
