@@ -1,0 +1,34 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<script type="module" src="/src/index.ts"></script>
+<style>body{margin:0;padding:24px;background:var(--tr-color-canvas);color:var(--tr-color-ink);font-family:system-ui;display:grid;gap:12px}
+.row{display:flex;gap:22px;flex-wrap:wrap;align-items:center;padding:18px;background:var(--tr-color-canvas)}
+</style></head>
+<body>
+<div class="row">
+<tr-display type="lcd" value="12:45" digits="4"></tr-display>
+<tr-display type="lcd" value="-88.5" digits="6" color="amber"></tr-display>
+<tr-display type="lcd" inverse color="blue" value="TRACK 07" glyphs="14seg"></tr-display>
+<tr-display type="vfd" glyphs="14seg" value="AURORA 128K"></tr-display>
+<tr-display type="vfd" value="105.70" digits="6" color="green"></tr-display>
+<tr-display type="led" value="ON AIR"></tr-display>
+<tr-display type="led" value="88:88" digits="4" color="red"></tr-display>
+<tr-display type="oled" value="Hello, world"></tr-display>
+<tr-display type="lcd" glyphs="matrix" value="Hello LCD 0123!"></tr-display>
+<tr-display type="vfd" glyphs="matrix" value="VFD gjpqy @#$%"></tr-display>
+<tr-display type="vfd" live style="width:18em"><span slot="top">Stereo</span><span slot="top" data-off>Mono</span><span slot="top">RDS</span><div style="font-size:1.6em">Kind of Blue</div><span slot="bottom">128 kbps</span><span slot="bottom" data-off>Rpt</span></tr-display>
+<tr-display type="lcd" color="amber" style="width:16em"><div>Spectrum</div><tr-meter mode="spectrum" bands="16" segments="8" label="Spectrum" values="0.2,0.5,0.8,0.9,1,0.7,0.6,0.5,0.6,0.4,0.3,0.4,0.2,0.15,0.1,0.05" style="width:100%;height:3em"></tr-meter></tr-display>
+<tr-display type="vfd" style="width:16em"><tr-meter mode="spectrum" bands="20" segments="8" label="Spectrum" peak values="0.2,0.5,0.8,0.9,1,0.7,0.6,0.5,0.6,0.4,0.3,0.4,0.2,0.15,0.1,0.05,0.3,0.2,0.1,0.1" style="width:100%;height:3em"></tr-meter></tr-display>
+</div>
+<div class="row" data-tr-theme="dark">
+<tr-display type="lcd" value="12:45" digits="4"></tr-display>
+<tr-display type="vfd" glyphs="14seg" value="AURORA 128K"></tr-display>
+<tr-display type="led" value="ON AIR"></tr-display>
+<tr-display type="oled" value="Hello, world"></tr-display>
+</div>
+<div class="row" data-tr-material="chrome" data-tr-realism="real" style="background:linear-gradient(#c9ced4,#8d949c)">
+<tr-display type="vfd" glyphs="14seg" digits="12" marquee value="NOW PLAYING - KIND OF BLUE"></tr-display>
+<tr-display type="led" marquee value="BREAKING NEWS: TROMPE SHIPS" digits="14"></tr-display>
+<tr-display type="lcd" color="blue" value="00:03:27" digits="6"></tr-display>
+</div>
+</body></html>

@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><script type="module" src="/src/index.ts"></script>
+<style>body{margin:0;padding:24px;background:var(--tr-color-canvas);color:var(--tr-color-ink);font-family:system-ui;font-size:20px}
+.row{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;padding:16px;background:var(--tr-color-canvas)}</style></head>
+<body>
+<div class="row">
+<tr-knob label="Cutoff" variant="skirt" material="rubber" value="65" marks="0,2,4,6,8,10"></tr-knob>
+<tr-knob label="Mode" variant="pointer" min="1" max="5" ticks="5" marks="1,2,3,4,5" value="2" material="rubber"></tr-knob>
+<tr-knob label="Mode" variant="pointer" min="1" max="5" ticks="5" value="4" ></tr-knob>
+<tr-knob label="Res" variant="skirt" value="30" ></tr-knob>
+</div>
+<div class="row" data-tr-theme="dark">
+<tr-knob label="Cutoff" variant="skirt" material="rubber" value="65" marks="0,2,4,6,8,10"></tr-knob>
+<tr-knob label="Mode" variant="pointer" min="1" max="5" ticks="5" marks="1,2,3,4,5" value="2" material="metal"></tr-knob>
+<tr-knob label="Mode" variant="pointer" min="1" max="5" ticks="5" value="4" finish="gloss" ></tr-knob>
+<tr-knob label="Res" variant="skirt" value="30" material="metal"></tr-knob>
+</div></body></html>

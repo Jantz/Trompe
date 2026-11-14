@@ -10,3 +10,5 @@ playwright-report/
 examples/*/dist/
 showcase/dist/
 dist-demo/
+llms.txt
+llms-full.txt

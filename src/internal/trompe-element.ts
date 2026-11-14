@@ -84,4 +84,13 @@ export class TrompeElement extends LitElement {
    * Resting depth level, -2 (well) to 4 (overlay). Each component has its own default.
    */
   @property({ type: Number, reflect: true }) depth?: Depth;
+
+  /**
+   * Sets (or removes, for null) an ARIA attribute on the host. Real attributes rather than
+   * ElementInternals reflection, so every assistive technology and test tool sees them.
+   */
+  protected aria(name: `aria-${string}`, value: string | null): void {
+    if (value === null) this.removeAttribute(name);
+    else if (this.getAttribute(name) !== value) this.setAttribute(name, value);
+  }
 }

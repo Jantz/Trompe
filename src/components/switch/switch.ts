@@ -20,6 +20,11 @@ import type { Size } from '../../internal/types.js';
  * @csspart label - Wrapper around the label slot.
  *
  * @cssprop --tr-switch-on-color - Track fill when on. Defaults to --tr-color-accent.
+ * @cssprop --tr-switch-width - Track width. Defaults by size (2.75em, 3.25em, 3.75em).
+ * @cssprop --tr-switch-height - Track height. Defaults by size (1.625em, 1.875em, 2.125em).
+ * @cssprop --tr-switch-thumb-inset - Gap between the thumb and the track edge. Defaults by size (about 0.19em).
+ * @cssprop --tr-switch-track-radius - Corner radius of the track. Defaults to a pill.
+ * @cssprop --tr-switch-thumb-radius - Corner radius of the thumb. Defaults to 50% (round).
  *
  * @fires input - The user toggled the switch.
  * @fires change - The user toggled the switch.
@@ -33,32 +38,31 @@ export class TrSwitch extends FormControl {
     css`
       :host {
         --_depth: 1;
-        --_w: 52px;
-        --_h: 30px;
-        --_gap: 3px;
+        --_w: var(--tr-switch-width, 3.25em);
+        --_h: var(--tr-switch-height, 1.875em);
+        --_gap: var(--tr-switch-thumb-inset, 0.1875em);
         --_on: var(--tr-switch-on-color, var(--tr-color-accent));
         display: inline-flex;
         align-items: center;
-        gap: var(--tr-space-3, 12px);
+        gap: 0.75em;
         vertical-align: middle;
         cursor: pointer;
         user-select: none;
         touch-action: manipulation;
-        color: var(--tr-color-ink);
-        font-size: var(--tr-font-size-md, 0.9375rem);
+        font-size: var(--tr-font-size-md, 1em);
         min-height: var(--_h);
       }
       :host([size='sm']) {
-        --_w: 40px;
-        --_h: 24px;
-        --_gap: 2px;
-        font-size: var(--tr-font-size-sm, 0.8125rem);
+        --_w: var(--tr-switch-width, 2.75em);
+        --_h: var(--tr-switch-height, 1.625em);
+        --_gap: var(--tr-switch-thumb-inset, 0.15em);
+        font-size: var(--tr-font-size-sm, 0.875em);
       }
       :host([size='lg']) {
-        --_w: 66px;
-        --_h: 38px;
-        --_gap: 4px;
-        font-size: var(--tr-font-size-lg, 1.0625rem);
+        --_w: var(--tr-switch-width, 3.75em);
+        --_h: var(--tr-switch-height, 2.125em);
+        --_gap: var(--tr-switch-thumb-inset, 0.2em);
+        font-size: var(--tr-font-size-lg, 1.125em);
       }
       .track {
         --_tr-z: -1;
@@ -69,12 +73,19 @@ export class TrSwitch extends FormControl {
         position: relative;
         width: var(--_w);
         height: var(--_h);
-        border-radius: var(--tr-radius-pill, 999px);
+        border-radius: var(--tr-switch-track-radius, var(--tr-radius-pill, 999px));
         transition: background-color var(--tr-motion-duration-travel, 220ms);
+        /* the slot is lit from inside on: a soft glow pooling around the thumb's resting place */
+        --_layer: radial-gradient(
+          ellipse 70% 90% at 30% 50%,
+          color-mix(in oklch, var(--_hl) calc(var(--_on-glow, 0) * var(--_r) * 28%), transparent),
+          transparent 70%
+        );
       }
       :host([checked]) .track {
         --_base: var(--_on);
         --_ink: var(--tr-color-accent-ink);
+        --_on-glow: 1;
       }
       .mark {
         position: absolute;
@@ -100,11 +111,14 @@ export class TrSwitch extends FormControl {
       .thumb {
         --_tr-z: var(--_depth);
         position: absolute;
+        --_curve: var(--tr-p-curve, 0.55);
+        --_brush: 0;
+        --_spin: var(--tr-f-spin, max(var(--tr-m-spin, 0), var(--tr-m-brush, 0) * 0.85));
         top: var(--_gap);
         left: var(--_gap);
         width: calc(var(--_h) - 2 * var(--_gap) - 2px);
         height: calc(var(--_h) - 2 * var(--_gap) - 2px);
-        border-radius: 50%;
+        border-radius: var(--tr-switch-thumb-radius, 50%);
         transition:
           translate var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out),
           --_tr-z var(--tr-motion-duration-release, 160ms);

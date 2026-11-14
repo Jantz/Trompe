@@ -1,0 +1,35 @@
+{
+  "name": "studio",
+  "description": "Dark pro-audio rack gear: black-anodized brushed aluminium faceplates with chamfered edges, soft-touch rubber controls with spun-metal caps, amber vacuum-fluorescent readouts. Full realism.",
+  "colorScheme": "dark",
+  "tokens": {
+    "color.canvas": "oklch(16% 0.006 260)",
+    "color.surface": "oklch(27% 0.006 260)",
+    "color.well": "oklch(11% 0.005 260)",
+    "color.ink": "oklch(93% 0.008 80)",
+    "color.ink-muted": "oklch(74% 0.01 80)",
+    "color.edge": "oklch(48% 0.008 260)",
+    "color.accent": "oklch(78% 0.16 65)",
+    "color.accent-ink": "oklch(20% 0.03 60)",
+    "color.shadow": "oklch(3% 0 0)",
+    "realism.default": 1,
+    "light.angle": "350deg",
+    "light.elevation": "48deg",
+    "radius.sm": "3px",
+    "radius.md": "5px",
+    "radius.lg": "8px"
+  },
+  "elements": {
+    "*": { "material": "rubber", "finish": "satin" },
+    "tr-panel": {
+      "material": "metal",
+      "finish": "brushed",
+      "profile": "bevel",
+      "vars": { "--tr-m-base": "oklch(29% 0.005 260)", "--tr-m-ink": "oklch(92% 0.008 80)" }
+    },
+    "tr-button": { "material": "rubber", "finish": "satin", "profile": "convex" },
+    "tr-knob": { "material": "metal", "finish": "spun", "vars": { "--tr-m-base": "oklch(70% 0.006 260)" } },
+    "tr-slider": { "material": "metal", "finish": "brushed", "profile": "concave", "vars": { "--tr-m-base": "oklch(82% 0.005 260)" } },
+    "tr-display": { "style": { "--tr-display-color": "oklch(82% 0.16 70)" } }
+  }
+}

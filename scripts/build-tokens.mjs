@@ -92,6 +92,9 @@ ${rootDecls.join('\n')}
   :where(:root) { --tr-lift: 1; }
 }
 
+/* Sensible page defaults (zero specificity, so any page CSS wins). */
+:where(html) { color: var(--tr-color-ink); background-color: var(--tr-color-canvas); }
+
 /* Themes: set data-tr-theme on any element. Default follows prefers-color-scheme. */
 :where([data-tr-theme='light']) { color-scheme: light; --tr-lift: 0; }
 :where([data-tr-theme='dark']) { color-scheme: dark; --tr-lift: 1; }
@@ -208,3 +211,8 @@ writeFileSync(resolve(outDir, 'tokens.json'), JSON.stringify(tokensJson, null, 2
 console.log(
   `tokens: ${flat.length} tokens; ${BUNDLES.map((b) => `${b.names.length} ${b.group}s`).join(', ')} -> src/generated/`,
 );
+
+// Skins are built from the same source so bundle names stay in sync.
+const { buildSkins } = await import('./build-skins.mjs');
+const skinNames = buildSkins(root, source);
+console.log(`skins: ${skinNames.join(', ')} -> src/generated/skins*`);

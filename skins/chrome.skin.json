@@ -1,0 +1,64 @@
+{
+  "name": "chrome",
+  "description": "Turn-of-the-millennium chrome hardware: polished chrome and silver-brushed bezels, glossy domed transport buttons, a blue backlit LCD, crisp high-key lighting. Full realism.",
+  "colorScheme": "light",
+  "tokens": {
+    "color.canvas": "oklch(86% 0.012 250)",
+    "color.surface": "oklch(91% 0.01 250)",
+    "color.well": "oklch(78% 0.015 250)",
+    "color.ink": "oklch(22% 0.03 260)",
+    "color.ink-muted": "oklch(40% 0.03 260)",
+    "color.edge": "oklch(55% 0.02 255)",
+    "color.accent": "oklch(58% 0.18 258)",
+    "color.accent-ink": "oklch(98% 0.01 250)",
+    "color.shadow": "oklch(25% 0.05 260)",
+    "realism.default": 1,
+    "light.angle": "345deg",
+    "light.elevation": "60deg",
+    "radius.sm": "6px",
+    "radius.md": "12px",
+    "radius.lg": "18px"
+  },
+  "elements": {
+    "*": {
+      "material": "metal",
+      "finish": "brushed"
+    },
+    "tr-panel": {
+      "material": "metal",
+      "finish": "brushed",
+      "profile": "bevel",
+      "vars": {
+        "--tr-m-base": "oklch(87% 0.008 250)"
+      }
+    },
+    "tr-button": {
+      "material": "chrome",
+      "finish": "mirror",
+      "profile": "convex",
+      "style": {
+        "--tr-button-radius": "999px"
+      }
+    },
+    "tr-knob": {
+      "material": "chrome",
+      "finish": "mirror",
+      "profile": "dome"
+    },
+    "tr-slider": {
+      "material": "chrome",
+      "finish": "mirror",
+      "profile": "convex"
+    },
+    "tr-switch": {
+      "material": "chrome",
+      "finish": "mirror",
+      "profile": "dome"
+    },
+    "tr-display": {
+      "style": {
+        "--tr-display-color": "oklch(72% 0.14 235)"
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<script type="module" src="/src/index.ts"></script>
+<style>body{margin:0;padding:24px;background:var(--tr-color-canvas);color:var(--tr-color-ink);font-family:system-ui;display:grid;gap:12px}
+.row{display:flex;gap:22px;flex-wrap:wrap;align-items:center;padding:18px;background:var(--tr-color-canvas)}
+.panel{background:linear-gradient(#cfd3d8,#9ea4ab);}
+</style></head>
+<body>
+<div class="row" style="font-size:20px">
+<tr-led on color="red" label="Rec"></tr-led><tr-led color="red" label="Rec"></tr-led>
+<tr-led on color="green" label="Power"></tr-led><tr-led color="green"></tr-led>
+<tr-led on color="amber"></tr-led><tr-led color="amber"></tr-led>
+<tr-led on color="blue"></tr-led><tr-led color="blue"></tr-led>
+<tr-led on color="white"></tr-led><tr-led color="white"></tr-led>
+<tr-led on color="yellow" size="lg"></tr-led><tr-led on color="red" size="sm"></tr-led>
+<tr-led on shape="square" color="green"></tr-led><tr-led shape="square" color="green"></tr-led>
+<tr-led on shape="bar" color="amber"></tr-led><tr-led shape="bar" color="red"></tr-led>
+<tr-led on color="#ff3cf0"></tr-led>
+</div>
+<div class="row" data-tr-theme="dark" style="font-size:20px">
+<tr-led on color="red" label="Rec"></tr-led><tr-led color="red" label="Rec"></tr-led>
+<tr-led on color="green" label="Power"></tr-led><tr-led color="green"></tr-led>
+<tr-led on color="amber"></tr-led><tr-led color="amber"></tr-led>
+<tr-led on color="blue"></tr-led><tr-led color="blue"></tr-led>
+<tr-led on color="white"></tr-led><tr-led color="white"></tr-led>
+<tr-led on shape="bar" color="amber"></tr-led><tr-led shape="bar" color="red"></tr-led>
+</div>
+<div class="row" data-tr-material="chrome" data-tr-realism="real" style="font-size:20px">
+<tr-led on color="red"></tr-led><tr-led color="red"></tr-led><tr-led on color="green" size="lg"></tr-led><tr-led color="blue" size="lg"></tr-led><tr-led on shape="bar" color="amber"></tr-led>
+</div>
+<div class="row" data-tr-realism="flat" style="font-size:20px">
+<tr-led on color="red"></tr-led><tr-led color="red"></tr-led><tr-led on color="green"></tr-led>
+</div>
+</body></html>

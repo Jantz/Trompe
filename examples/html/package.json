@@ -1,0 +1,11 @@
+{
+  "name": "trompe-example-html",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "trompe": "file:../.."
+  }
+}

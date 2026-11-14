@@ -3,6 +3,59 @@
   "version": "0.1.0",
   "description": "Skeuomorphic web components that agents can build and people can feel. Framework-independent, built on Lit and modern CSS.",
   "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./components/*": {
+      "types": "./dist/components/*/*.d.ts",
+      "default": "./dist/components/*/*.js"
+    },
+    "./bundle": "./dist/trompe.bundle.js",
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.json": "./dist/tokens.json",
+    "./skins.css": "./dist/skins.css",
+    "./skins.json": "./dist/skins.json",
+    "./skins/*": "./dist/skins/*",
+    "./custom-elements.json": "./custom-elements.json",
+    "./llms.txt": "./llms.txt",
+    "./llms-full.txt": "./llms-full.txt",
+    "./frameworks/react": {
+      "types": "./dist/frameworks/react.d.ts",
+      "default": "./dist/frameworks/react.js"
+    },
+    "./frameworks/vue": {
+      "types": "./dist/frameworks/vue.d.ts",
+      "default": "./dist/frameworks/vue.js"
+    },
+    "./frameworks/svelte": {
+      "types": "./dist/frameworks/svelte.d.ts",
+      "default": "./dist/frameworks/svelte.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "unpkg": "./dist/trompe.bundle.js",
+  "jsdelivr": "./dist/trompe.bundle.js",
+  "customElements": "custom-elements.json",
+  "files": [
+    "dist",
+    "src",
+    "custom-elements.json",
+    "llms.txt",
+    "llms-full.txt",
+    "README.md"
+  ],
+  "sideEffects": [
+    "./dist/index.js",
+    "./dist/components/**/*.js",
+    "./dist/internal/trompe-element.js",
+    "./dist/trompe.bundle.js",
+    "*.css"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -26,7 +79,20 @@
     "dev": "npm run tokens && vite --open /showcase/",
     "typecheck": "npm run tokens && tsc --noEmit -p .",
     "test": "npm run tokens && playwright test",
-    "test:update": "npm run tokens && playwright test --update-snapshots"
+    "test:update": "npm run tokens && playwright test --update-snapshots",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && npm run tokens && npm run build:ts && npm run build:dist && npm run build:manifest && npm run build:llms && npm run build:frameworks",
+    "build:ts": "tsc -p tsconfig.build.json",
+    "build:dist": "node scripts/build-dist.mjs",
+    "build:manifest": "cem analyze --litelement",
+    "build:llms": "node scripts/build-llms.mjs",
+    "build:frameworks": "node scripts/build-framework-types.mjs",
+    "examples:build": "npm run build --workspaces --if-present",
+    "examples:typecheck": "npm run typecheck --workspaces --if-present",
+    "test:frameworks": "npm run build && npm run examples:build && npm run examples:typecheck && playwright test -c playwright.frameworks.config.ts",
+    "test:all": "npm test && npm run test:frameworks",
+    "prepack": "npm run build",
+    "build:showcase": "npm run tokens && node scripts/build-showcase.mjs"
   },
   "engines": {
     "node": ">=20"

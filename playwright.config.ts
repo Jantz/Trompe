@@ -8,6 +8,8 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: 'tests',
   testMatch: '**/*.spec.ts',
+  // Framework smoke tests need built examples: run them with npm run test:frameworks.
+  testIgnore: '**/frameworks.spec.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
