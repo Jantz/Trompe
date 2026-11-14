@@ -20,16 +20,15 @@ import {
   skinFromDescription,
   textureDeclarations,
   textures,
-  textureDescriptions,
   toHex,
   validateSkin,
   type PaletteInput,
   type Skin,
   type SkinElement,
   type SkinTexture,
-} from '../src/skin/index.ts';
-import { contrast as contrastFn } from '../src/skin/color.ts';
-import { SCREENS, SPRITE } from './screens.ts';
+} from '../src/skin/index.js';
+import { contrast as contrastFn } from '../src/skin/color.js';
+import { SCREENS, SPRITE } from './screens.js';
 import soft from '../skins/soft.skin.json';
 import studioSkin from '../skins/studio.skin.json';
 import chrome from '../skins/chrome.skin.json';
@@ -52,7 +51,7 @@ const h = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, 
   return el;
 };
 const tr = (tag: string, attrs: Record<string, string | boolean | number | undefined> = {}, ...kids: (Node | string)[]) =>
-  h(tag as 'div', attrs, ...kids) as HTMLElement & { value: unknown; checked?: boolean };
+  h(tag as 'div', attrs, ...kids) as unknown as HTMLElement & { value: unknown; checked?: boolean; disabled?: boolean };
 const svgIcon = (id: string, size = 16) => {
   const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   s.setAttribute('width', String(size));
@@ -152,17 +151,38 @@ function schedule() {
 }
 
 /** Runs a discrete change as an animated cross-fade of the preview (View Transitions). */
-function animated(change: () => void) {
-  const doc = document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
+function animated(change: () => void, type?: string) {
+  type VT = { updateCallbackDone?: Promise<void>; finished: Promise<void> };
+  const doc = document as unknown as { startViewTransition?: (arg: (() => void) | { update: () => void; types?: string[] }) => VT };
   if (reduceMotion.matches || !doc.startViewTransition) {
     change();
     flush();
     return;
   }
-  doc.startViewTransition(() => {
+  const update = () => {
     change();
     flush();
+  };
+  // The morphing frame keeps its colour while the layouts inside it swap.
+  document.documentElement.style.setProperty('--pv-canvas', getComputedStyle(frame).backgroundColor);
+  let vt: VT;
+  try {
+    vt = doc.startViewTransition(type ? { update, types: [type] } : update);
+  } catch {
+    vt = doc.startViewTransition(update); // browsers without transition types
+  }
+  // The change runs asynchronously inside the transition, so history and persistence wait for it.
+  const done = (vt.updateCallbackDone ?? vt.finished).catch(() => {});
+  const p: Promise<void> = done.then(() => {
+    if (pendingUpdate === p) pendingUpdate = null;
   });
+  pendingUpdate = p;
+}
+let pendingUpdate: Promise<void> | null = null;
+/** Runs fn once any animated state change in flight has been applied. */
+function afterUpdate(fn: () => void) {
+  if (pendingUpdate) void pendingUpdate.then(fn);
+  else fn();
 }
 
 /* ============================================================== history */
@@ -171,6 +191,7 @@ let undoStack: string[] = [];
 let at = -1;
 let persistTimer = 0;
 function commit() {
+  if (pendingUpdate) return afterUpdate(commit);
   const json = JSON.stringify(state.skin);
   if (undoStack[at] === json) return;
   undoStack = undoStack.slice(0, at + 1);
@@ -201,6 +222,7 @@ function shareUrl() {
   return `${location.href.split('#')[0]}#skin=${b64.enc(JSON.stringify(state.skin))}`;
 }
 function persist() {
+  if (pendingUpdate) return afterUpdate(persist);
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(state.skin));
   } catch {
@@ -734,7 +756,7 @@ function buildMaterials() {
     });
     commit();
   });
-  onSync(() => ((reset as HTMLElement & { disabled: boolean }).disabled = r().id === 'base' || !roleSpec(r())));
+  onSync(() => (reset.disabled = r().id === 'base' || !roleSpec(r())));
 
   return [
     h('h2', { class: 'panel-title', text: 'Materials' }),
@@ -990,7 +1012,7 @@ function buildStage() {
   for (const a of frame.querySelectorAll('tr-nav-item')) a.addEventListener('click', (e) => e.preventDefault());
 
   const device = $('#device') as HTMLElement & { value: string };
-  device.addEventListener('change', () => (frame.dataset.device = device.value));
+  device.addEventListener('change', () => animated(() => (frame.dataset.device = device.value), 'device'));
   const backdrop = $('#backdrop') as HTMLElement & { pressed: boolean };
   backdrop.addEventListener('change', () => (canvas.dataset.backdrop = backdrop.pressed ? 'mesh' : 'plain'));
   setupInspector();
@@ -1078,7 +1100,7 @@ function setupInspector() {
 
 /* ============================================================== top bar */
 
-let nameInput: HTMLInputElement;
+let nameInput!: HTMLInputElement;
 function buildTop() {
   const start = $('#start-from') as HTMLElement & { value: string };
   const opts: [string, string, Skin][] = [...builtIns.map((s) => [`skin:${s.name}`, `${s.name[0]!.toUpperCase()}${s.name.slice(1)} (built-in)`, s] as [string, string, Skin]), ...EXAMPLES.map((e, i) => [`ex:${e.id}`, e.label, examples[i]!] as [string, string, Skin])];

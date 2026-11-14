@@ -808,9 +808,8 @@ details.more > .group {
   font-family: var(--tr-font-family);
   container: pv / inline-size;
   box-shadow: 0 0 0 1px oklch(100% 0 0 / 0.07), 0 30px 80px -20px oklch(0% 0 0 / 0.7), 0 10px 30px -10px oklch(0% 0 0 / 0.5);
-  transition:
-    width var(--t-slow) var(--ease-io),
-    border-radius var(--t-slow) var(--ease-io);
+  /* Device width changes morph through a view transition (see below), so the preview never
+     reflows mid-animation or snaps between its container-query layouts. */
   view-transition-name: pv-frame;
   overflow: clip;
 }
@@ -1061,6 +1060,14 @@ details.more > .group {
 ::view-transition-group(root) {
   animation-duration: 0s;
 }
+::view-transition-group(pv-frame) {
+  animation-duration: var(--t-slow);
+  animation-timing-function: var(--ease-io);
+  overflow: clip;
+  border-radius: 1.1rem;
+  background: var(--pv-canvas, transparent);
+  box-shadow: 0 0 0 1px oklch(100% 0 0 / 0.07), 0 30px 80px -20px oklch(0% 0 0 / 0.7);
+}
 ::view-transition-old(pv-frame),
 ::view-transition-new(pv-frame) {
   animation-duration: var(--t-slow);
@@ -1068,7 +1075,27 @@ details.more > .group {
   /* keep the frame's own size while cross-fading */
   height: 100%;
   object-fit: none;
-  object-position: top;
+  object-position: top center;
+}
+/* Device change: the frame morphs while the old layout dissolves and the new one settles in,
+   so two layouts are never seen on top of each other. */
+:active-view-transition-type(device)::view-transition-old(pv-frame) {
+  animation: pv-out calc(var(--t-slow) * 0.4) var(--ease-out) both;
+}
+:active-view-transition-type(device)::view-transition-new(pv-frame) {
+  animation: pv-in calc(var(--t-slow) * 0.6) var(--ease-out) calc(var(--t-slow) * 0.4) both;
+}
+@keyframes pv-out {
+  to {
+    opacity: 0;
+    scale: 0.985;
+  }
+}
+@keyframes pv-in {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
 }
 
 /* ---------------- preview screens (inside the draft skin) ---------------- */

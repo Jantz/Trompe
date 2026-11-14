@@ -43,6 +43,10 @@
       "types": "./dist/components/*/*.d.ts",
       "default": "./dist/components/*/*.js"
     },
+    "./skin": {
+      "types": "./dist/skin/index.d.ts",
+      "default": "./dist/skin/index.js"
+    },
     "./bundle": "./dist/trompe.bundle.js",
     "./tokens.css": "./dist/tokens.css",
     "./tokens.json": "./dist/tokens.json",
@@ -77,7 +81,8 @@
     "llms-full.txt",
     "README.md",
     "bin",
-    "cli/check"
+    "cli/check",
+    "cli/skin"
   ],
   "sideEffects": [
     "./dist/index.js",
@@ -107,7 +112,7 @@
   "scripts": {
     "tokens": "node scripts/build-tokens.mjs",
     "dev": "npm run tokens && vite --open /showcase/",
-    "typecheck": "npm run tokens && tsc --noEmit -p .",
+    "typecheck": "npm run tokens && tsc --noEmit -p . && tsc -p studio",
     "test": "npm run tokens && playwright test",
     "test:update": "npm run tokens && playwright test --update-snapshots",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
@@ -123,8 +128,11 @@
     "test:all": "npm test && npm run test:frameworks",
     "prepack": "npm run build",
     "build:showcase": "npm run tokens && node scripts/build-showcase.mjs",
-    "test:check": "node --test cli/test/check.test.mjs",
-    "check": "node bin/trompe.mjs check"
+    "test:check": "node --test cli/test/check.test.mjs cli/test/skin.test.mjs",
+    "check": "node bin/trompe.mjs check",
+    "dev:studio": "npm run tokens && vite --open /studio/",
+    "build:studio": "npm run tokens && node scripts/build-studio.mjs",
+    "test:unit": "vitest run tests/unit"
   },
   "engines": {
     "node": ">=20"

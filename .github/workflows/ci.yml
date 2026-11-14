@@ -35,14 +35,20 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Unit tests (physics, skin engine)
+        run: npm run test:unit
+
       - name: Build (tokens, dist, bundle, manifest, llms.txt, framework types)
         run: npm run build
 
       - name: Component tests
         run: npx playwright test
 
-      - name: trompe check tests
+      - name: trompe check and trompe skin tests
         run: npm run test:check
+
+      - name: Studio build
+        run: node scripts/build-studio.mjs
 
       - name: trompe check on the plain HTML example
         run: node bin/trompe.mjs check examples/html

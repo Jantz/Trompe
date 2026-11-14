@@ -62,6 +62,8 @@ export function loadData(opts = {}) {
   for (const [group, prefix] of Object.entries(prefixes)) {
     for (const p of Object.keys(tokens[group]?.parameters ?? {})) bundleVars.add(prefix + p);
   }
+  // Surface textures are material parameters set by skins ("texture": "wood") or by hand.
+  for (const v of ['--tr-m-texture', '--tr-m-texture-size', '--tr-m-texture-blend']) bundleVars.add(v);
   for (const lvl of tokens.depthLevels ?? []) tokenVars.add(lvl.cssVariable);
   const componentVars = new Set();
   for (const el of elements.values()) for (const p of el.cssProperties) componentVars.add(p);
