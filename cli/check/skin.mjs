@@ -4,7 +4,9 @@ import { finding } from './rules.mjs';
 import { suggest } from './data.mjs';
 import { parseColor, themed, contrast } from './color.mjs';
 
-const ELEMENT_KEYS = new Set(['material', 'finish', 'profile', 'vars', 'style']);
+const ELEMENT_KEYS = new Set(['material', 'finish', 'profile', 'texture', 'vars', 'style']);
+/** Procedural textures the skin compiler knows (src/skin/textures.ts). */
+const TEXTURES = ['none', 'wood', 'leather', 'linen', 'felt', 'stone', 'marble', 'paper', 'terrazzo', 'carbon', 'knurl'];
 
 /** Colour pairs a skin must keep readable: [foreground token, background token, minimum, why]. */
 const PAIRS = [ // [fg, bg, min, why, severity]
@@ -63,7 +65,13 @@ export function checkSkin(file, src, data) {
       continue;
     }
     for (const [k, v] of Object.entries(conf ?? {})) {
-      if (!ELEMENT_KEYS.has(k)) { push('TR201', { line: lineOf(`"${k}"`), message: `"${tag}.${k}" is not a skin element key. Use material, finish, profile, vars or style.` }); continue; }
+      if (!ELEMENT_KEYS.has(k)) { push('TR201', { line: lineOf(`"${k}"`), message: `"${tag}.${k}" is not a skin element key. Use material, finish, profile, texture, vars or style.` }); continue; }
+      if (k === 'texture') {
+        const name = typeof v === 'string' ? v : v?.name;
+        if (!TEXTURES.includes(name)) push('TR202', { line: lineOf(`"${name}"`), message: `"${tag}.texture": "${name}" is not a texture.`, expected: TEXTURES });
+        else if (typeof v === 'object' && Object.keys(v).some((x) => !['name', 'scale', 'strength', 'seed'].includes(x))) push('TR201', { line: lineOf('"texture"'), message: `"${tag}.texture" takes name, scale, strength and seed.` });
+        continue;
+      }
       if (enums[k] && !enums[k].includes(v)) {
         push('TR202', { line: lineOf(`"${v}"`), message: `"${tag}.${k}": "${v}" is not a ${k}.`, expected: enums[k] });
       }

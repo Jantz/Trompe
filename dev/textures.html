@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" data-tr-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <title>Material library</title>
+    <style>
+      body { margin: 0; padding: 24px; background: oklch(80% 0.01 260); font-family: system-ui, sans-serif; --tr-realism: 1; }
+      #g { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+      tr-panel { --tr-panel-padding: 14px; }
+      tr-panel b { display: block; margin-bottom: 10px; }
+    </style>
+  </head>
+  <body>
+    <div id="g"></div>
+    <script type="module">
+      import '../src/index.ts';
+      import { materialPresets, textureDeclarations } from '../src/skin/index.ts';
+      const grid = document.getElementById('g');
+      for (const p of materialPresets) {
+        const style = [...Object.entries(p.spec.vars ?? {}).map(([k, v]) => `${k}:${v}`), ...(p.spec.texture ? textureDeclarations(p.spec.texture).map((d) => d.replace(/;$/, '')) : [])].join(';');
+        const el = document.createElement('tr-panel');
+        el.setAttribute('depth', '2');
+        el.setAttribute('material', p.spec.material);
+        el.setAttribute('finish', p.spec.finish);
+        el.setAttribute('style', style);
+        el.innerHTML = `<b>${p.label}</b><tr-button material="${p.spec.material}" finish="${p.spec.finish}" style="${style.replace(/"/g, '&quot;')}">Button</tr-button> <tr-switch checked material="${p.spec.material}" finish="${p.spec.finish}" style="${style.replace(/"/g, '&quot;')}"></tr-switch>`;
+        grid.append(el);
+      }
+    </script>
+  </body>
+</html>

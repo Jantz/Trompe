@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-// trompe CLI. Today: `trompe check`. Run `trompe check --help` for options.
+// trompe CLI: `trompe check` (lint markup, CSS and skins) and `trompe skin` (make, build and
+// check skins). Run `trompe check --help` or `trompe skin --help` for options.
 import { run, formatText } from '../cli/check/index.mjs';
 import { RULES } from '../cli/check/rules.mjs';
 
 const HELP = `Usage: trompe check [files, dirs or globs...] [options]
+       trompe skin --help   (make skins from plain language, build and check them)
 
 Checks Trompe markup (.html, .vue, .svelte, Lit html\`\` in .js/.ts), CSS and skin files
 (*.skin.json) against the installed Trompe components, tokens and skins.
@@ -24,6 +26,16 @@ Options:
 Exit code: 0 no errors, 1 errors found, 2 the checker itself failed.`;
 
 const argv = process.argv.slice(2);
+if (argv[0] === 'skin') {
+  argv.shift();
+  try {
+    const { runSkin } = await import('../cli/skin/index.mjs');
+    process.exit(await runSkin(argv));
+  } catch (e) {
+    console.error(`trompe skin failed: ${e.message ?? e}`);
+    process.exit(2);
+  }
+}
 const cmd = argv[0] && !argv[0].startsWith('-') ? argv.shift() : 'check';
 if (cmd !== 'check' || argv.includes('-h') || argv.includes('--help')) {
   console.log(HELP);

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" data-tr-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trompe Studio</title>
+    <meta name="description" content="Trompe Studio: compose a custom material skin for Trompe and preview it live on real app screens." />
+    <link rel="stylesheet" href="./studio.css" />
+    <script type="module" src="./studio.ts"></script>
+  </head>
+  <body>
+    <div id="sprite"></div>
+    <div class="studio" id="studio">
+      <header class="top" data-tr-skin="studio-ui">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">Trompe <b>Studio</b></span>
+        </div>
+        <div class="top-skin">
+          <tr-select id="start-from" size="sm" aria-label="Start from a skin" placeholder="Start from…"></tr-select>
+          <label class="name-field">
+            <span class="sr-only">Skin name</span>
+            <span class="name-prefix" aria-hidden="true">data-tr-skin=</span>
+            <input id="skin-name" spellcheck="false" autocomplete="off" />
+          </label>
+        </div>
+        <div class="top-actions">
+          <tr-button id="undo" size="sm" aria-label="Undo" title="Undo (Ctrl+Z)"><svg width="16" height="16" aria-hidden="true"><use href="#i-undo" /></svg></tr-button>
+          <tr-button id="redo" size="sm" aria-label="Redo" title="Redo (Ctrl+Shift+Z)"><svg width="16" height="16" aria-hidden="true"><use href="#i-redo" /></svg></tr-button>
+          <button class="check-pill" id="check-pill" type="button" data-state="ok">
+            <span class="check-dot" aria-hidden="true"></span><span class="check-text" id="check-text">Checks pass</span>
+          </button>
+          <tr-button id="share" size="sm" aria-label="Share"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-share" /></svg><span class="btn-label">Share</span></tr-button>
+          <tr-button id="export" size="sm" tone="accent" aria-label="Export"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-download" /></svg><span class="btn-label">Export</span></tr-button>
+        </div>
+      </header>
+
+      <aside class="rail" data-tr-skin="studio-ui" aria-label="Skin editor">
+        <button class="sheet-handle" id="sheet-handle" type="button" aria-expanded="false" aria-controls="rail-panels"><span class="sr-only">Expand the editor</span></button>
+        <div class="rail-tabs" role="tablist" aria-label="Editor sections" aria-orientation="vertical" id="rail-tabs"></div>
+        <div class="rail-panels" id="rail-panels"></div>
+      </aside>
+
+      <main class="stage" aria-label="Preview">
+        <div class="stage-bar" data-tr-skin="studio-ui">
+          <tr-segmented id="screen-picker" size="sm" label="Screen" class="screen-picker"></tr-segmented>
+          <tr-select id="screen-select" size="sm" aria-label="Screen" class="screen-select"></tr-select>
+          <div class="stage-tools">
+            <tr-segmented id="device" size="sm" label="Device width" value="desktop">
+              <tr-option value="desktop" aria-label="Desktop"><svg width="16" height="16" aria-hidden="true"><use href="#i-desktop" /></svg></tr-option>
+              <tr-option value="tablet" aria-label="Tablet"><svg width="16" height="16" aria-hidden="true"><use href="#i-tablet" /></svg></tr-option>
+              <tr-option value="phone" aria-label="Phone"><svg width="16" height="16" aria-hidden="true"><use href="#i-phone" /></svg></tr-option>
+            </tr-segmented>
+            <tr-button id="backdrop" size="sm" toggle aria-label="Vivid backdrop" title="Vivid backdrop, for glass and translucent materials"><svg width="16" height="16" aria-hidden="true"><use href="#i-image" /></svg></tr-button>
+            <tr-button id="inspect" size="sm" toggle aria-label="Inspect" title="Click any control in the preview to edit its material (I)"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-target" /></svg><span class="btn-label">Inspect</span></tr-button>
+          </div>
+        </div>
+        <div class="stage-canvas" id="canvas" data-backdrop="plain">
+          <div class="frame" id="frame" data-tr-skin="draft" data-device="desktop"></div>
+          <div class="inspect-box" id="inspect-box" aria-hidden="true"><span class="inspect-tag" id="inspect-tag"></span></div>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="sheet" id="export-sheet" data-tr-skin="studio-ui" aria-labelledby="export-title">
+      <div class="sheet-inner">
+        <header class="sheet-head">
+          <h2 id="export-title">Export skin</h2>
+          <tr-button id="export-close" size="sm" shape="circle" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#i-close" /></svg></tr-button>
+        </header>
+        <tr-segmented id="export-format" size="sm" label="Format" value="json" full-width>
+          <tr-option value="json">Skin JSON</tr-option>
+          <tr-option value="css">CSS</tr-option>
+          <tr-option value="usage">Use it</tr-option>
+          <tr-option value="agent">For agents</tr-option>
+        </tr-segmented>
+        <p class="sheet-note" id="export-note"></p>
+        <pre class="code" id="export-code" tabindex="0"></pre>
+        <div class="sheet-actions">
+          <tr-button id="export-copy"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-copy" /></svg>Copy</tr-button>
+          <tr-button id="export-download" tone="accent"><svg slot="start" width="16" height="16" aria-hidden="true"><use href="#i-download" /></svg>Download</tr-button>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toasts" id="toasts" role="status" aria-live="polite" data-tr-skin="studio-ui"></div>
+  </body>
+</html>
