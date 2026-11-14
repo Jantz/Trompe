@@ -173,3 +173,17 @@ test('tr-number-field: focus() and a click on the frame land on the number, not 
   await page.keyboard.press('ArrowUp');
   expect(await page.locator('#n').evaluate((el: any) => el.value)).toBe(62.5);
 });
+
+test('tr-select: hint and error show under the field, are read out and set validity', async ({ page }) => {
+  await mount(page, `<form id="f"><tr-select id="s" name="payee" label="Payee" hint="Saved payees only."><tr-option value="a">Ada</tr-option></tr-select></form>`);
+  const sel = page.locator('#s');
+  await expect(sel.locator('[part=hint]')).toHaveText('Saved payees only.');
+  await expect(sel).toHaveAttribute('aria-description', 'Saved payees only.');
+  await sel.evaluate((el) => el.setAttribute('error', 'Choose who to pay.'));
+  await expect(sel.locator('[part=error]')).toBeVisible();
+  await expect(sel).toHaveAttribute('aria-invalid', 'true');
+  expect(await page.locator('#f').evaluate((f: HTMLFormElement) => f.checkValidity())).toBe(false);
+  await sel.evaluate((el) => el.removeAttribute('error'));
+  await expect(sel).not.toHaveAttribute('aria-invalid', 'true');
+  expect(await page.locator('#f').evaluate((f: HTMLFormElement) => f.checkValidity())).toBe(true);
+});

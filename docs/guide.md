@@ -127,7 +127,7 @@ import 'trompe/skins.css';
 | Status, count, tag | `tr-badge` (`tone`, `variant="enamel|plate|well"`) |
 | Progress, goal, timer ring | `tr-progress` (`variant="ring"`, `show-value`, `value-text="1:30"` for the cap) |
 | One of a few options | `tr-segmented` (short labels) or `tr-radio-group` (longer labels) |
-| One of many options | `tr-select` + `tr-option` |
+| One of many options | `tr-select` + `tr-option` (`hint`, `error` as on `tr-input`) |
 | On / off setting | `tr-switch`; a list of options: `tr-checkbox` |
 | Amount on a scale | `tr-slider` |
 | Text | `tr-input` (`type="search"` + `clearable` for search), `tr-textarea` |
