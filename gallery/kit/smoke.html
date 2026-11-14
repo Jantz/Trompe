@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="objects.css">
+<style>body{background:#333;color:#eee;font:14px system-ui} .k{width:120px;height:120px;border-radius:50%;background:#888;margin:40px;position:relative}
+.k::after{content:"";position:absolute;left:50%;top:6px;width:4px;height:30px;background:#000;transform-origin:50% 54px;transform:rotate(var(--tr-angle))}
+.s{width:300px;height:30px;background:#555;margin:20px} .b{width:80px;height:40px;transform:translateY(calc(var(--tr-press)*4px))} .t{width:40px;height:80px;background:#666}</style></head>
+<body><div class="k" id="k" aria-label="Knob"></div><div class="s" id="s" aria-label="Slider"></div><div class="b" id="b">btn</div><div class="t" id="t" aria-label="Toggle"></div>
+<script type="module">
+import { RotaryController, LinearController, PressController, ToggleController, mountBar } from "./objects.js";
+mountBar({title:"Smoke"});
+window.k = new RotaryController(document.getElementById("k"), {min:0,max:10,step:1,value:5});
+window.s = new LinearController(document.getElementById("s"), {min:0,max:100});
+window.b = new PressController(document.getElementById("b"), {mode:"latching"});
+window.t = new ToggleController(document.getElementById("t"));
+</script></body></html>
