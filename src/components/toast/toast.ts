@@ -295,6 +295,13 @@ export class TrToaster extends TrompeElement {
         bottom: max(var(--tr-toaster-inset, 1em), env(safe-area-inset-bottom));
         left: 50%;
         translate: -50% 0;
+        /* the stack itself fades in with its first toast (the toast slides inside it) */
+        transition: opacity var(--tr-motion-duration-release, 160ms) ease-out;
+      }
+      @starting-style {
+        :host {
+          opacity: 0;
+        }
       }
       :host([placement='bottom-end']) {
         left: auto;

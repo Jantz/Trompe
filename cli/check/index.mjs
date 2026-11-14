@@ -79,7 +79,7 @@ export function projectContext(cwd, files) {
 }
 
 /**
- * Runs the checker. Options: { inputs, cwd, manifest, tokens, skins, fix, render, shots }.
+ * Runs the checker. Options: { inputs, cwd, manifest, tokens, skins, fix, render, motion, shots }.
  * Returns { tool, version, summary, findings }.
  */
 export async function run(opts = {}) {
@@ -127,7 +127,7 @@ export async function run(opts = {}) {
   if (opts.render) {
     const { renderChecks } = await import('./render.mjs');
     const pages = files.filter((f) => /\.html?$/.test(f));
-    findings.push(...(await renderChecks(pages, data, { cwd, shots: opts.shots, chromium: opts.chromium })));
+    findings.push(...(await renderChecks(pages, data, { cwd, shots: opts.shots, chromium: opts.chromium, motion: opts.motion !== false })));
     rendered = pages.length;
   }
 

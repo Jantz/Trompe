@@ -106,7 +106,9 @@ import 'trompe/skins.css';
   header and footer stay put and the body scrolls.
 - **Fields have an intrinsic width** (input 16em, select 14em, number field 9em) and never grow past
   their container. In forms, make them fill the column: `form :is(tr-input, tr-select, tr-textarea, tr-number-field) { width: 100%; }`.
-- **No layout shifts.** Toasts float over the page (`toast()`); dialogs, menus and tooltips live in
+- **No layout shifts.** A page whose `<html>` or `<body>` carries a skin stays transparent until
+  Trompe's elements are defined (at most 1.2s), then fades in, so nothing jumps while they render.
+  Toasts float over the page (`toast()`); dialogs, menus and tooltips live in
   the top layer. For text that appears in the flow (a status line, a field's `error` message under
   its field), reserve the room (`min-height`) when nothing around it should move.
 - **`hidden` works** on every tr-* element. Fonts: Trompe uses the system font stack
@@ -123,7 +125,7 @@ import 'trompe/skins.css';
 | Quantity, sets, guests | `tr-number-field` (− / + keys, min, max, step, unit) |
 | Submit in progress | `tr-button loading` (keeps its size, ignores clicks) |
 | Status, count, tag | `tr-badge` (`tone`, `variant="enamel|plate|well"`) |
-| Progress, goal, timer ring | `tr-progress` (`variant="ring"`, `show-value`) |
+| Progress, goal, timer ring | `tr-progress` (`variant="ring"`, `show-value`, `value-text="1:30"` for the cap) |
 | One of a few options | `tr-segmented` (short labels) or `tr-radio-group` (longer labels) |
 | One of many options | `tr-select` + `tr-option` |
 | On / off setting | `tr-switch`; a list of options: `tr-checkbox` |

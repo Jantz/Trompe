@@ -32,6 +32,14 @@
 })();
 </script>
 <style>
+/* Registered so state changes interpolate: --c is the dial's activity colour, --sel a key's
+   latched depth, --lit an LED, --amp the fan's sway. */
+@property --c { syntax: "<color>"; inherits: true; initial-value: oklch(0.96 0.012 88); }
+@property --sel { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --lit { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hl { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --amp { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --ph { syntax: "<number>"; inherits: false; initial-value: 0; }
 :root {
   --plaster: oklch(0.87 0.018 78);
   --cer-hi: oklch(0.985 0.005 85); --cer: oklch(0.94 0.009 82); --cer-lo: oklch(0.86 0.013 76);
@@ -58,11 +66,15 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 .tex.sunwrap { inset: -18% -12%; transform: translate(calc(var(--sx) * 7%), calc(var(--sy) * 6%)) skewX(calc(var(--sx) * -9deg)); }
 .sun, .leaves { position: absolute; inset: 0; background-repeat: no-repeat; }
 .sun { background-image: var(--sun); background-size: 100% 100%; opacity: .42; transition: opacity 1.4s var(--tr-ease-out); }
-.leaves { background-image: var(--leaves); background-size: 46% auto; background-position: 4% 6%; opacity: .11; transform-origin: 6% 90%; transition: opacity 1.4s; }
+.leaves { background-image: var(--leaves); background-size: 46% auto; background-position: 4% 6%; opacity: .11; transform-origin: 6% 90%; transition: opacity 1.4s, --amp 1.2s ease-in-out;
+  /* The fan eases the sway's amplitude in and out, so the branch never jumps; the phase keeps
+     running until the amplitude is back to zero (data-swaying), then stops. */
+  transform: rotate(calc(var(--amp) * (.1deg + var(--ph) * .7deg))) translateY(calc(var(--amp) * (.5px + var(--ph) * 2.5px))); }
+.wall[data-swaying] .leaves { animation: sway 3.2s ease-in-out infinite alternate; }
 .wall[data-shades="1"] .sun { opacity: .07; }
 .wall[data-shades="1"] .leaves { opacity: .02; }
-.wall[data-fan="1"] .leaves { animation: sway 3.2s ease-in-out infinite alternate; }
-@keyframes sway { from { transform: rotate(-.6deg) translateY(-2px); } to { transform: rotate(.8deg) translateY(3px); } }
+.wall[data-fan="1"] .leaves { --amp: 1; }
+@keyframes sway { from { --ph: -1; } to { --ph: 1; } }
 .tex.warm { background: radial-gradient(ellipse 60% 70% at 42% 55%, oklch(0.9 0.09 70 / .55), oklch(0.88 0.07 68 / .2) 55%, transparent 80%); opacity: 0; mix-blend-mode: multiply; }
 .tex.warm2 { background: radial-gradient(ellipse 50% 60% at 40% 52%, oklch(1 0.05 85 / .5), transparent 70%); opacity: 0; }
 
@@ -111,22 +123,37 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 .key:is(:active, [data-down])::before { opacity: .45; }
 .key svg { width: 1.15em; height: 1.15em; flex: none; }
 .trough .key::before { box-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 1px oklch(0.3 0.03 60 / .3), calc(var(--sx) * .15em) calc(var(--sy) * .2em) .4em oklch(0.3 0.03 60 / .18); }
-.tab { flex: 1 1 0; min-width: 0; padding: 0 .9em; flex-direction: column; gap: .45em; }
+.tab { flex: 1 1 0; min-width: 0; padding: 0 .9em; flex-direction: column; gap: .45em; transition: --sel .2s var(--tr-ease-out), --lit .2s var(--tr-ease-out), color .2s var(--tr-ease-out); }
+/* Up and selected caps share one gradient and shadow list, mixed by --sel, so selection fades. */
+.tab::after {
+  background: var(--tr-tex-noise) 0 0 / 160px, linear-gradient(calc(var(--tr-light-angle) + 180deg), color-mix(in oklch, var(--cer-hi), var(--cer) calc(var(--sel) * 100%)), color-mix(in oklch, var(--cer), oklch(0.9 0.011 80) calc(var(--sel) * 100%)) calc(48% + var(--sel) * 7%), color-mix(in oklch, var(--cer-lo), oklch(0.84 0.014 76) calc(var(--sel) * 100%)));
+  box-shadow: inset calc(var(--sx) * 1.2px) calc(var(--sy) * 1.2px) 0 oklch(1 0 0 / calc(.9 * (1 - var(--sel)))), inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0.55 0.02 70 / calc(.35 * (1 - var(--sel)))),
+    inset calc(var(--sx) * .12em) calc(var(--sy) * .12em) .3em oklch(0.35 0.03 60 / calc(.25 * var(--sel))), 0 0 0 .5px oklch(0.5 0.02 70 / .3); }
 .tab i, .menu li::before { /* a dark glass LED lens pressed into the ceramic, with a lit chamfer */
   width: .44em; height: .44em; border-radius: 50%; flex: none;
-  background: radial-gradient(circle at calc(50% - var(--sx) * 25%) calc(50% - var(--sy) * 25%), oklch(0.64 0.012 72), oklch(0.44 0.012 64) 72%);
-  box-shadow: inset calc(var(--sx) * .04em) calc(var(--sy) * .05em) .06em oklch(0.1 0.02 60 / .8), 0 0 0 .07em oklch(0.74 0.014 74), calc(var(--sx) * .07em) calc(var(--sy) * .07em) 0 .07em oklch(1 0 0 / .85); }
-.tab[aria-selected="true"] { color: oklch(0.3 0.02 60); }
-.tab[aria-selected="true"]::after { transform: translate(calc(var(--sx) * .6px), calc(var(--sy) * .6px)) scale(.985); background: var(--tr-tex-noise) 0 0 / 160px, linear-gradient(calc(var(--tr-light-angle) + 180deg), var(--cer), oklch(0.9 0.011 80) 55%, oklch(0.84 0.014 76)); background-blend-mode: soft-light, normal; box-shadow: inset calc(var(--sx) * .12em) calc(var(--sy) * .12em) .3em oklch(0.35 0.03 60 / .25), 0 0 0 .5px oklch(0.5 0.02 70 / .3); }
+  /* Dark lens and lit LED as one gradient and shadow list mixed by --lit (inherited from the tab / option), so it fades. */
+  --on: calc(var(--lit) * 100%);
+  background: radial-gradient(circle at calc(50% - var(--sx) * 25% * (1 - var(--lit))) calc(50% - var(--sy) * 25% * (1 - var(--lit))),
+    color-mix(in oklab, oklch(0.64 0.012 72), oklch(0.99 0.04 90) var(--on)),
+    color-mix(in oklab, color-mix(in oklab, oklch(0.64 0.012 72), oklch(0.44 0.012 64) 25%), oklch(0.99 0.04 90) var(--on)) 18%,
+    color-mix(in oklab, color-mix(in oklab, oklch(0.64 0.012 72), oklch(0.44 0.012 64) 76.4%), oklch(0.86 0.15 68) var(--on)) 55%,
+    color-mix(in oklab, oklch(0.44 0.012 64), color-mix(in oklab, oklch(0.86 0.15 68), oklch(0.74 0.16 55) 37.8%) var(--on)) 72%,
+    color-mix(in oklab, oklch(0.44 0.012 64), oklch(0.74 0.16 55) var(--on)));
+  box-shadow: inset calc(var(--sx) * .04em) calc(var(--sy) * .05em) .06em oklch(0.1 0.02 60 / calc(.8 * (1 - var(--lit)))),
+    0 0 0 .07em color-mix(in oklch, oklch(0.74 0.014 74), oklch(0.8 0.08 70) var(--on)),
+    calc(var(--sx) * .07em * (1 - var(--lit))) calc(var(--sy) * .07em * (1 - var(--lit))) calc(var(--lit) * .3em) calc(.07em - var(--lit) * .01em) color-mix(in oklch, oklch(1 0 0 / .85), oklch(0.82 0.16 62 / .85) var(--on)),
+    0 0 .9em .1em oklch(0.85 0.15 65 / calc(var(--lit) * .45)); }
+.menu li { transition: --lit .2s var(--tr-ease-out), --hl .12s var(--tr-ease-out); }
+.tab[aria-selected="true"] { color: oklch(0.3 0.02 60); --sel: 1; --lit: 1; }
+.tab[aria-selected="true"]::after { transform: translate(calc(var(--sx) * .6px), calc(var(--sy) * .6px)) scale(.985); }
 .tab[aria-selected="true"]::before { opacity: 0; }
-.tab[aria-selected="true"] i, .menu li[aria-selected="true"]::before {
-  background: radial-gradient(circle, oklch(0.99 0.04 90) 0 18%, oklch(0.86 0.15 68) 55%, oklch(0.74 0.16 55));
-  box-shadow: 0 0 0 .07em oklch(0.8 0.08 70), 0 0 .3em .06em oklch(0.82 0.16 62 / .85), 0 0 .9em .1em oklch(0.85 0.15 65 / .45); }
+.menu li[aria-selected="true"] { --lit: 1; }
 .rooms { width: 25em; }
 
 /* ---------------- Scene listbox ---------------- */
 .scene { position: relative; }
 .scene .key { padding: 0 1em 0 1.15em; gap: .7em; min-width: 11em; justify-content: space-between; }
+.scene .key #sceneVal { display: block; }
 .scene .key small { display: block; font-size: .78em; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: .3em; font-weight: 600; }
 .scene .key span { text-align: left; line-height: 1.1; }
 .chev { transition: transform .2s var(--tr-ease-out); }
@@ -136,14 +163,17 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
   background: radial-gradient(120% 90% at calc(50% - var(--sx) * 40%) calc(50% - var(--sy) * 60%), oklch(0.995 0.004 85), oklch(0.955 0.008 82) 60%, oklch(0.92 0.011 78));
   box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff, inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 oklch(0.6 0.02 70 / .4), 0 0 0 .5px oklch(0.45 0.02 70 / .3),
     calc(var(--sx) * .2em) calc(var(--sy) * .3em) .5em oklch(0.3 0.03 60 / .22), calc(var(--sx) * 1.6em * var(--sl)) calc(var(--sy) * 2em * var(--sl)) 3.2em oklch(0.3 0.03 60 / .3);
-  transform-origin: 85% 0; animation: pop .18s var(--tr-ease-out);
+  transform-origin: 85% 0;
+  /* Opens with @starting-style, closes by fading while display stays on for the transition. */
+  transition: opacity .16s var(--tr-ease-out), transform .18s var(--tr-ease-out), display .18s allow-discrete;
 }
-.menu[hidden] { display: none; }
-@keyframes pop { from { opacity: 0; transform: translateY(-.4em) scale(.97); } }
+@starting-style { .menu:not([hidden]) { opacity: 0; transform: translateY(-.4em) scale(.97); } }
+.menu[hidden] { display: none; opacity: 0; transform: translateY(-.3em) scale(.98); }
 .menu li { display: flex; align-items: center; gap: .8em; min-height: 2.75em; padding: 0 .9em; border-radius: .75em; font: 500 .9em/1.2 "Inter", sans-serif; color: var(--ink); cursor: pointer; }
 .menu li small { margin-left: auto; color: var(--ink-soft); font-size: .82em; font-weight: 400; }
 .menu li::before { content: ""; }
-.menu li:is(.active, :hover) { background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.89 0.012 78), oklch(0.93 0.009 80)); box-shadow: inset calc(var(--sx) * .1em) calc(var(--sy) * .1em) .25em oklch(0.35 0.03 60 / .2); }
+.menu li { background: linear-gradient(calc(var(--tr-light-angle) + 180deg), oklch(0.89 0.012 78 / var(--hl)), oklch(0.93 0.009 80 / var(--hl))); box-shadow: inset calc(var(--sx) * .1em) calc(var(--sy) * .1em) .25em oklch(0.35 0.03 60 / calc(var(--hl) * .2)); }
+.menu li:is(.active, :hover) { --hl: 1; }
 .menu:focus-visible { outline: none; }
 .menu:focus-visible li.active { box-shadow: inset 0 0 0 1.5px var(--tr-focus), inset calc(var(--sx) * .1em) calc(var(--sy) * .1em) .25em oklch(0.35 0.03 60 / .2); }
 
@@ -188,14 +218,14 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 .glass .glow { inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 48%, var(--c) 0%, color-mix(in oklch, var(--c) 40%, transparent) 30%, transparent 64%); opacity: 0; transition: opacity .7s var(--tr-ease-out); }
 .glow.g-heat { --c: oklch(0.7 0.15 58 / .5); } .glow.g-cool { --c: oklch(0.68 0.11 235 / .45); } .glow.g-idle { --c: oklch(0.9 0.01 85 / .2); }
 .dial[data-glow="heat"] .g-heat, .dial[data-glow="cool"] .g-cool, .dial[data-glow="idle"] .g-idle { opacity: 1; }
-.dial { --c: var(--idle); }
+.dial { --c: var(--idle); transition: --c .5s var(--tr-ease-out); }
 .dial[data-glow="heat"] { --c: var(--heat); } .dial[data-glow="cool"] { --c: var(--cool); }
 .screen { inset: 0; transition: opacity .5s var(--tr-ease-out); }
 .dial[data-glow="off"] .screen { opacity: .16; }
 .dial[data-glow="off"] .screen .modes { opacity: 3; }
 .ticks { inset: 0; }
 .ticks span { position: absolute; left: 50%; top: 50%; width: .14em; height: .78em; margin: -7.95em 0 0 -.07em; border-radius: .07em; transform-origin: 50% 7.95em; transform: rotate(var(--a));
-  background: oklch(0.55 0.006 70 / .38); }
+  background: oklch(0.55 0.006 70 / .38); box-shadow: 0 0 .25em transparent; transition: background-color .25s var(--tr-ease-out), box-shadow .25s var(--tr-ease-out); }
 .ticks span:nth-child(3n+1) { height: 1em; background: oklch(0.6 0.006 70 / .5); }
 .ticks span.on { background: var(--c); box-shadow: 0 0 .25em color-mix(in oklch, var(--c) 80%, transparent); }
 .marker, .roomdot { inset: 0; pointer-events: none; }
@@ -209,13 +239,14 @@ body { background: var(--plaster); color: var(--ink); font: 400 15px/1.5 "Inter"
 .status { position: absolute; top: 7.5em; left: 0; right: 0; font: 600 .62em/1 "Inter", sans-serif; letter-spacing: .28em; text-transform: uppercase; color: var(--c); opacity: .9; }
 .temp { font: 200 4.7em/1 "Outfit", sans-serif; letter-spacing: -.03em; padding-left: .2em; color: color-mix(in oklch, var(--c) 55%, white); font-variant-numeric: tabular-nums; margin-top: -.02em;
   text-shadow: 0 0 .06em var(--c), 0 0 .3em color-mix(in oklch, var(--c) 55%, transparent); }
+.temp #tempN { display: inline-block; }
 .temp sup { font-size: .34em; vertical-align: 1.3em; margin-left: .04em; font-weight: 300; }
 .room { position: absolute; top: 12.35em; left: 0; right: 0; font: 400 .92em/1 "Inter", sans-serif; color: oklch(0.86 0.006 80 / .78); letter-spacing: .02em; }
 .room b { font-weight: 500; color: oklch(0.95 0.006 85 / .9); }
 .modes { position: absolute; left: 0; right: 0; bottom: 1.05em; display: flex; justify-content: center; gap: 1.05em; }
-.modes svg { width: 1.05em; height: 1.05em; color: oklch(0.75 0.006 75 / .22); }
+.modes svg { width: 1.05em; height: 1.05em; color: oklch(0.75 0.006 75 / .22); filter: drop-shadow(0 0 .2em transparent); transition: color .3s var(--tr-ease-out), filter .3s var(--tr-ease-out); }
 .modes svg.on { color: var(--c); filter: drop-shadow(0 0 .2em var(--c)); }
-.dial[data-glow="off"] .modes svg.on { color: oklch(0.85 0.01 80); filter: none; }
+.dial[data-glow="off"] .modes svg.on { color: oklch(0.85 0.01 80); filter: drop-shadow(0 0 .2em transparent); }
 /* glass optics, all fixed to the light */
 .frost { inset: 0; border-radius: 50%; background: var(--tr-tex-noise) 0 0 / 110px, radial-gradient(circle, oklch(1 0 0 / .03), oklch(1 0 0 / .07)); opacity: .3; mix-blend-mode: screen; }
 .optics { inset: 0; border-radius: 50%; pointer-events: none;
@@ -343,8 +374,12 @@ dialog { border: 0; padding: 2em 2em 1.6em; width: min(26em, calc(100vw - 32px))
   background-blend-mode: soft-light, normal;
   box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff, inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 1px oklch(0.5 0.02 70 / .35), 0 0 0 .5px oklch(0.4 0.02 70 / .3),
     calc(var(--sx) * .3em) calc(var(--sy) * .4em) .7em oklch(0.2 0.03 60 / .25), calc(var(--sx) * 2.4em * var(--sl)) calc(var(--sy) * 3em * var(--sl)) 5em oklch(0.2 0.03 60 / .38); }
-dialog[open] { animation: pop .22s var(--tr-ease-out); }
-dialog::backdrop { background: oklch(0.3 0.02 60 / .28); backdrop-filter: blur(3px) saturate(.9); }
+dialog { transition: opacity .18s var(--tr-ease-out), transform .2s var(--tr-ease-out), overlay .2s allow-discrete, display .2s allow-discrete; }
+@starting-style { dialog[open] { opacity: 0; transform: translateY(-.4em) scale(.97); } }
+dialog:not([open]) { opacity: 0; transform: translateY(-.3em) scale(.98); }
+dialog::backdrop { background: oklch(0.3 0.02 60 / .28); backdrop-filter: blur(3px) saturate(.9); transition: opacity .22s var(--tr-ease-out), overlay .22s allow-discrete, display .22s allow-discrete; }
+@starting-style { dialog[open]::backdrop { opacity: 0; } }
+dialog:not([open])::backdrop { opacity: 0; }
 dialog h2 { margin: 0 0 .5em; font: 300 1.65em/1.15 "Outfit", sans-serif; color: oklch(0.32 0.016 64); }
 dialog h2 .q { margin-left: -.07em; }
 dialog p { margin: 0 0 1.5em; font-size: .92em; line-height: 1.55; color: var(--ink-soft); }
@@ -369,7 +404,7 @@ dialog p { margin: 0 0 1.5em; font-size: .92em; line-height: 1.55; color: var(--
   .ctrls { font-size: 1.24em; gap: 1.6em; }
   .sched { grid-template-columns: 1fr; gap: .9em; }
 }
-@media (prefers-reduced-motion: reduce) { .wall[data-fan="1"] .leaves { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .leaves { animation: none; } }
 @media (forced-colors: active) { .glass, .plate-face, .card, .key { border: 1px solid CanvasText; } }
 
 .tg-caption { padding-top: 40px; color: oklch(0.36 0.015 64); }
@@ -418,7 +453,7 @@ dialog p { margin: 0 0 1.5em; font-size: .92em; line-height: 1.55; color: var(--
             <div class="readout" aria-hidden="true">
               <div class="mark">ember</div>
               <div class="status" id="status">Heating</div>
-              <div class="temp" id="temp">21.5<sup>°</sup></div>
+              <div class="temp" id="temp"><span id="tempN">21.5</span><sup>°</sup></div>
               <div class="room">Room <b id="roomT">20.2°</b></div>
               <div class="modes" id="modes"></div>
             </div>
@@ -488,7 +523,7 @@ dialog p { margin: 0 0 1.5em; font-size: .92em; line-height: 1.55; color: var(--
 </section>
 
 <script type="module">
-import { mountBar, RotaryController, LinearController, PressController, ToggleController, feedback, animate, clamp } from "./kit/objects.js";
+import { mountBar, RotaryController, LinearController, PressController, ToggleController, feedback, animate, clamp, swapText } from "./kit/objects.js";
 mountBar({ title: "Ember Home", subtitle: "Lime plaster, bisque ceramic, bead-blasted aluminium, frosted glass", tone: "light" });
 
 feedback.define("glass", { parts: [{ n: 0.004, f: 4300, q: 1.3, g: 0.38 }, { s: 610, d: 0.018, g: 0.06 }, { n: 0.006, f: 1300, q: 0.8, g: 0.22, at: 0.006 }], vib: 8 });
@@ -497,6 +532,24 @@ feedback.define("rocker", { parts: [{ n: 0.005, f: 3100, q: 1.1, g: 0.36 }, { n:
 feedback.define("ceramic", { parts: [{ n: 0.004, f: 3400, q: 1, g: 0.32 }, { s: 330, d: 0.022, g: 0.08 }, { n: 0.006, f: 1100, q: 0.8, g: 0.22, at: 0.004 }], vib: 7 });
 
 const $ = (s) => document.querySelector(s);
+
+// Text swap that never cuts: the old text fades out first, then kit swapText fades the new text in
+// and eases the box to its new width. (swapText alone replaces the old text at once.)
+const fadeOut = matchMedia("(prefers-reduced-motion: reduce)");
+function swap(el, text) {
+  if (el.dataset.next == null && el.textContent === text) return;
+  if (el.dataset.next === text) return;
+  if (fadeOut.matches || !el.isConnected) { delete el.dataset.next; el.textContent = text; return; }
+  const first = el.dataset.next == null;
+  el.dataset.next = text;
+  if (!first) return; // a fade-out is already running; it will show the latest text
+  const out = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 90, easing: "ease-in", fill: "forwards" });
+  out.finished.then(() => {
+    const t = el.dataset.next; delete el.dataset.next;
+    if (el.textContent === t) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" }); else swapText(el, t);
+    out.cancel();
+  }, () => {});
+}
 const wall = $("#wall"), dial = $("#dial"), glass = $("#glass");
 const AMB = 18.6, MIN = 10, MAX = 30, SWEEP = 270;
 const MODES = ["heat", "cool", "auto", "off"];
@@ -537,18 +590,20 @@ function paint(force) {
   if (!force && shown === lastRoomShown && act === lastActive && dial.dataset.glow === glow) return;
   lastRoomShown = shown; lastActive = act;
   dial.dataset.glow = glow;
-  $("#roomT").textContent = shown.toFixed(1) + "°";
+  swap($("#roomT"), shown.toFixed(1) + "°");
   dial.style.setProperty("--room-angle", angleOf(clamp(R.room, MIN, MAX)) + "deg");
-  $("#status").textContent = glow === "off" ? "Off" : act === "heat" ? "Heating" : act === "cool" ? "Cooling" : Math.abs(R.room - R.set) < 0.15 ? "Holding" : "Idle";
+  swap($("#status"), glow === "off" ? "Off" : act === "heat" ? "Heating" : act === "cool" ? "Cooling" : Math.abs(R.room - R.set) < 0.15 ? "Holding" : "Idle");
   const lo = Math.min(R.room, R.set), hi = Math.max(R.room, R.set);
   ticks.forEach((t, i) => { const v = MIN + (i * (MAX - MIN)) / N; t.classList.toggle("on", !!act && v >= lo - 0.01 && v <= hi + 0.01); });
   for (const s of $("#modes").children) s.classList.toggle("on", s.dataset.m === R.mode);
   const vt = `${R.set.toFixed(1)} degrees, ${$("#status").textContent.toLowerCase()}, room ${shown.toFixed(1)}`;
   ring.setAttribute("aria-valuetext", vt);
 }
-function showSet(v) {
-  const t = $("#temp"); const i = Math.trunc(v), f = Math.round((v - i) * 10);
-  t.innerHTML = `${i}.${f}<sup>°</sup>`;
+// Dragging the ring writes the number directly; a jump (room switch, scene) cross-fades it.
+function showSet(v, fade) {
+  const i = Math.trunc(v), f = Math.round((v - i) * 10), txt = `${i}.${f}`, el = $("#tempN");
+  if (fade) swap(el, txt);
+  else { delete el.dataset.next; el.getAnimations().forEach((a) => a.cancel()); el.textContent = txt; }
 }
 
 /* ---------- simulation: room drifts to the set point, pauses when hidden ---------- */
@@ -607,13 +662,16 @@ const dc = new LinearController(dimmer, {
   min: 0, max: 100, step: 1, value: R.light, orientation: "vertical", bigStep: 10,
   track: () => $("#track"), thumb: () => $("#cap"), sound: "none", slideSound: "slide", grabSound: "tick",
   valueText: (v) => `${Math.round(v)} percent`,
-  onInput: (v) => { if (v % 10 === 0) feedback.play(v === 0 || v === 100 ? "detent" : "tick", { intensity: 0.35 }); R.light = v; setScene("Custom", false); lightWall(v); },
+  onInput: (v) => { if (v % 10 === 0) feedback.play(v === 0 || v === 100 ? "detent" : "tick", { intensity: 0.35 }); R.light = v; setScene("Custom", false); },
 });
+// The warm wash follows the cap as displayed, so it eases along with every glide (room, scene, all off).
+const dimRender = dc.render.bind(dc);
+dc.render = () => { dimRender(); lightWall(dc.disp.x); };
 /* Kit bug workaround: ValueModel.glide() captures its target when it starts, so a value set
    while a glide is still settling (keyboard right after a drag) never displays. Always glide
    to the live value instead. */
 for (const c of [rc, dc]) Object.defineProperty(c, "_target", { get() { return this._value; }, set() {} });
-function lightWall(v) { const k = v / 100; warm.style.opacity = (k * 0.85).toFixed(3); warm2.style.opacity = (k * k * 0.7).toFixed(3); }
+function lightWall(v) { const k = clamp(v, 0, 100) / 100; warm.style.opacity = (k * 0.85).toFixed(3); warm2.style.opacity = (k * k * 0.7).toFixed(3); }
 
 /* ---------- rockers ---------- */
 const mkRocker = (el, key) => new ToggleController(el, {
@@ -621,6 +679,16 @@ const mkRocker = (el, key) => new ToggleController(el, {
   onChange: (v) => { R[key] = v; setScene("Custom", false); wall.dataset[key] = v; },
 });
 const shadesT = mkRocker($("#shades"), "shades"), fanT = mkRocker($("#fan"), "fan");
+// Keep the leaves' sway phase running while the fan's amplitude eases out (1.2s), then stop it.
+let swayOff;
+new MutationObserver(() => {
+  clearTimeout(swayOff);
+  if (wall.dataset.fan === "1") wall.dataset.swaying = "";
+  else swayOff = setTimeout(() => delete wall.dataset.swaying, 1300);
+}).observe(wall, { attributes: true, attributeFilter: ["data-fan"] });
+// ToggleController focuses a rocker on pointerdown; take focus first without the keyboard ring,
+// so a click never flashes a focus ring (keyboard focus still shows it).
+for (const el of [$("#shades"), $("#fan")]) el.addEventListener("pointerdown", (e) => { if (e.button === 0) el.focus({ preventScroll: true, focusVisible: false }); }, true);
 
 /* ---------- press feel for native buttons (pointer and keyboard) ---------- */
 function keyFx(el, sound = "ceramic") {
@@ -649,8 +717,8 @@ tabs.forEach((t, i) => {
   });
 });
 function syncRoom() {
-  ring.value = R.set; showSet(R.set);
-  dimmer.value = R.light; lightWall(R.light);
+  ring.value = R.set; showSet(R.set, true);
+  dimmer.value = R.light;
   shadesT.set(R.shades, false); fanT.set(R.fan, false);
   wall.dataset.shades = R.shades; wall.dataset.fan = R.fan;
   setScene(R.scene, false);
@@ -671,7 +739,7 @@ list.innerHTML = SCENES.map((s, i) => `<li role="option" id="sc-${i}" aria-selec
 const opts = [...list.children];
 let active = 0;
 function setScene(name, apply) {
-  R.scene = name; $("#sceneVal").textContent = name;
+  R.scene = name; swap($("#sceneVal"), name);
   opts.forEach((o, i) => o.setAttribute("aria-selected", SCENES[i].name === name));
   if (!apply) return;
   const s = SCENES.find((x) => x.name === name);

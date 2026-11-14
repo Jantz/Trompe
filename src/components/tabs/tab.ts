@@ -70,7 +70,13 @@ export class TrTab extends TrompeElement {
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
           translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
           background-color var(--tr-motion-duration-release, 160ms),
-          color var(--tr-motion-duration-release, 160ms);
+          color var(--tr-motion-duration-release, 160ms),
+          font-weight var(--tr-motion-duration-release, 160ms),
+          --_sel var(--tr-motion-duration-travel, 220ms) ease-out,
+          min-height var(--tr-motion-duration-travel, 220ms) ease-out,
+          padding var(--tr-motion-duration-travel, 220ms) ease-out,
+          margin var(--tr-motion-duration-travel, 220ms) ease-out,
+          clip-path var(--tr-motion-duration-travel, 220ms) ease-out;
       }
       /* bold label, but reserve the bold width so tabs never jump */
       .label {
@@ -94,18 +100,26 @@ export class TrTab extends TrompeElement {
       :host([data-variant='folder']) {
         /* the folder surface sits at z-index 1: unselected tabs go behind it, the selected in front */
         z-index: 0;
+        /* the tab comes forward as it rises (z-index steps 0, 1, 2 during the move) */
+        transition: z-index var(--tr-motion-duration-release, 160ms) step-end;
       }
       :host([data-variant='folder'][selected]) {
         z-index: 2;
+        transition-timing-function: step-start;
       }
       :host([data-variant='folder']) .tab {
         --_tr-z: 1;
         border-radius: var(--_rad) var(--_rad) 0 0;
+        /* --_sel (registered, 0 tucked .. 1 selected) blends every colour between the two states */
+        --_sel: 0;
         /* tucked behind: darker, lower, dimmer ink */
-        --_base: color-mix(in oklch, var(--_m-base), var(--_sh) calc(7% + var(--tr-lift, 0) * 10%));
-        --_ink: color-mix(in oklch, var(--_m-ink) 70%, var(--_base));
+        --_base: color-mix(in oklch, var(--_m-base), var(--_sh) calc((7% + var(--tr-lift, 0) * 10%) * (1 - var(--_sel))));
+        --_ink: color-mix(in oklch, var(--_m-ink) calc(70% + var(--_sel) * 30%), var(--_base));
+        --_join: color-mix(in oklch, var(--_face), var(--_hl) calc(var(--_spec) * 52%));
+        --_layer: linear-gradient(to bottom, transparent 35%, color-mix(in oklch, var(--_join) calc(var(--_sel) * 100%), transparent) calc(100% - 3px));
         translate: 0 0.3em;
         padding-bottom: 0.3em;
+        clip-path: inset(-2em -2em -2em -2em);
       }
       :host([data-variant='folder']:hover:not([selected]):not([disabled])) .tab {
         translate: 0 0.12em;
@@ -114,10 +128,7 @@ export class TrTab extends TrompeElement {
       /* the selected tab grows down over the folder's top edge, its foot trimmed off, and its face
          blends into the folder's lit top so tab and folder read as one piece */
       :host([data-variant='folder'][selected]) .tab {
-        --_base: var(--_m-base);
-        --_ink: var(--_m-ink);
-        --_join: color-mix(in oklch, var(--_face), var(--_hl) calc(var(--_spec) * 52%));
-        --_layer: linear-gradient(to bottom, transparent 35%, var(--_join) calc(100% - 3px));
+        --_sel: 1;
         translate: none;
         min-height: calc(2.5em + 0.3em);
         padding-bottom: 4px;
@@ -125,8 +136,10 @@ export class TrTab extends TrompeElement {
         clip-path: inset(-2em -2em 2px -2em);
       }
       /* concave flares where the tab foot meets the folder */
-      :host([data-variant='folder'][selected]) .tab::after {
+      :host([data-variant='folder']) .tab::after {
         content: '';
+        opacity: 0;
+        transition: opacity var(--tr-motion-duration-travel, 220ms) ease-out;
         position: absolute;
         bottom: 2px;
         height: var(--_flare);
@@ -136,6 +149,9 @@ export class TrTab extends TrompeElement {
         background:
           radial-gradient(circle at 0 0, transparent calc(var(--_flare) - 1px), var(--_edge) var(--_flare), var(--_join) calc(var(--_flare) + 0.5px)) left bottom / calc(var(--_flare) + 1px) 100% no-repeat,
           radial-gradient(circle at 100% 0, transparent calc(var(--_flare) - 1px), var(--_edge) var(--_flare), var(--_join) calc(var(--_flare) + 0.5px)) right bottom / calc(var(--_flare) + 1px) 100% no-repeat;
+      }
+      :host([data-variant='folder'][selected]) .tab::after {
+        opacity: 1;
       }
       :host([data-variant='folder']) .marker {
         display: block;
@@ -169,8 +185,10 @@ export class TrTab extends TrompeElement {
       :host([data-variant='folder'][data-orientation='vertical']:hover:not([selected]):not([disabled])) .tab {
         translate: 0.12em 0;
       }
+      :host([data-variant='folder'][data-orientation='vertical']) .tab {
+        --_layer: linear-gradient(to right, transparent 55%, color-mix(in oklch, var(--_join) calc(var(--_sel) * 100%), transparent) calc(100% - 3px));
+      }
       :host([data-variant='folder'][data-orientation='vertical'][selected]) .tab {
-        --_layer: linear-gradient(to right, transparent 55%, var(--_join) calc(100% - 3px));
         translate: none;
         min-height: 2.5em;
         padding-bottom: 0;
@@ -181,7 +199,7 @@ export class TrTab extends TrompeElement {
         margin-right: -4px;
         clip-path: inset(-2em 2px -2em -2em);
       }
-      :host([data-variant='folder'][data-orientation='vertical'][selected]) .tab::after {
+      :host([data-variant='folder'][data-orientation='vertical']) .tab::after {
         display: none;
       }
       :host([data-variant='folder'][data-orientation='vertical']) .marker {
@@ -235,6 +253,7 @@ export class TrTab extends TrompeElement {
       }
       :host(:focus-visible) .tab {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: -4px;
       }
       ::slotted(svg) {

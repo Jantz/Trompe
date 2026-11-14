@@ -2,6 +2,7 @@ import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
 import { TrMenuItem } from './menu-item.js';
+import { afterExit } from '../../interaction/smooth.js';
 import { anchorTo, byId, ensureId, placeAt, type Placement } from './position.js';
 
 export type { Placement } from './position.js';
@@ -144,6 +145,7 @@ export class TrMenu extends TrompeElement {
   /** ARIA attributes wire() added to the trigger (not ones the author set), removed by unwire(). */
   private addedAria: string[] = [];
   private unplace: (() => void) | null = null;
+  private pendingUnplace: (() => void) | null = null;
   private pendingFocus: 'first' | 'last' | 'none' = 'first';
   private point: { x: number; y: number } | null = null;
   private returnFocus = false;
@@ -192,6 +194,7 @@ export class TrMenu extends TrompeElement {
     this.unwire();
     this.unplace?.();
     this.unplace = null;
+    this.pendingUnplace?.();
   }
 
   protected override render() {
@@ -256,6 +259,8 @@ export class TrMenu extends TrompeElement {
       }
       this.unplace?.();
       this.unplace = null;
+      this.pendingUnplace?.();
+      this.pendingUnplace = null;
       if (this.point) placeAt(this, this.point.x, this.point.y);
       else if (this.trigger) {
         this.unplace = anchorTo(this, this.trigger, this.placement ?? (this.parentItem ? 'right-start' : 'bottom-start'), this.parentItem ? 2 : 6);
@@ -266,11 +271,15 @@ export class TrMenu extends TrompeElement {
       this.pendingFocus = 'first';
       this.dispatchEvent(new Event('open'));
     } else if (!this.open && shown) {
+      // The highlighted item stays lit while the menu fades, though focus has already left it.
+      const lit = this.items.find((i) => i.matches(':focus'));
+      lit?.setAttribute('data-tr-lit', '');
       try {
         this.hidePopover();
       } catch {
         /* already hidden */
       }
+      if (lit) void afterExit(this).then(() => lit.removeAttribute('data-tr-lit'));
       this.finishClose();
     }
   }
@@ -281,8 +290,16 @@ export class TrMenu extends TrompeElement {
       const sub = item.submenu as TrMenu | null;
       if (sub?.open) sub.close();
     }
-    this.unplace?.();
+    // Stay where it is while the exit plays; un-anchor once it has faded (or when it reopens).
+    const unplace = this.unplace;
     this.unplace = null;
+    if (unplace) {
+      const pending = (this.pendingUnplace = () => {
+        if (this.pendingUnplace === pending) this.pendingUnplace = null;
+        unplace();
+      });
+      void afterExit(this).then(() => this.pendingUnplace === pending && pending());
+    }
     this.setExpanded(false);
     const back = this.returnFocus;
     this.returnFocus = false;

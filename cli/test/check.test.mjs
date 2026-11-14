@@ -130,3 +130,15 @@ test('TR019: numbers written as plain attributes in framework files; TR005 knows
   assert.deepEqual(r.findings.map((f) => `${f.file}:${f.id}:${f.attribute ?? f.element}`).sort(), ['A.vue:TR019:depth', 'A.vue:TR019:min', 'B.tsx:TR019:max', 'c.html:TR005:tr-avatar']);
   assert.match(r.findings.find((f) => f.file === 'A.vue').message, /:depth="2"/);
 });
+
+test('--render motion: cuts, jumps and pop-ins are found; a transition is clean', { timeout: 120_000 }, async (t) => {
+  let pw;
+  try { pw = await import('@playwright/test'); const b = await pw.chromium.launch(); await b.close(); }
+  catch { t.skip('Chromium is not available'); return; }
+  const r = await run({ inputs: [fx('motion.html')], render: true });
+  const motion = r.findings.filter((f) => /^TR12/.test(f.id)).map((f) => `${f.id} ${f.message}`);
+  assert.ok(motion.some((m) => m.startsWith('TR120') && m.includes('#cut')), motion.join('\n'));
+  assert.ok(motion.some((m) => m.startsWith('TR121') && m.includes('#jump')), motion.join('\n'));
+  assert.ok(motion.some((m) => m.startsWith('TR122') && m.includes('#jump')), motion.join('\n'));
+  assert.ok(!motion.some((m) => m.includes('#smooth')), motion.join('\n'));
+});

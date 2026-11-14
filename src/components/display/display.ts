@@ -2,6 +2,7 @@ import { css, html, nothing, svg, type PropertyValues } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
+import { crossfadeText } from '../../interaction/smooth.js';
 import { blankCell, matrixPaths, segmentPaths, toCells, type Cell } from './glyphs.js';
 
 /** Named backlight / phosphor colors. Any other value of `color` is used as a CSS color. */
@@ -515,6 +516,8 @@ export class TrDisplay extends TrompeElement {
 
   private ro?: ResizeObserver;
   private ticker = 0;
+  private prevLit: string[] = [];
+  private prevText: string | null = null;
   private mqDist = 0;
   private mqDur = 0;
   private mqSteps = 0;
@@ -560,10 +563,6 @@ export class TrDisplay extends TrompeElement {
 
   private get numeric(): boolean {
     return /^[\s\d.,:+\-°]*$/.test(this.value);
-  }
-
-  protected override willUpdate(changed: PropertyValues): void {
-    if (changed.has('value') || changed.has('digits') || changed.has('glyphs')) this.tick = 0;
   }
 
   protected override render() {
@@ -672,8 +671,45 @@ export class TrDisplay extends TrompeElement {
     return Array.from({ length: digits }, (_, i) => ring[(this.tick + i) % ring.length]!);
   }
 
+  protected override willUpdate(changed: PropertyValues): void {
+    super.willUpdate(changed);
+    if (changed.has('value') || changed.has('digits') || changed.has('glyphs')) this.tick = 0;
+    // Remember what is lit, so the new reading can fade in over the old one.
+    const lit = this.renderRoot?.querySelectorAll<SVGPathElement>('.item:first-child .lit:not(.fading)');
+    this.prevLit = lit ? [...lit].map((p) => p.getAttribute('d') ?? '') : [];
+    this.prevText = this.renderRoot?.querySelector<HTMLElement>('.readout.text .item')?.textContent ?? null;
+  }
+
+  /**
+   * Segments and dots switch like the real thing: an LCD's liquid crystal takes ~120 ms to turn,
+   * a VFD, LED or OLED a few tens of ms. The old reading fades out as the new one fades in.
+   */
+  private fadeReading(): void {
+    if (!this.hasUpdated) return;
+    const ms = this.type === 'lcd' ? 120 : 45;
+    const textItem = this.renderRoot.querySelector<HTMLElement>('.readout.text .item');
+    if (textItem && this.prevText !== null) {
+      crossfadeText(textItem, this.prevText, { duration: ms });
+      return;
+    }
+    const lit = this.renderRoot.querySelector<SVGPathElement>('.item:first-child .lit:not(.fading)');
+    const old = this.prevLit[0];
+    if (!lit || old === undefined || old === lit.getAttribute('d') || typeof lit.animate !== 'function') return;
+    for (const f of this.renderRoot.querySelectorAll('.lit.fading')) f.remove();
+    const ghost = lit.cloneNode() as SVGPathElement;
+    ghost.classList.add('fading');
+    ghost.setAttribute('d', old);
+    lit.before(ghost);
+    ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms, easing: 'ease-in', fill: 'forwards' }).finished.then(
+      () => ghost.remove(),
+      () => ghost.remove(),
+    );
+    lit.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing: 'ease-out' });
+  }
+
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    this.fadeReading();
     if (changed.has('live')) {
       if (this.live) {
         this.setAttribute('aria-live', 'polite');

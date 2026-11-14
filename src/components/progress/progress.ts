@@ -1,3 +1,4 @@
+import { crossfadeText } from '../../interaction/smooth.js';
 import { css, html, nothing, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
@@ -45,6 +46,8 @@ export class TrProgress extends TrompeElement {
         display: block;
         font-size: var(--tr-font-size-md, 1em);
         min-width: 4em;
+        /* --_fill is registered: a tone change fades the tube's colour */
+        transition: --_fill var(--tr-motion-duration-travel, 220ms) ease-out;
       }
       :host([variant='ring']) {
         display: inline-block;
@@ -114,8 +117,7 @@ export class TrProgress extends TrompeElement {
         height: 100%;
         width: 100%;
         border-radius: inherit;
-        translate: calc((var(--_p, 0) - 1) * 100%) 0;
-        transition: translate var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out);
+        translate: calc((var(--_pv, 0) - 1) * 100%) 0;
         /* a glassy tube: a bright highlight streak along the top, light pooling underneath */
         --_layer:
           linear-gradient(
@@ -140,13 +142,31 @@ export class TrProgress extends TrompeElement {
           transparent 75%
         );
         mix-blend-mode: screen;
-        opacity: min(1, calc(var(--_p, 0) * 20));
+        opacity: min(1, calc(var(--_pv, 0) * 20));
       }
-      :host([data-unknown]) .fill {
+      /* Activity: a separate runner slides along the groove. Switching between activity and a
+         known value cross-fades the runner and the tube. */
+      .fill {
+        transition:
+          translate var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out),
+          opacity var(--tr-motion-duration-lift, 240ms) ease-out;
+      }
+      .runner {
+        position: absolute;
+        inset: 1px auto 1px 1px;
         width: 40%;
+        height: auto;
         translate: none;
-        transition: none;
-        animation: tr-progress-slide 1.4s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+        opacity: 0;
+        animation: tr-progress-slide 1.4s cubic-bezier(0.45, 0, 0.25, 1) infinite paused;
+        transition: opacity var(--tr-motion-duration-lift, 240ms) ease-out;
+      }
+      :host([data-unknown]) .runner {
+        opacity: 1;
+        animation-play-state: running;
+      }
+      :host([data-unknown]) .fill:not(.runner) {
+        opacity: 0;
       }
       @keyframes tr-progress-slide {
         0% {
@@ -167,13 +187,15 @@ export class TrProgress extends TrompeElement {
         border-radius: 50%;
         padding: calc(var(--_d) * 0.06);
         margin-inline: auto;
+        /* --_pv is registered: the arc sweeps to its new value */
+        transition: --_pv var(--tr-motion-duration-glide, 471ms) var(--tr-motion-easing-glide, ease-out);
       }
       .groove {
         --_tr-z: -2;
         --_base: var(--tr-color-well);
         --_edge: var(--_edge-strong);
         --_curve: -0.5;
-        --_a: calc(var(--_p, 0) * 1turn);
+        --_a: calc(var(--_pv, 0) * 1turn);
         position: relative;
         width: 100%;
         height: 100%;
@@ -190,11 +212,14 @@ export class TrProgress extends TrompeElement {
         inset: 1px;
         border-radius: 50%;
         background: conic-gradient(from 0deg, transparent 0 55%, color-mix(in oklch, var(--_fill) 40%, transparent) 75%, var(--_fill) 98%, transparent 98.5%);
-        animation: tr-progress-spin 1.1s linear infinite;
-        display: none;
+        /* paused and faded out when the progress is known, so switching modes cross-fades */
+        animation: tr-progress-spin 1.1s linear infinite paused;
+        opacity: 0;
+        transition: opacity var(--tr-motion-duration-lift, 240ms) ease-out;
       }
       :host([data-unknown]) .spin {
-        display: block;
+        animation-play-state: running;
+        opacity: 1;
       }
       @keyframes tr-progress-spin {
         to {
@@ -229,9 +254,9 @@ export class TrProgress extends TrompeElement {
       }
 
       @media (prefers-reduced-motion: reduce) {
-        :host([data-unknown]) .fill {
+        .runner {
           animation: none;
-          width: 100%;
+          width: calc(100% - 2px);
           translate: none;
           --_layer: repeating-linear-gradient(
             -45deg,
@@ -270,6 +295,7 @@ export class TrProgress extends TrompeElement {
 
   /** Shows activity without a known amount. Implied when `value` is unset. */
   @property({ type: Boolean, reflect: true }) indeterminate = false;
+  private shownValue = '';
 
   /** Shape: a horizontal bar, or a circular gauge. */
   @property({ reflect: true }) variant: 'linear' | 'ring' = 'linear';
@@ -286,7 +312,7 @@ export class TrProgress extends TrompeElement {
   /** Size of the bar or ring. */
   @property({ reflect: true }) size: Size = 'md';
 
-  /** Accessible text for the value, such as "3 of 10 files". Defaults to the percentage. */
+  /** Text for the value, such as "3 of 10 files" or "1:30": read out, and shown by `show-value` (in the ring's cap). Defaults to the percentage. */
   @property({ attribute: 'value-text' }) valueText = '';
 
   private hasSlotted = false;
@@ -311,11 +337,12 @@ export class TrProgress extends TrompeElement {
   }
 
   protected override render() {
-    const text = this.unknown ? '' : this.percent;
+    // show-value prints value-text when given ("1:30", "12 of 20"), else the percentage.
+    const text = this.unknown ? '' : this.valueText || this.percent;
     const label = html`<slot @slotchange=${this.onSlot}>${this.label}</slot>`;
     const hasLabel = !!this.label || this.hasSlotted;
     if (this.variant === 'ring') {
-      return html`<div class="gauge surface" style="--_p:${this.fraction}">
+      return html`<div class="gauge surface" style="--_pv:${this.fraction}">
           <div part="track" class="groove surface">
             <div part="fill" class="spin"></div>
             <div part="cap" class="cap surface">
@@ -330,7 +357,8 @@ export class TrProgress extends TrompeElement {
         ${this.showValue && text ? html`<span part="value" class="value">${text}</span>` : nothing}
       </div>
       <div part="track" class="track surface">
-        <div part="fill" class="fill surface" style="--_p:${this.fraction}"></div>
+        <div part="fill" class="fill surface" style="--_pv:${this.fraction}"></div>
+        <div class="fill surface runner" aria-hidden="true"></div>
       </div>`;
   }
 
@@ -357,6 +385,11 @@ export class TrProgress extends TrompeElement {
     }
     // the indeterminate look is driven by the attribute
     this.toggleAttribute('data-unknown', unknown);
+    // The percentage cross-fades instead of flicking over.
+    const valueEl = this.renderRoot.querySelector<HTMLElement>('.value');
+    const shown = valueEl?.textContent ?? '';
+    if (valueEl && this.shownValue && shown && shown !== this.shownValue) crossfadeText(valueEl, this.shownValue, { duration: 140 });
+    this.shownValue = shown;
   }
 }
 

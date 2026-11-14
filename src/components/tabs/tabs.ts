@@ -1,6 +1,7 @@
 import { css, html, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { TrompeElement, define } from '../../internal/trompe-element.js';
+import { SizeTransition, enter, exit } from '../../interaction/smooth.js';
 import type { Orientation, Size } from '../../internal/types.js';
 import type { TrTab } from './tab.js';
 import type { TrTabPanel } from './tab-panel.js';
@@ -83,6 +84,25 @@ export class TrTabs extends TrompeElement {
       .actions:not(.has) {
         display: none;
       }
+      /* Panels cross-fade: the leaving one is lifted out of flow while it fades, and the folder
+         glides to the new panel's height (SizeTransition) instead of jumping. */
+      .panes {
+        position: relative;
+        display: flow-root;
+        flex: 1 1 auto;
+      }
+      /* .clip and .panes pass the folder's size through, so a panel can still fill it (height: 100%) */
+      .clip {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      ::slotted([data-tr-leaving]) {
+        position: absolute !important;
+        inset: 0 0 auto 0;
+        pointer-events: none;
+      }
       .body {
         --_tr-z: 1;
         /* a broad content surface: tame clear-coat and mirror reflections so text stays legible */
@@ -91,6 +111,8 @@ export class TrTabs extends TrompeElement {
         z-index: 1;
         flex: 1;
         min-width: 0;
+        display: flex;
+        flex-direction: column;
         border-radius: var(--_radius);
       }
       /* folder: the first tab grows straight out of the folder's square corner */
@@ -173,6 +195,19 @@ export class TrTabs extends TrompeElement {
   @property({ reflect: true }) value = '';
 
   private hasActions = false;
+  /** Panel switches animate once the tabs have been on screen (not on first render). */
+  private live = false;
+  /** Panels that have been on screen: only these fade out; any other panel hides at once. */
+  private seen = new WeakSet<TrTabPanel>();
+  protected readonly bodySize = new SizeTransition(this, () => ({
+    outer: this.renderRoot?.querySelector<HTMLElement>('.clip'),
+    inner: this.renderRoot?.querySelector<HTMLElement>('.panes'),
+  }), { pin: false });
+
+  protected override firstUpdated(changed: PropertyValues): void {
+    super.firstUpdated(changed);
+    requestAnimationFrame(() => (this.live = true));
+  }
 
   constructor() {
     super();
@@ -204,7 +239,7 @@ export class TrTabs extends TrompeElement {
         </div>
         <div class="actions ${this.hasActions ? 'has' : ''}"><slot name="actions" @slotchange=${this.onActions}></slot></div>
       </div>
-      <div part="body" class="body surface"><slot @slotchange=${this.sync}></slot></div>
+      <div part="body" class="body surface"><div class="clip"><div class="panes"><slot @slotchange=${this.sync}></slot></div></div></div>
     </div>`;
   }
 
@@ -268,8 +303,45 @@ export class TrTabs extends TrompeElement {
         tab.removeAttribute('aria-controls');
       }
     });
-    for (const panel of this.panels) panel.hidden = !shown.has(panel);
+    // The folder glides to the new panel's height; between switches it sizes itself, so a
+    // panel can still fill it.
+    if (this.live) this.bodySize.hold();
+    for (const panel of this.panels) this.showPanel(panel, shown.has(panel));
   };
+
+  /** Shows or hides a panel, cross-fading when the tabs are already on screen. */
+  private showPanel(panel: TrTabPanel, show: boolean): void {
+    const leaving = panel.hasAttribute('data-tr-leaving');
+    if (show) {
+      if (!panel.hidden && !leaving) {
+        this.seen.add(panel);
+        return;
+      }
+      panel.hidden = false;
+      panel.removeAttribute('data-tr-leaving');
+      panel.removeAttribute('aria-hidden');
+      panel.inert = false;
+      if (this.live) enter(panel, { y: 0, duration: 200 });
+      this.seen.add(panel);
+      return;
+    }
+    if (panel.hidden || leaving) return;
+    if (!this.live || !this.seen.has(panel)) {
+      panel.hidden = true;
+      return;
+    }
+    // Leaving: still painted while it fades, but already gone for focus and assistive tech.
+    panel.setAttribute('data-tr-leaving', '');
+    panel.setAttribute('aria-hidden', 'true');
+    panel.inert = true;
+    void exit(panel, { y: 0, duration: 140 }).then((done) => {
+      if (!panel.hasAttribute('data-tr-leaving')) return;
+      panel.removeAttribute('data-tr-leaving');
+      panel.removeAttribute('aria-hidden');
+      panel.inert = false;
+      if (done) panel.hidden = true;
+    });
+  }
 
   private select(tab: TrTab, focus: boolean): void {
     const tabs = this.tabs;

@@ -1,4 +1,5 @@
 import { css, html, type PropertyValues } from 'lit';
+import { afterExit, crossfadeText } from '../../interaction/smooth.js';
 import { property, query } from 'lit/decorators.js';
 import { FormControl } from '../../internal/form-control.js';
 import { define } from '../../internal/trompe-element.js';
@@ -172,10 +173,38 @@ export class TrSelect extends FormControl {
         color: var(--_ink);
         user-select: none;
       }
+      /* Lifts in from the trigger and sinks back on close (the exit keeps it in the top layer until
+         it has faded). */
+      .listbox {
+        gap: 2px;
+        opacity: 0;
+        translate: 0 -0.3em;
+        scale: 0.98;
+        transition:
+          opacity 110ms ease-in,
+          translate 110ms ease-in,
+          scale 110ms ease-in,
+          display 110ms allow-discrete,
+          overlay 110ms allow-discrete;
+      }
       .listbox:popover-open {
         display: grid;
-        gap: 2px;
-        animation: tr-select-in var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out);
+        opacity: 1;
+        translate: none;
+        scale: 1;
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
+          translate var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out),
+          scale var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out),
+          display var(--tr-motion-duration-release, 160ms) allow-discrete,
+          overlay var(--tr-motion-duration-release, 160ms) allow-discrete;
+      }
+      @starting-style {
+        .listbox:popover-open {
+          opacity: 0;
+          translate: 0 -0.3em;
+          scale: 0.98;
+        }
       }
       .listbox.anchored {
         position-anchor: --tr-select-trigger;
@@ -184,13 +213,6 @@ export class TrSelect extends FormControl {
         min-width: anchor-size(width);
         margin-block: 0.4em;
         position-try-fallbacks: flip-block;
-      }
-      @keyframes tr-select-in {
-        from {
-          opacity: 0;
-          translate: 0 -0.3em;
-          scale: 0.98;
-        }
       }
       :host([disabled]),
       :host(:state(disabled)) {
@@ -251,6 +273,9 @@ export class TrSelect extends FormControl {
   @property({ reflect: true }) size: Size = 'md';
 
   @query('.listbox') private listbox!: HTMLElement;
+  private shownText: string | null = null;
+  private closing = false;
+  private closeRun = 0;
   @query('.trigger') private trigger!: HTMLElement;
 
   private defaultValue: string | null = null;
@@ -352,6 +377,11 @@ export class TrSelect extends FormControl {
     this.aria('aria-expanded', String(this.open));
     this.aria('aria-required', this.required ? 'true' : null);
     this.syncOptions();
+    // The chosen value cross-fades into the trigger instead of flicking over.
+    const valueEl = this.renderRoot.querySelector<HTMLElement>('.value');
+    const shown = valueEl?.textContent ?? '';
+    if (this.shownText !== null && shown !== this.shownText) crossfadeText(valueEl, this.shownText);
+    this.shownText = shown;
   }
 
   formResetCallback(): void {
@@ -382,7 +412,7 @@ export class TrSelect extends FormControl {
     const sel = this.selectedOption;
     opts.forEach((o, i) => {
       o.selected = o === sel;
-      o.active = this.open && i === this.activeIndex;
+      o.active = (this.open || this.closing) && i === this.activeIndex;
     });
     const active = this.open ? opts[this.activeIndex] : undefined;
     this.aria('aria-activedescendant', active ? active.id : null);
@@ -419,7 +449,18 @@ export class TrSelect extends FormControl {
       } catch {
         /* already hidden */
       }
-      this.activeIndex = -1;
+      // Rows keep their highlight while the sheet fades out; then the active row is cleared.
+      this.closing = true;
+      const run = ++this.closeRun;
+      void afterExit(lb).then(() => {
+        // A later close owns the highlight now.
+        if (run !== this.closeRun) return;
+        this.closing = false;
+        if (!this.open) {
+          this.activeIndex = -1;
+          this.syncOptions();
+        }
+      });
       document.removeEventListener('pointerdown', this.onOutside, true);
       if (fire) this.dispatchEvent(new Event('close'));
     }

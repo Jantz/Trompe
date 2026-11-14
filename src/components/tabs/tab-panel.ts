@@ -35,6 +35,7 @@ export class TrTabPanel extends TrompeElement {
       }
       :host(:focus-visible) .content {
         outline: 2px solid var(--tr-color-focus);
+        animation: tr-focus-in var(--tr-motion-duration-release, 160ms) cubic-bezier(0.2, 0.7, 0.2, 1);
         outline-offset: -4px;
         border-radius: var(--tr-radius-sm, 6px);
       }

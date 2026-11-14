@@ -76,6 +76,7 @@ const TABLE_CSS = `
 :where(tr-table) :where(th[aria-sort], th[data-sort]) {
   cursor: pointer;
   user-select: none;
+  transition: color var(--tr-motion-duration-release, 160ms) ease-out;
 }
 :where(tr-table) :where(th[aria-sort], th[data-sort]):hover {
   color: var(--tr-color-ink);
@@ -91,7 +92,7 @@ const TABLE_CSS = `
   /* a diamond (sortable) that folds into an up or down triangle */
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
   opacity: 0.35;
-  transition: clip-path var(--tr-motion-duration-release, 160ms), opacity var(--tr-motion-duration-release, 160ms);
+  transition: clip-path var(--tr-motion-duration-release, 160ms), opacity var(--tr-motion-duration-release, 160ms), color var(--tr-motion-duration-release, 160ms);
 }
 :where(tr-table) th[aria-sort='ascending']::after {
   clip-path: polygon(50% 15%, 100% 75%, 50% 75%, 0 75%);
@@ -391,9 +392,14 @@ export class TrTable extends TrompeElement {
     });
     body.append(...rows);
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Rows glide from their old places. Offsetting with relative `top` (not a transform) keeps the
+    // text on the same sub-pixel grid as at rest, so nothing shimmers on the first frame.
+    const many = rows.length > 80;
     for (const r of rows) {
       const dy = before.get(r)! - r.getBoundingClientRect().top;
-      if (Math.abs(dy) > 0.5) r.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' });
+      if (Math.abs(dy) <= 0.5) continue;
+      const frames = many ? [{ transform: `translateY(${dy}px)` }, { transform: 'none' }] : [{ position: 'relative', top: `${dy}px` }, { position: 'relative', top: '0px' }];
+      r.animate(frames, { duration: 260, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' });
     }
   }
 

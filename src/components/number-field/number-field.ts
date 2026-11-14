@@ -98,6 +98,7 @@ export class TrNumberField extends FormControl {
         outline-offset: 2px;
       }
       .readout {
+        position: relative;
         flex: 1;
         min-width: 0;
         display: flex;
@@ -126,6 +127,15 @@ export class TrNumberField extends FormControl {
         width: calc(var(--_chars, 2) * 1ch + 0.15em);
         max-width: 100%;
         text-align: end;
+      }
+      .ghost {
+        position: absolute;
+        pointer-events: none;
+        white-space: pre;
+        font: inherit;
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--tr-font-weight-strong, 600);
+        color: inherit;
       }
       .unit {
         flex: none;
@@ -292,16 +302,32 @@ export class TrNumberField extends FormControl {
     return Number.isFinite(n) ? n : this.value;
   }
 
-  /** The digits slide in from the direction of travel. */
-  private roll(dir: number): void {
-    if (!dir || !this.readout?.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    this.readout.animate(
-      [
-        { transform: `translateY(${dir > 0 ? 0.45 : -0.45}em)`, opacity: 0.35 },
-        { transform: 'none', opacity: 1 },
-      ],
-      { duration: 180, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' },
-    );
+  /**
+   * The digits roll: a copy of the old number slides out while the new one slides in from the
+   * direction of travel (a fade only under reduced motion), so nothing changes in a single frame.
+   */
+  private async roll(dir: number): Promise<void> {
+    const input = this.input;
+    const readout = this.readout;
+    if (!dir || !input || !readout || typeof input.animate !== 'function') return;
+    const previous = input.value;
+    const box = input.getBoundingClientRect();
+    const frame = readout.getBoundingClientRect();
+    await this.updateComplete;
+    if (previous === input.value || !input.isConnected) return;
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const offset = (sign: number) => (still ? 'none' : `translateY(${sign * 0.45}em)`);
+    readout.querySelectorAll('.ghost').forEach((g) => g.remove());
+    const ghost = document.createElement('span');
+    ghost.className = 'ghost';
+    ghost.setAttribute('aria-hidden', 'true');
+    ghost.textContent = previous;
+    ghost.style.cssText = `left:${box.left - frame.left - readout.clientLeft}px;top:${box.top - frame.top - readout.clientTop}px;width:${box.width}px;height:${box.height}px;line-height:${box.height}px;text-align:${getComputedStyle(input).textAlign}`;
+    readout.append(ghost);
+    ghost
+      .animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: offset(-dir) }], { duration: 150, easing: 'ease-in', fill: 'forwards' })
+      .finished.then(() => ghost.remove(), () => ghost.remove());
+    input.animate([{ opacity: 0, transform: offset(dir) }, { opacity: 1, transform: 'none' }], { duration: 190, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' });
   }
 
   protected override updated(changed: PropertyValues): void {

@@ -13,8 +13,18 @@ const tickers = new Set<Ticker>();
 let frame = 0;
 let last = 0;
 
+/**
+ * Slow motion for JS-driven motion: springs, inertia and meter ballistics run at this fraction
+ * of real time (0 holds them still). Read from `globalThis.__trompeTimeScale` every frame, so a
+ * page, a test or DevTools can set it; pair it with DevTools' animation speed for CSS motion.
+ */
+export function setTimeScale(scale: number): void {
+  (globalThis as { __trompeTimeScale?: number }).__trompeTimeScale = scale;
+}
+
 function run(now: number): void {
-  const dt = last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60;
+  const scale = (globalThis as { __trompeTimeScale?: number }).__trompeTimeScale ?? 1;
+  const dt = (last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60) * scale;
   last = now;
   for (const t of tickers) {
     let more = false;

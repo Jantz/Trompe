@@ -135,11 +135,17 @@ export class TrKnob extends RangeControl {
         stroke-width: var(--tr-knob-arc-width, 2.6);
         stroke-linecap: round;
       }
+      /* The arc is the full sweep, cut to length by dashes that follow the animated value
+         (--tr-value-ratio), so it travels with the knob instead of jumping to the new value. */
       .arc {
+        --_kr: var(--tr-value-ratio, var(--_kf, 0));
         fill: none;
         stroke: var(--_arc);
         stroke-width: var(--tr-knob-arc-width, 2.6);
         stroke-linecap: round;
+        stroke-dasharray: max(var(--_kr) - var(--_ks, 0), var(--_ks, 0) - var(--_kr)) 2;
+        stroke-dashoffset: calc(-1 * min(var(--_kr), var(--_ks, 0)));
+        opacity: min(1, max(var(--_kr) - var(--_ks, 0), var(--_ks, 0) - var(--_kr)) * 60);
         filter: drop-shadow(0 0 calc(var(--_r) * 1.6px) color-mix(in oklch, var(--_arc) calc(var(--_r) * 90%), transparent));
       }
       .mark {
@@ -520,7 +526,7 @@ export class TrKnob extends RangeControl {
       .filter(Boolean);
     return html`
       <div part="dial" class="dial" style=${styleMap({ '--_rot': `var(--tr-angle, ${angle}deg)` })}>
-        ${this.renderScale(angle)}
+        ${this.renderScale()}
         ${marks.map(
           (m, i) =>
             html`<span part="marks" class="mark" aria-hidden="true" style=${styleMap({ '--_a': `${marks.length > 1 ? START + (i * SWEEP) / (marks.length - 1) : 0}deg` })}
@@ -543,7 +549,7 @@ export class TrKnob extends RangeControl {
     `;
   }
 
-  private renderScale(angle: number) {
+  private renderScale() {
     const n = Math.max(0, Math.round(this.ticks));
     const ticks = [];
     if (n > 1) {
@@ -555,11 +561,10 @@ export class TrKnob extends RangeControl {
         ticks.push(svg`<line class="tick ${major ? 'major' : ''}" x1=${x0} y1=${y0} x2=${x1} y2=${y1}></line>`);
       }
     }
-    const from = this.arc === 'center' ? 0 : START;
     return html`<svg part="scale" class="scale" viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">
       ${this.arc !== 'none'
         ? svg`<path class="track" d=${arcPath(38.5, START, START + SWEEP)}></path>
-            <path part="arc" class="arc" d=${arcPath(38.5, from, angle)}></path>`
+            <path part="arc" class="arc" pathLength="1" style="--_kf:${this.fraction};--_ks:${this.arc === 'center' ? 0.5 : 0}" d=${arcPath(38.5, START, START + SWEEP)}></path>`
         : nothing}
       ${ticks}
     </svg>`;

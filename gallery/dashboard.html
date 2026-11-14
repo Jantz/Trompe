@@ -10,6 +10,21 @@
 <style>
 /* Meridian: an operations dashboard built as an instrument panel.
   Graphite anodised plate, polished chrome bezels, displays lit from within. */
+/* Registered so lamps, LEDs and display inks fade between states instead of switching. */
+@property --lit { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --c1 { syntax: "<color>"; inherits: false; initial-value: transparent; }
+@property --c2 { syntax: "<color>"; inherits: false; initial-value: transparent; }
+@property --h1 { syntax: "<color>"; inherits: false; initial-value: transparent; }
+@property --led-on { syntax: "<color>"; inherits: false; initial-value: transparent; }
+@property --led-off { syntax: "<color>"; inherits: false; initial-value: transparent; }
+@property --on { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --off { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --glow { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --tg { syntax: "<color>"; inherits: true; initial-value: transparent; }
+/* row highlight fades through a custom property: a composited background-color animation would paint the cell above the glass glare */
+@property --rb { syntax: "<color>"; inherits: false; initial-value: transparent; }
+@property --gb { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --gs { syntax: "<length>"; inherits: false; initial-value: 0px; }
 :root {
   color-scheme: dark;
   --ld: calc(var(--tr-light-angle) + 180deg); --sx: var(--tr-shadow-x); --sy: var(--tr-shadow-y); --sl: var(--tr-shadow-len); --la: var(--tr-light-angle);
@@ -100,9 +115,12 @@ button { cursor: pointer; }
   radial-gradient(120% 90% at calc(50% - var(--sx) * 30%) calc(50% - var(--sy) * 60%), #ffffff29, transparent 60%),
   linear-gradient(180deg, oklch(.3 .006 255), oklch(.2 .006 255));
   box-shadow: var(--lip), 0 0 0 1px #000000b2, var(--cast-1); }
-.tk .led { width: .38em; height: .38em; border-radius: 50%; background: oklch(.32 .03 145); box-shadow: inset 0 .05em .08em #000000b2; }
+.tk .cap { transition: color .2s var(--tr-ease-out), text-shadow .2s var(--tr-ease-out); text-shadow: 0 0 .5em oklch(.95 .06 90 / 0); }
+.tk .led { width: .38em; height: .38em; border-radius: 50%; transition: --lit .22s var(--tr-ease-out);
+  background: radial-gradient(circle at 40% 35%, color-mix(in oklch, #fff calc(var(--lit) * 100%), oklch(.32 .03 145)), color-mix(in oklch, var(--led-g) calc(var(--lit) * 100%), oklch(.32 .03 145)) 45%);
+  box-shadow: inset 0 .05em .08em rgb(0 0 0 / calc((1 - var(--lit)) * .7)), 0 0 .35em .05em color-mix(in oklch, var(--led-g) calc(var(--lit) * 100%), transparent); }
 .tk[aria-selected="true"] .cap { color: oklch(.98 .02 95); text-shadow: 0 0 .5em oklch(.95 .06 90 / .7); }
-.tk[aria-selected="true"] .led { background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 45%); box-shadow: 0 0 .35em .05em var(--led-g); }
+.tk[aria-selected="true"] .led { --lit: 1; }
 .tk:hover .cap { color: oklch(.9 .01 95); }
 .tk[aria-selected="true"]:hover .cap { color: #fff; }
 
@@ -115,7 +133,7 @@ button { cursor: pointer; }
   font: 700 1.04em/1 var(--f-dot); letter-spacing: .05em; color: var(--amber); text-transform: uppercase; white-space: nowrap;
   text-shadow: 0 0 .1em var(--amber-glow), 0 0 .5em oklch(.74 .19 58 / .55); }
 .vfdline span { overflow: hidden; text-overflow: ellipsis; }
-.vfdline i { flex: none; width: .5em; height: .5em; border-radius: 50%; background: var(--amber-ghost); }
+.vfdline i { flex: none; width: .5em; height: .5em; border-radius: 50%; background: var(--amber-ghost); box-shadow: 0 0 .4em transparent; transition: background-color .25s var(--tr-ease-out), box-shadow .25s var(--tr-ease-out); }
 .vfdline i.on { background: var(--amber); box-shadow: 0 0 .4em var(--amber-glow); }
 .glass::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; z-index: 3;
   background: linear-gradient(calc(var(--la) + 165deg), #fff2, #ffffff08 40%, transparent 40.3%); }
@@ -130,8 +148,11 @@ button { cursor: pointer; }
 .field input::placeholder { color: oklch(.6 .02 170); }
 .field input::-webkit-search-cancel-button { display: none; }
 .field:focus-within { outline: 2px solid var(--tr-focus); outline-offset: 3px; }
-.field .err { position: absolute; right: .85em; width: .5em; height: .5em; border-radius: 50%; background: oklch(.3 .05 27); }
-.field:has([aria-invalid="true"]) .err { background: radial-gradient(circle at 40% 35%, #fff, var(--led-r) 50%); box-shadow: 0 0 .4em var(--led-r); }
+.field .err { position: absolute; right: .85em; width: .5em; height: .5em; border-radius: 50%; transition: --lit .2s var(--tr-ease-out);
+  background: radial-gradient(circle at 40% 35%, color-mix(in oklch, #fff calc(var(--lit) * 100%), oklch(.3 .05 27)), color-mix(in oklch, var(--led-r) calc(var(--lit) * 100%), oklch(.3 .05 27)) 50%);
+  box-shadow: 0 0 .4em color-mix(in oklch, var(--led-r) calc(var(--lit) * 100%), transparent); }
+.field input { transition: color .2s var(--tr-ease-out); }
+.field:has([aria-invalid="true"]) .err { --lit: 1; }
 .field:has([aria-invalid="true"]) input { color: oklch(.85 .1 30); }
 
 /* domed key */
@@ -173,7 +194,8 @@ button { cursor: pointer; }
   font: 700 1.08em/1 var(--f-dot); color: var(--mint); text-transform: uppercase; letter-spacing: .05em; text-shadow: 0 0 .45em oklch(.85 .16 162 / .55); }
 .sel-chev { position: relative; width: 2.3em; height: 2.3em; border-radius: .42em; display: grid; place-items: center;
   background: linear-gradient(180deg, oklch(.32 .006 255), oklch(.21 .006 255)); box-shadow: var(--lip), 0 0 0 1px #000000b2, var(--cast-1); }
-.sel-chev::before { content: ""; width: .5em; height: .5em; border: solid var(--print-2); border-width: 0 .14em .14em 0; transform: translateY(-.12em) rotate(45deg); }
+.sel-chev::before { content: ""; width: .5em; height: .5em; border: solid var(--print-2); border-width: 0 .14em .14em 0; transform: translateY(-.12em) rotate(45deg); transition: transform .22s var(--tr-ease-out); }
+.sel-chev { transition: transform .18s var(--tr-ease-out); }
 .sel-btn[aria-expanded="true"] .sel-chev { transform: translateY(.12em); }
 .sel-btn[aria-expanded="true"] .sel-chev::before { transform: translateY(.12em) rotate(225deg); }
 .menu { position: absolute; top: calc(100% + .5em); left: 0; min-width: 15em; margin: 0; padding: .4em; list-style: none; border-radius: .7em; outline: none;
@@ -181,14 +203,18 @@ button { cursor: pointer; }
   -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
   box-shadow: inset 0 1px 0 #fff3, inset 0 0 0 1px #fff1, 0 0 0 1px #0009,
   calc(var(--sx) * .8em) calc(var(--sy) * 1.1em) 1.8em #0008;
-  transform-origin: 20% 0; animation: drop .16s var(--tr-ease-out); }
-.menu[hidden] { display: none; }
-@keyframes drop { from { opacity: 0; transform: translateY(-.4em) scale(.98); } }
-.menu li { position: relative; display: grid; grid-template-columns: 1em 1fr auto; align-items: center; gap: .6em; padding: .7em .8em; min-height: 2.9em; border-radius: .45em; cursor: pointer; color: oklch(.85 .01 220); }
-.menu li::before { content: ""; width: .48em; height: .48em; border-radius: 50%; background: oklch(.3 .03 145); box-shadow: inset 0 .05em .08em #000000b2; }
+  transform-origin: 20% 0;
+  transition: opacity .16s var(--tr-ease-out), transform .16s var(--tr-ease-out), display .16s allow-discrete, overlay .16s allow-discrete; }
+.menu[hidden] { display: none; opacity: 0; transform: translateY(-.4em) scale(.98); }
+@starting-style { .menu:not([hidden]) { opacity: 0; transform: translateY(-.4em) scale(.98); } }
+.menu li { position: relative; display: grid; grid-template-columns: 1em 1fr auto; align-items: center; gap: .6em; padding: .7em .8em; min-height: 2.9em; border-radius: .45em; cursor: pointer; color: oklch(.85 .01 220);
+  background-color: #fff0; transition: background-color .14s var(--tr-ease-out), color .14s var(--tr-ease-out); }
+.menu li::before { content: ""; width: .48em; height: .48em; border-radius: 50%; transition: --lit .16s var(--tr-ease-out);
+  background: radial-gradient(circle at 40% 35%, color-mix(in oklch, #fff calc(var(--lit) * 100%), oklch(.3 .03 145)), color-mix(in oklch, var(--led-g) calc(var(--lit) * 100%), oklch(.3 .03 145)) 45%);
+  box-shadow: inset 0 .05em .08em rgb(0 0 0 / calc((1 - var(--lit)) * .7)), 0 0 .4em .05em color-mix(in oklch, var(--led-g) calc(var(--lit) * 100%), transparent); }
 .menu li small { color: oklch(.68 .01 220); font-size: .82em; }
-.menu li.act { background: #fff1; color: #fff; }
-.menu li.act::before { background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 45%); box-shadow: 0 0 .4em .05em var(--led-g); }
+.menu li.act { background-color: #fff1; color: #fff; }
+.menu li.act::before { --lit: 1; }
 .menu li[aria-selected="true"] { font-weight: 600; }
 .menu li[aria-selected="true"]::after { content: ""; position: absolute; right: .9em; top: 50%; width: .3em; height: .6em; border: solid var(--mint-2); border-width: 0 .13em .13em 0; transform: translateY(-65%) rotate(45deg); }
 .menu li[aria-selected="true"] small { margin-right: 1.3em; }
@@ -214,8 +240,10 @@ button { cursor: pointer; }
 /* .rl text is .78em, so its em lengths are divided by .78 to stay on the knob's circle (R = 3.3em of the rotary) */
 .rl { position: absolute; --R: 4.23em; left: calc(50% + sin(var(--a)) * var(--R)); top: calc(100% - var(--kc) / .78 - cos(var(--a)) * var(--R));
   translate: calc(-50% + sin(var(--a)) * 52%) calc(-50% - cos(var(--a)) * 42%);
-  font: 650 .78em/1 var(--f-lbl); letter-spacing: .1em; text-transform: uppercase; color: var(--print-2); white-space: nowrap; cursor: pointer; padding: .3em .25em; }
-.rl::after { content: ""; position: absolute; width: .32em; height: .32em; border-radius: 50%; left: calc(50% - .16em); top: calc(50% - 1.05em); background: oklch(.3 .03 70); opacity: 0; }
+  font: 650 .78em/1 var(--f-lbl); letter-spacing: .1em; text-transform: uppercase; color: var(--print-2); white-space: nowrap; cursor: pointer; padding: .3em .25em;
+  text-shadow: 0 0 .55em oklch(.86 .14 75 / 0); transition: color .2s var(--tr-ease-out), text-shadow .2s var(--tr-ease-out); }
+.rl::after { content: ""; position: absolute; width: .32em; height: .32em; border-radius: 50%; left: calc(50% - .16em); top: calc(50% - 1.05em); background: oklch(.3 .03 70); opacity: 0;
+  box-shadow: 0 0 .35em transparent; transition: opacity .2s var(--tr-ease-out), background-color .2s var(--tr-ease-out), box-shadow .2s var(--tr-ease-out); }
 .rl.on { color: oklch(.97 .04 85); text-shadow: 0 0 .55em oklch(.86 .14 75 / .7); }
 .rl.on::after { opacity: 1; background: var(--amber); box-shadow: 0 0 .35em var(--amber-glow); }
 .rl:hover { color: var(--print); }
@@ -241,9 +269,16 @@ button { cursor: pointer; }
   transform: translateY(calc(var(--p) * -1.75em));
   background: radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), #fff, #b9bec5 30%, #50555c 75%, #2a2d32); box-shadow: 0 0 0 1px #00000080; }
 .bat .tsh { z-index: 1; background: #0006; box-shadow: none; translate: calc(var(--sx) * .6em) calc(var(--sy) * .6em); filter: blur(2px); }
-.batw b { font: 650 .72em/1 var(--f-lbl); letter-spacing: .16em; color: var(--print-3); }
-.batw .led { width: .62em; height: .62em; border-radius: 50%; justify-self: start; background: radial-gradient(circle at 40% 35%, oklch(.45 .05 145), oklch(.22 .04 145)); box-shadow: 0 0 0 .14em oklch(.12 .005 255), 0 0 0 .2em oklch(.5 .005 255 / .5); }
-.batw:has([aria-checked="true"]) .led { background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 45%, oklch(.6 .2 145)); box-shadow: 0 0 0 .14em oklch(.12 .005 255), 0 0 .6em .1em var(--led-g); }
+.batw b { font: 650 .72em/1 var(--f-lbl); letter-spacing: .16em; color: var(--print-3); transition: color .2s var(--tr-ease-out); }
+/* off: two-stop green glass; on: white core, lit green, deep green rim (the 45% stop of the off gradient is its own midpoint in sRGB) */
+.batw .led { width: .62em; height: .62em; border-radius: 50%; justify-self: start; transition: --lit .22s var(--tr-ease-out);
+  background: radial-gradient(circle at 40% 35%,
+    color-mix(in oklch, #fff calc(var(--lit) * 100%), oklch(.45 .05 145)),
+    color-mix(in oklch, var(--led-g) calc(var(--lit) * 100%), color-mix(in srgb, oklch(.45 .05 145) 55%, oklch(.22 .04 145))) 45%,
+    color-mix(in oklch, oklch(.6 .2 145) calc(var(--lit) * 100%), oklch(.22 .04 145)));
+  box-shadow: 0 0 0 .14em oklch(.12 .005 255),
+    0 0 calc(var(--lit) * .6em) calc(.2em - var(--lit) * .1em) color-mix(in oklch, var(--led-g) calc(var(--lit) * 100%), oklch(.5 .005 255 / .5)); }
+.batw:has([aria-checked="true"]) .led { --lit: 1; }
 .batw:has([aria-checked="true"]) b.on, .batw:has([aria-checked="false"]) b.off { color: var(--print); }
 
 /* rectangular keys: secondary (graphite), primary (aluminium), danger (oxide red) */
@@ -253,6 +288,8 @@ button { cursor: pointer; }
   linear-gradient(var(--ld), #ffffff1a, transparent 45%, #0003),
   linear-gradient(180deg, oklch(.33 .007 255), oklch(.24 .007 255));
   box-shadow: var(--lip), 0 0 0 1px #000b, var(--cast-1); }
+.key .cap { transition: color .2s var(--tr-ease-out), text-shadow .2s var(--tr-ease-out), filter .2s var(--tr-ease-out); }
+.key .kl { white-space: nowrap; }
 .key svg { width: 1.1em; height: 1.1em; }
 .key.primary .cap { color: oklch(.24 .012 255); text-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #fff8;
   background:
@@ -261,10 +298,10 @@ button { cursor: pointer; }
   linear-gradient(180deg, oklch(.93 .003 250), oklch(.78 .004 250)); background-blend-mode: normal, overlay, normal; }
 .key.danger .cap { color: oklch(.97 .02 40);
   background: linear-gradient(var(--ld), #fff2, transparent 45%, #0004), linear-gradient(180deg, oklch(.5 .15 30), oklch(.4 .14 28)); }
-.key:hover .cap::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: #fff1; }
+.key .cap::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: #fff1; opacity: 0; pointer-events: none; transition: opacity .15s var(--tr-ease-out); }
+.key:hover .cap::before { opacity: 1; }
 .key[aria-disabled="true"] { cursor: not-allowed; }
-.key[aria-disabled="true"] .cap { color: oklch(.55 .006 255); text-shadow: none; filter: saturate(.25) brightness(.8); }
-.key.sm .cap { min-height: 2.5em; padding: 0 1em; }
+.key[aria-disabled="true"] .cap { color: oklch(.55 .006 255); text-shadow: none; filter: saturate(.25) brightness(.8); }.key.sm .cap { min-height: 2.5em; padding: 0 1em; }
 
 /* alert banner */
 .alert { display: flex; align-items: center; gap: 1.1em; margin: 0 .2em 1.2em; padding: .8em .9em .8em 1em; border-radius: .8em;
@@ -278,8 +315,6 @@ button { cursor: pointer; }
 .alert div { flex: 1; min-width: 0; }
 .alert b { display: block; font-weight: 600; color: var(--print); }
 .alert div > span { color: var(--print-2); font-size: .93em; }
-.alert.out { animation: out .26s var(--tr-ease-out) forwards; }
-@keyframes out { to { opacity: 0; transform: translateY(-.4em) scale(.99); } }
 
 /* ---------------- modules ---------------- */
 .grid { display: grid; gap: 1.2em; grid-template-columns: minmax(0, 1fr); }
@@ -306,6 +341,7 @@ button { cursor: pointer; }
 
 /* seven-segment digits with ghost segments */
 .sn { display: inline-flex; gap: .17em; transform: skewX(-6deg); font-size: var(--dh, 2.7em); --on: var(--amber); --off: var(--amber-ghost); --glow: var(--amber-glow);
+  transition: --on .3s var(--tr-ease-out), --off .3s var(--tr-ease-out), --glow .3s var(--tr-ease-out);
   filter: drop-shadow(0 0 .05em var(--glow)) drop-shadow(0 0 .22em color-mix(in oklch, var(--glow) 50%, transparent)); }
 .sd { position: relative; width: .52em; height: 1em; flex: none; }
 .sd i { position: absolute; background: var(--off); }
@@ -339,14 +375,18 @@ button { cursor: pointer; }
 .lads { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .2em .9em; align-items: center; padding: .95em 1em .75em; }
 .lad-n { font: 650 .74em/1.15 var(--f-lbl); letter-spacing: .14em; text-transform: uppercase; color: var(--print-2); }
 .leds { display: grid; grid-template-columns: repeat(25, minmax(0, 1fr)); gap: .18em; height: 1.9em; }
-.leds i { position: relative; border-radius: .12em; background: var(--c-off, oklch(.25 .05 145)); box-shadow: inset 0 0 0 1px #0008; }
+.leds i { position: relative; border-radius: .12em; --led-on: var(--c-on); --led-off: var(--c-off, oklch(.25 .05 145));
+  background: radial-gradient(120% 90% at 50% 40%, color-mix(in oklch, #fffc calc(var(--lit) * 100%), var(--led-off)), color-mix(in oklch, var(--led-on) calc(var(--lit) * 100%), var(--led-off)) 55%);
+  box-shadow: 0 0 .45em color-mix(in oklch, var(--led-on) calc(var(--lit) * 70%), transparent), inset 0 0 0 1px rgb(0 0 0 / calc(.533 - var(--lit) * .333));
+  outline: 1px solid oklch(.92 .005 95 / 0); outline-offset: 2px;
+  transition: --lit .12s ease-out, --led-on .3s var(--tr-ease-out), --led-off .3s var(--tr-ease-out), outline-color .15s var(--tr-ease-out); }
 .leds i::after { content: ""; position: absolute; inset: 1px 1px 55%; border-radius: .1em; background: linear-gradient(#fff2, transparent); }
 .leds { --c-on: var(--led-g); --c-off: oklch(.22 .035 145); }
 .leds[data-c="a"] { --c-on: var(--led-a); --c-off: oklch(.23 .035 75); }
 .leds[data-c="r"] { --c-on: var(--led-r); --c-off: oklch(.22 .04 27); }
 .leds i.past { --c-off: oklch(.26 .035 145); }
-.leds i.on { background: radial-gradient(120% 90% at 50% 40%, #fffc, var(--c-on) 55%); box-shadow: 0 0 .45em color-mix(in oklch, var(--c-on) 70%, transparent), inset 0 0 0 1px #0003; }
-.leds i.tgt { outline: 1px solid oklch(.92 .005 95 / .9); outline-offset: 2px; }
+.leds i.on { --lit: 1; }
+.leds i.tgt { outline-color: oklch(.92 .005 95 / .9); }
 .lread { display: flex; align-items: flex-end; gap: .2em; min-width: 5.2em; justify-content: flex-end; }
 .lread .sn { --dh: 1.75em; }
 .lread small { font: 650 .8em/1 var(--f-lbl); color: var(--print-3); padding-bottom: .1em; }
@@ -355,7 +395,7 @@ button { cursor: pointer; }
 .lread[data-c="r"] .sn { --on: oklch(.75 .2 27); --glow: oklch(.62 .22 27); --off: oklch(.5 .1 27 / .13); }
 .scale { grid-column: 2; position: relative; height: 1.3em; font: 500 .72em/1 var(--f-mono); color: var(--print-3); }
 .scale span { position: absolute; top: .2em; translate: -50% 0; }
-.scale b { position: absolute; top: -.35em; translate: -50% 0; width: 0; height: 0; border: .4em solid transparent; border-bottom: .55em solid var(--print); border-top: 0; }
+.scale b { position: absolute; top: -.35em; translate: -50% 0; width: 0; height: 0; border: .4em solid transparent; border-bottom: .55em solid var(--print); border-top: 0; transition: left .15s var(--tr-ease-out); }
 .ot-foot { display: flex; align-items: center; gap: 1.1em; margin-top: 1em; padding: 0 .2em; }
 .ot-foot output { min-width: 4.2em; font: 600 1em/1 var(--f-mono); color: var(--print); text-align: right; }
 .fader { position: relative; flex: 1; height: 2.6em; touch-action: none; }
@@ -367,7 +407,7 @@ button { cursor: pointer; }
   linear-gradient(90deg, transparent calc(50% - 1px), oklch(.2 .01 255) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
   repeating-linear-gradient(90deg, #fff3 0 1px, transparent 1px 3px),
   linear-gradient(var(--ld), oklch(.96 .003 250), oklch(.7 .004 250) 50%, oklch(.5 .004 250));
-  box-shadow: 0 0 0 1px #000a, var(--lip), var(--cast-1); }
+  box-shadow: 0 0 0 1px #000a, var(--lip), var(--cast-1); transition: transform .15s var(--tr-ease-out); }
 .fader[data-dragging] .thumb { transform: scale(1.03); }
 
 /* OLED chart */
@@ -378,12 +418,14 @@ button { cursor: pointer; }
 .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
 .chart text { font-family: var(--f-mono); font-size: 11.5px; fill: var(--mint-2); }
 .chart .ax { fill: oklch(.7 .1 162); }
-.chart .grid line { stroke: oklch(.55 .1 162 / .35); stroke-dasharray: 1 3; }
-.chart .now line { stroke: var(--mint); stroke-dasharray: 2 3; opacity: .7; }
+.chart line.gl { stroke: oklch(.55 .1 162 / .35); stroke-dasharray: 1 3; }
+.chart line.nowl { stroke: var(--mint); stroke-dasharray: 2 3; }
 .chart:focus-visible { outline: 2px solid var(--tr-focus); outline-offset: -4px; }
 .tip { position: absolute; z-index: 2; pointer-events: none; padding: .45em .6em; border: 1px solid oklch(.8 .14 162 / .6); border-radius: .25em; background: oklch(.06 .01 200 / .92);
-  font: 500 .82em/1.35 var(--f-mono); color: var(--mint); white-space: nowrap; text-shadow: 0 0 .4em oklch(.85 .16 162 / .5); }
-.tip[hidden] { display: none; }
+  font: 500 .82em/1.35 var(--f-mono); color: var(--mint); white-space: nowrap; text-shadow: 0 0 .4em oklch(.85 .16 162 / .5);
+  transition: opacity .14s var(--tr-ease-out), display .14s allow-discrete; }
+.tip[hidden] { display: none; opacity: 0; }
+@starting-style { .tip:not([hidden]) { opacity: 0; } }
 
 /* analog gauge */
 .gwrap { display: grid; justify-items: center; gap: .9em; }
@@ -435,17 +477,22 @@ button { cursor: pointer; }
 .routes th:first-child, .routes td:first-child { font-size: 1em; width: var(--kw); padding: 0; text-align: center; border: 0 !important; background: none !important; }
 .routes th:nth-child(2), .routes td:nth-child(2) { padding-left: 1.3em; }
 .routes th:last-child, .routes td:last-child { padding-right: 1.3em; }
-.routes tbody td { border-bottom: 1px dotted oklch(.25 .012 260 / .5); }
+.routes tbody td { border-bottom: 1px dotted oklch(.25 .012 260 / .5); background-color: var(--rb); transition: --rb .2s var(--tr-ease-out), color .2s var(--tr-ease-out); }
+.routes .rid, .routes svg { transition: color .2s var(--tr-ease-out); }
 .routes tbody tr:last-child td { border-bottom: 0; }
 .routes .num { text-align: right; }
 .routes .rid { font: 600 .86em/1 var(--f-mono); color: var(--ink-2); margin-right: .6em; }
 .routes .nm { font-weight: 600; }
-.routes tr.sel td:not(:first-child) { background: var(--ink); color: var(--paper); }
+.routes tr.sel td:not(:first-child) { --rb: var(--ink); color: var(--paper); }
+/* a selected row also matches .sel (position: relative; z-index: 20), which lifts it above the glass glare.
+   Rows are always positioned and keep that z-index until the ink has faded, so the glare never flashes across a dark row. */
+.routes tbody tr { position: relative; z-index: 0; transition: z-index 0s .2s; }
+.routes tbody tr.sel { transition-delay: 0s; }
 .routes tr.sel .rid { color: oklch(.8 .01 100); }
 .routes tr.sel svg { color: var(--paper); }
 .routes svg { width: 5.5em; height: 1.5em; display: block; color: var(--ink); }
 /* status: printed in the panel's two inks (black, red) with a 1-bit glyph, so state never rests on colour */
-.tag { --tg: var(--paper); display: inline-flex; align-items: center; gap: .55em; padding: .32em .6em .32em .45em; border: 1.5px solid currentColor; border-radius: .2em;
+.tag { --tg: var(--paper); transition: --tg .2s var(--tr-ease-out); display: inline-flex; align-items: center; gap: .55em; padding: .32em .6em .32em .45em; border: 1.5px solid currentColor; border-radius: .2em;
   font: 700 .72em/1 var(--f-lbl); letter-spacing: .1em; text-transform: uppercase; }
 tr.sel .tag { --tg: var(--ink); }
 .tag::before { content: ""; flex: none; width: .78em; height: .78em; border-radius: 50%; }
@@ -462,6 +509,7 @@ tr.sel .tag { --tg: var(--ink); }
 .empty td { text-align: center !important; color: var(--ink-2); font-style: italic; }
 .ep-foot { display: flex; gap: 1em; justify-content: space-between; margin: .6em .2em 0 calc(var(--kw) + .4em); font-size: .8em; color: var(--print-3); }
 .ep-foot b { color: var(--print-2); font-weight: 500; }
+#sel-c { display: inline-block; font-variant-numeric: tabular-nums; }
 
 /* illuminated square soft-keys (checkboxes) */
 .ck { position: relative; width: 2.15em; height: 2.15em; border: 0; padding: .13em; border-radius: .42em; vertical-align: middle;
@@ -469,17 +517,30 @@ tr.sel .tag { --tg: var(--ink); }
 .ck::before { content: ""; position: absolute; left: calc(100% + .2em); top: 50%; width: calc(var(--kw) / 2 - 1.3em); height: 1px; background: var(--print-3); opacity: .55; }
 .ck .cap { border-radius: .34em; background: linear-gradient(var(--ld), #fff2, transparent 50%, #0004), linear-gradient(180deg, oklch(.33 .007 255), oklch(.23 .007 255));
   box-shadow: var(--lip), 0 0 0 1px #000b, var(--cast-1); }
-.ck .cap::before { content: ""; width: 1em; height: .42em; border-radius: .1em; background: linear-gradient(#fff2, transparent 60%), oklch(.3 .05 145); box-shadow: 0 0 0 1px #000000b2, 0 1px 0 #fff1; }
-.ck[aria-checked="true"] .cap::before { background: radial-gradient(100% 140% at 50% 30%, #fff, var(--led-g) 55%) border-box; box-shadow: 0 0 .5em .05em var(--led-g); }
-.ck[aria-checked="mixed"] .cap::before { background: var(--led-a); box-shadow: 0 0 .4em var(--led-a); width: .5em; }
-.ck[aria-disabled="true"] { visibility: hidden; }
+/* lamp under the soft-key: off = dark green glass with a top highlight, on = lit green, mixed = short amber bar.
+   Built from registered colours (--c1 core, --c2 body, --h1 highlight, --g glow) so every state change fades. */
+.ck .cap::before { content: ""; width: 1em; height: .42em; border-radius: .1em;
+  --c1: transparent; --c2: transparent; --h1: #fff2; --led-on: transparent;
+  background: radial-gradient(100% 140% at 50% 30%, var(--c1), var(--c2) 55%), linear-gradient(var(--h1), transparent 60%), oklch(.3 .05 145);
+  --gb: .5em; --gs: .05em;
+  box-shadow: 0 0 var(--gb) var(--gs) var(--led-on), 0 0 0 1px rgb(0 0 0 / calc((1 - var(--lit)) * .7)), 0 1px 0 rgb(255 255 255 / calc((1 - var(--lit)) * .067));
+  transition: --c1 .2s var(--tr-ease-out), --c2 .2s var(--tr-ease-out), --h1 .2s var(--tr-ease-out), --led-on .2s var(--tr-ease-out), --lit .2s var(--tr-ease-out),
+    --gb .2s var(--tr-ease-out), --gs .2s var(--tr-ease-out), width .2s var(--tr-ease-out); }
+.ck[aria-checked="true"] .cap::before { --c1: #fff; --c2: var(--led-g); --h1: #fff0; --led-on: var(--led-g); --lit: 1; }
+.ck[aria-checked="mixed"] .cap::before { --c1: var(--led-a); --c2: var(--led-a); --h1: #fff0; --led-on: var(--led-a); --gb: .4em; --gs: 0em; --lit: 1; width: .5em; }
+.ck { transition: opacity .2s var(--tr-ease-out), visibility .2s; }
+.ck[aria-disabled="true"] { visibility: hidden; opacity: 0; }
 .ck::after { content: ""; position: absolute; inset: -.5em -.6em; } /* larger hit target */
 
 /* dialog: brushed aluminium panel */
 dialog { padding: 0; border: 0; background: none; color: inherit; max-width: calc(100vw - 24px); overflow: visible; }
 dialog::backdrop { background: oklch(.08 .005 255 / .62); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
-dialog[open] { animation: dlg .22s var(--tr-ease-out); }
-@keyframes dlg { from { opacity: 0; transform: translateY(.6em) scale(.985); } }
+/* open and close both animate: the panel rises in and the backdrop fades (display/overlay kept until the fade ends) */
+dialog { transition: opacity .22s var(--tr-ease-out), transform .22s var(--tr-ease-out), display .22s allow-discrete, overlay .22s allow-discrete; }
+dialog::backdrop { transition: opacity .22s var(--tr-ease-out), display .22s allow-discrete, overlay .22s allow-discrete; }
+dialog:not([open]) { opacity: 0; transform: translateY(.6em) scale(.985); }
+dialog:not([open])::backdrop { opacity: 0; }
+@starting-style { dialog[open] { opacity: 0; transform: translateY(.6em) scale(.985); } dialog[open]::backdrop { opacity: 0; } }
 .dlg { position: relative; isolation: isolate; width: min(32em, calc(100vw - 24px)); font-size: clamp(12px, 1vw, 14px); padding: 2em 2.1em 1.7em; border-radius: 1em; color: oklch(.25 .012 255);
   background:
   radial-gradient(16% 140% at calc(50% - var(--sx) * 38%) 50%, #fff5, transparent),
@@ -493,15 +554,23 @@ dialog[open] { animation: dlg .22s var(--tr-ease-out); }
 .dlg fieldset { border: 0; margin: 0 0 1.2em; padding: 0; display: grid; gap: .6em; }
 .dlg legend, .dlg .fl { font: 700 .72em/1 var(--f-lbl); letter-spacing: .2em; text-transform: uppercase; margin-bottom: .7em; padding: 0; display: block; }
 .jw { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .9em; padding: .55em .7em; min-height: 3.2em; border-radius: .6em; cursor: pointer;
+  transition: background-color .18s var(--tr-ease-out), box-shadow .18s var(--tr-ease-out);
   background: #0001; box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #0002, inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 #ffffff80; }
 .jw:hover { background: #ffffff1f; }
 .jw:has(:checked) { background: #00000017; box-shadow: inset calc(var(--sx) * 1px) calc(var(--sy) * 2px) 3px #0003, inset calc(var(--sx) * -1px) calc(var(--sy) * -1px) 0 #ffffff80; }
 .jw input { appearance: none; -webkit-appearance: none; margin: 0; position: relative; width: 2em; height: 2em; border-radius: 50%; cursor: pointer;
   background: var(--chrome); box-shadow: 0 0 0 1px #00000080, var(--cast-1); }
-.jw input::before { content: ""; position: absolute; inset: .28em; border-radius: 50%;
-  background: conic-gradient(from 20deg, #fff3, transparent 60deg, #ffffff1a 120deg, transparent 180deg, #ffffff29 240deg, transparent 300deg, #fff3), radial-gradient(circle at 45% 40%, oklch(.42 .1 145), oklch(.18 .06 145)); }
+.jw input::before { content: ""; position: absolute; inset: .28em; border-radius: 50%; transition: --lit .22s var(--tr-ease-out);
+  /* jewel lamp: facet sparkle strengthens and the glass lights up as --lit goes 0 to 1 (the off glass's 40% stop is its own sRGB midpoint) */
+  background:
+    conic-gradient(from 20deg, rgb(255 255 255 / calc(.2 + var(--lit) * .098)), transparent 60deg, rgb(255 255 255 / calc(.102 + var(--lit) * .098)) 120deg, transparent 180deg,
+      rgb(255 255 255 / calc(.161 + var(--lit) * .106)) 240deg, transparent 300deg, rgb(255 255 255 / calc(.2 + var(--lit) * .098))),
+    radial-gradient(circle at 45% 40%, color-mix(in oklch, #fff calc(var(--lit) * 100%), oklch(.42 .1 145)),
+      color-mix(in oklch, var(--led-g) calc(var(--lit) * 100%), color-mix(in srgb, oklch(.42 .1 145) 60%, oklch(.18 .06 145))) 40%,
+      color-mix(in oklch, oklch(.55 .19 145) calc(var(--lit) * 100%), oklch(.18 .06 145)));
+  box-shadow: 0 0 .8em .2em oklch(.86 .22 145 / calc(var(--lit) * .6)); }
 .jw input::after { content: ""; position: absolute; inset: .28em; border-radius: 50%; background: radial-gradient(circle at calc(50% - var(--sx) * 22%) calc(50% - var(--sy) * 22%), #fffd, transparent 28%); }
-.jw input:checked::before { background: conic-gradient(from 20deg, #ffffff4c, transparent 60deg, #fff3 120deg, transparent 180deg, #fff4 240deg, transparent 300deg, #ffffff4c), radial-gradient(circle at 45% 40%, #fff, var(--led-g) 40%, oklch(.55 .19 145)); box-shadow: 0 0 .8em .2em oklch(.86 .22 145 / .6); }
+.jw input:checked::before { --lit: 1; }
 .jw b { display: block; font: 700 1em/1.2 var(--f-lbl); letter-spacing: .08em; }
 .jw small { display: block; font-size: .85em; opacity: .78; }
 .ta { display: block; width: 100%; min-height: 5.5em; resize: vertical; padding: .75em .85em; border: 0; border-radius: .55em; outline: none;
@@ -514,7 +583,7 @@ dialog[open] { animation: dlg .22s var(--tr-ease-out); }
 .dlg .key:not(.primary) .cap { color: oklch(.25 .012 255); text-shadow: calc(var(--sx) * 1px) calc(var(--sy) * 1px) 0 #ffffff80;
   background: linear-gradient(var(--ld), #ffffff80, transparent 50%, #0000001a), linear-gradient(180deg, oklch(.86 .003 250), oklch(.74 .004 250)); }
 .dlg .key.primary .cap { color: oklch(.97 .02 145); text-shadow: 0 0 .5em oklch(.86 .2 145 / .6); background: linear-gradient(var(--ld), #fff2, transparent 45%, #0003), linear-gradient(180deg, oklch(.33 .007 255), oklch(.22 .007 255)); }
-.dlg .key.primary .cap::before { content: ""; position: static; width: .45em; height: .45em; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 50%); box-shadow: 0 0 .4em var(--led-g); }
+.dlg .key.primary .cap::before { content: ""; position: static; opacity: 1; width: .45em; height: .45em; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff, var(--led-g) 50%); box-shadow: 0 0 .4em var(--led-g); }
 
 /* caption */
 .tg-caption { padding-top: 32px; color: oklch(.88 .006 95); }
@@ -580,7 +649,7 @@ dialog[open] { animation: dlg .22s var(--tr-ease-out); }
   .tg-caption { padding-top: 24px; }
 }
 @media (max-width: 699.98px) { .stage { padding: 14px 10px 28px; } }
-@media (prefers-reduced-motion: reduce) { .menu, dialog[open], .alert.out { animation: none; } }
+
 @media (forced-colors: active) { .win, .mod, .key, .ck, .tk { border: 1px solid CanvasText; } .sd i:not(.on) { background: transparent; } }
 </style>
 </head>
@@ -675,7 +744,7 @@ dialog[open] { animation: dlg .22s var(--tr-ease-out); }
 
         <section class="mod m-tbl" aria-labelledby="h-tbl">
           <header class="mh"><h2 id="h-tbl">Top routes</h2><span class="meta" id="tbl-meta"></span>
-            <div class="push"><button class="key sm" id="reassign" aria-disabled="true"><span class="cap">Reassign riders</span></button><button class="key sm danger" id="hold" aria-disabled="true"><span class="cap">Hold routes</span></button></div>
+            <div class="push"><button class="key sm" id="reassign" aria-disabled="true"><span class="cap"><span class="kl">Reassign riders</span></span></button><button class="key sm danger" id="hold" aria-disabled="true"><span class="cap"><span class="kl">Hold routes</span></span></button></div>
           </header>
           <div class="routes">
             <table>
@@ -685,7 +754,7 @@ dialog[open] { animation: dlg .22s var(--tr-ease-out); }
             </table>
             <i class="flash" id="flash"></i><i class="gl"></i>
           </div>
-          <div class="ep-foot"><span id="sel-n"><b>0</b> selected</span><span id="ep-stamp">Panel refreshed 14:20</span></div>
+          <div class="ep-foot"><span id="sel-n"><b id="sel-c">0</b> selected</span><span id="ep-stamp">Panel refreshed 14:20</span></div>
         </section>
       </div>
     </div>
@@ -719,6 +788,36 @@ import { mountBar, animate, feedback, RotaryController, LinearController, PressC
 mountBar({ title: "Meridian dashboard", subtitle: "Graphite instrument panel, chrome bezels, backlit displays", tone: "dark" });
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const RM = () => reduceMotion.matches;
+
+/* Text that changes never just pops: a ghost of the old text fades out in place over the new text
+   fading in, and a box that changes width eases to it, so nothing beside it jumps. */
+function xswap(el, val, { html = false, ms = 200, easing = "ease-out" } = {}) {
+  if (!html && !val) val = "\u200b"; // an emptied box keeps its line, so it can shrink smoothly instead of collapsing
+  if (!el || (html ? el.innerHTML === val : el.textContent === val)) return;
+  const apply = () => { if (html) el.innerHTML = val; else el.textContent = val; };
+  if (RM() || !el.isConnected || !el.getClientRects().length) return apply();
+  const r0 = el.getBoundingClientRect(), cs = getComputedStyle(el), op = +cs.opacity, inline = cs.display === "inline";
+  // the ghost takes the old nodes themselves, so nothing that was on screen is destroyed mid-fade
+  const g = el.cloneNode(false);
+  g.removeAttribute("id"); g.setAttribute("aria-hidden", "true"); g.inert = true;
+  g.append(...el.childNodes);
+  apply();
+  const r1 = el.getBoundingClientRect();
+  Object.assign(g.style, { position: "absolute", left: "0px", top: "0px", width: r0.width + "px", height: r0.height + "px", margin: "0", maxWidth: "none", whiteSpace: "nowrap", pointerEvents: "none" });
+  el.after(g);
+  const gr = g.getBoundingClientRect();
+  g.style.left = r0.left - gr.left + "px"; g.style.top = r0.top - gr.top + "px";
+  g.animate([{ opacity: op }, { opacity: 0 }], { duration: ms, easing, fill: "forwards" }).finished.then(() => g.remove(), () => g.remove());
+  el.animate([{ opacity: 0 }, { opacity: op }], { duration: ms, easing });
+  if (!inline && Math.abs(r1.width - r0.width) > .5) {
+    // single-line text stays on one line while its box eases wider, so nothing below gets pushed
+    const one = r1.height <= r0.height + 1 && cs.whiteSpace !== "nowrap";
+    if (one) el.style.whiteSpace = "nowrap";
+    el.animate([{ width: r0.width + "px" }, { width: r1.width + "px" }], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" })
+      .finished.finally(() => { if (one) el.style.whiteSpace = ""; }).catch(() => {});
+  }
+}
+const VFD = { ms: 180, easing: "steps(3)" }; // the status line flickers over like a vacuum-fluorescent display
 
 /* ------------ sample data model (seeded, internally consistent) ------------ */
 const HRS = Array.from({ length: 16 }, (_, i) => i + 7); // 07..22
@@ -848,15 +947,18 @@ function segWrite(D, v, dec) {
   });
 }
 const ease = (t) => 1 - Math.pow(1 - t, 3);
-function tweenNum(D, to, dec, ms = 520) {
+// dip: a refresh makes the reading sag by that share and climb back, instead of jumping down first
+function tweenNum(D, to, dec, ms = 520, dip = 0) {
   D.stop?.();
-  const from = D.cur ?? to;
-  if (RM() || from === to || D.shown == null) { D.cur = to; D.shown = to; segWrite(D, to, dec); return; }
+  const from = D.cur ?? to, decFrom = D.dec ?? dec;
+  if (RM() || (from === to && !dip && decFrom === dec) || D.shown == null) { D.cur = to; D.shown = to; D.dec = dec; segWrite(D, to, dec); return; }
   let t = 0;
   D.stop = animate((dt) => {
     t = Math.min(1, t + dt * 1000 / ms);
-    D.cur = from + (to - from) * ease(t);
-    segWrite(D, t < 1 ? D.cur : to, dec);
+    D.cur = (from + (to - from) * ease(t)) * (1 - dip * Math.sin(Math.PI * t));
+    // the decimal point moves halfway through the count, not on the first frame
+    D.dec = t < .5 ? decFrom : dec;
+    segWrite(D, t < 1 ? D.cur : to, D.dec);
     if (t >= 1) { D.cur = to; D.stop = null; return false; }
   });
   D.shown = to;
@@ -868,18 +970,18 @@ for (let k = 0; k < 4; k++) {
   const c = document.createElement("div"); c.className = "kpi"; c.setAttribute("role", "group");
   c.innerHTML = `<div class="vtx"></div><div class="krow"><div class="sn"></div><span class="vtx"></span></div><div class="vtx dim"><span></span></div><span class="tr-sr"></span>`;
   kpiEl.append(c);
-  KP.push({ c, l: c.firstChild, D: segDisplay(c.querySelector(".sn"), 5), u: c.querySelector(".krow .vtx"), d: c.querySelector(".dim span"), sr: c.querySelector(".tr-sr") });
+  KP.push({ c, l: c.firstChild, D: segDisplay(c.querySelector(".sn"), 5), u: c.querySelector(".krow .vtx"), d: c.querySelector(".dim"), sr: c.querySelector(".tr-sr") });
 }
-function renderKpis(m) {
+function renderKpis(m, dip = 0) {
   kpiSet(m).forEach((k, i) => {
     const P = KP[i];
-    P.l.textContent = k.l; P.u.textContent = k.u;
-    P.d.className = k.d.dir; P.d.textContent = k.d.txt;
-    if (!k.dec && k.v >= 99999.5) { k.v /= 1000; k.dec = 1; k.u = "k " + k.u; P.u.textContent = k.u; }
-    tweenNum(P.D, k.dec ? +k.v.toFixed(k.dec) : Math.round(k.v), k.dec);
+    if (!k.dec && k.v >= 99999.5) { k.v /= 1000; k.dec = 1; k.u = "k " + k.u; }
+    xswap(P.l, k.l); xswap(P.u, k.u);
+    xswap(P.d, `<span class="${k.d.dir}">${k.d.txt}</span>`, { html: true });
+    tweenNum(P.D, k.dec ? +k.v.toFixed(k.dec) : Math.round(k.v), k.dec, 520, dip);
     P.sr.textContent = `${k.l}: ${k.v.toLocaleString("en-GB", { maximumFractionDigits: k.dec })} ${k.u}, ${k.d.dir === "up" ? "up" : "down"} ${k.d.txt}`;
   });
-  $("#kpi-meta").textContent = S.range === "today" ? "Today so far, 07:00 – 14:20" : RANGES[S.range].n + " to Sat 14 Nov";
+  xswap($("#kpi-meta"), S.range === "today" ? "Today so far, 07:00 – 14:20" : RANGES[S.range].n + " to Sat 14 Nov");
 }
 
 /* ------------ LED ladders ------------ */
@@ -916,75 +1018,119 @@ function renderLadders(m) {
 }
 
 /* ------------ OLED chart ------------ */
-const chartEl = $("#chart"), svg = $("#csvg"), tip = $("#tip");
-const CH = { shown: null, from: null, to: null, prev: null, t: 1, stop: null, hover: -1 };
+// The chart is a fixed set of SVG nodes updated in place every frame (keyed, never rebuilt), and every
+// quantity it draws is tweened: the two lines, the y scale (grid sets cross-fade when the step changes),
+// how far along the day the line reaches, and "today-ness" (the now marker, the dashed pace segment and
+// the legend wording fade between the today and average-day layouts).
+const chartEl = $("#chart"), svg = $("#csvg"), tip = $("#tip"), NS = "http://www.w3.org/2000/svg";
+const CH = { cur: null, prev: null, top: 0, grid: [], reach: 0, td: 0, stop: null, hover: -1 };
+svg.innerHTML = `<defs><linearGradient id="fa" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="oklch(.9 .16 162)" stop-opacity=".42"/><stop offset="1" stop-color="oklch(.9 .16 162)" stop-opacity=".02"/></linearGradient></defs><g></g>`;
+const cg = svg.lastChild, NODES = new Map();
+function paint(list) {
+  const seen = new Set(); let prev = null;
+  for (const [k, tag, at, tx] of list) {
+    seen.add(k);
+    let el = NODES.get(k);
+    if (!el) { el = document.createElementNS(NS, tag); NODES.set(k, el); }
+    for (const a in at) { const v = String(at[a]); if (el.getAttribute(a) !== v) el.setAttribute(a, v); }
+    if (tx != null && el.textContent !== tx) el.textContent = tx;
+    const want = prev ? prev.nextSibling : cg.firstChild;
+    if (want !== el) cg.insertBefore(el, want);
+    prev = el;
+  }
+  for (const [k, el] of NODES) if (!seen.has(k)) { el.remove(); NODES.delete(k); }
+}
 const nice = (mx) => { const st = [10, 20, 25, 50, 100]; for (const s of st) if (mx / s <= 4.5) return s; return 100; };
+const scaleFor = (cur, prev) => { const mx = Math.max(...prev, ...cur.map((v) => v ?? 0)) * 1.06, step = nice(mx); return { top: Math.ceil(mx / step) * step, step }; };
+const lastIdx = (a) => a.reduce((j, v, i) => v == null ? j : i, -1);
 function drawChart() {
   const W = chartEl.clientWidth, H = chartEl.clientHeight;
-  if (!W) return;
-  const cur = CH.shown, prev = CH.prev, ph = W < 480;
+  if (!W || !CH.cur) return;
+  const cur = CH.cur, prev = CH.prev, ph = W < 480, td = CH.td, top = CH.top;
   const L = 44, Rp = 16, T = ph ? 40 : 34, B = 30, iw = W - L - Rp, ih = H - T - B;
-  const mx = Math.max(...prev, ...cur.map((v) => v ?? 0)) * 1.06, step = nice(mx), top = Math.ceil(mx / step) * step;
-  const x = (i) => L + i * iw / (HRS.length - 1), y = (v) => T + ih - v / top * ih;
-  let g = `<defs><linearGradient id="fa" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="oklch(.9 .16 162)" stop-opacity=".42"/><stop offset="1" stop-color="oklch(.9 .16 162)" stop-opacity=".02"/></linearGradient></defs><g class="grid">`;
-  for (let v = 0; v <= top; v += step) g += `<line x1="${L}" x2="${W - Rp}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
-  g += `</g>`;
-  HRS.forEach((h, i) => { if (i % (ph ? 3 : 2) === 0) g += `<text class="ax" x="${x(i)}" y="${H - 9}" text-anchor="middle">${String(h).padStart(2, "0")}</text>`; });
-  const pts = cur.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean);
-  const today = S.range === "today";
-  const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join("");
-  const solid = today ? pts.slice(0, -1).map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join("") : line;
-  const pl = prev.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join("");
-  g += `<path d="${pl}" fill="none" stroke="oklch(.75 .12 162)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".75"/>`;
+  const x = (i) => L + i * iw / (HRS.length - 1), y = (v) => T + ih - v / top * ih, f = (n) => n.toFixed(1);
+  const path = (pts) => pts.map((p, i) => (i ? "L" : "M") + f(p[0]) + " " + f(p[1])).join("");
+  const op = (o) => +o.toFixed(3);
+  const out = [];
+  for (const g of CH.grid) for (let v = 0; v <= top + g.step * .3; v += g.step) {
+    const o = g.a * clamp(1 - (v - top) / (g.step * .3), 0, 1);
+    if (o <= .001) continue;
+    out.push([`gl${g.step}:${v}`, "line", { class: "gl", x1: L, x2: W - Rp, y1: f(y(v)), y2: f(y(v)), opacity: op(o) }],
+      [`gt${g.step}:${v}`, "text", { class: "ax", x: L - 8, y: f(y(v) + 4), "text-anchor": "end", opacity: op(o) }, String(v)]);
+  }
+  HRS.forEach((h, i) => { if (i % (ph ? 3 : 2) === 0) out.push([`xl${i}`, "text", { class: "ax", x: f(x(i)), y: H - 9, "text-anchor": "middle" }, String(h).padStart(2, "0")]); });
+  out.push(["prev", "path", { d: path(prev.map((v, i) => [x(i), y(v)])), fill: "none", stroke: "oklch(.75 .12 162)", "stroke-width": 1.5, "stroke-dasharray": "4 4", opacity: .75 }]);
+  // the line runs to CH.reach, which can sit between two hours while the day grows or shrinks
+  const r = CH.reach, ri = Math.floor(r), pts = [];
+  for (let i = 0; i <= ri; i++) pts.push([x(i), y(cur[i])]);
+  if (r - ri > .001 && cur[ri + 1] != null) { const fr = r - ri; pts.push([x(ri) + (x(ri + 1) - x(ri)) * fr, y(cur[ri] + (cur[ri + 1] - cur[ri]) * fr)]); }
   if (pts.length) {
-    const last = pts.at(-1);
-    g += `<path d="${line}L${last[0].toFixed(1)} ${T + ih}L${L} ${T + ih}Z" fill="url(#fa)"/>`;
-    g += `<path d="${solid}" fill="none" stroke="oklch(.9 .16 162)" stroke-width="7" opacity=".16" stroke-linejoin="round"/>`;
-    g += `<path d="${solid}" fill="none" stroke="oklch(.93 .15 162)" stroke-width="2" stroke-linejoin="round"/>`;
-    if (today && pts.length > 1) { const a = pts.at(-2), b = pts.at(-1); g += `<path d="M${a[0]} ${a[1]}L${b[0]} ${b[1]}" fill="none" stroke="oklch(.93 .15 162)" stroke-width="2" stroke-dasharray="3 3"/>`; }
-    // peak label
-    let pi = 0; cur.forEach((v, i) => { if (v != null && (!today || i < NOW_I) && v > (cur[pi] ?? 0)) pi = i; });
+    const last = pts.at(-1), cut = Math.min(NOW_I, pts.length) - 1;
+    out.push(["area", "path", { d: `${path(pts)}L${f(last[0])} ${T + ih}L${L} ${T + ih}Z`, fill: "url(#fa)" }]);
+    // today: the hour in progress is a dashed pace segment; average day: one solid line
+    const head = td > 0 ? pts.slice(0, cut + 1) : pts, tail = td > 0 && td < 1 ? pts.slice(cut) : [];
+    const stroke = (k, d, o) => out.push([k + "g", "path", { d, fill: "none", stroke: "oklch(.9 .16 162)", "stroke-width": 7, opacity: op(.16 * o), "stroke-linejoin": "round" }],
+      [k, "path", { d, fill: "none", stroke: "oklch(.93 .15 162)", "stroke-width": 2, "stroke-linejoin": "round", opacity: op(o) }]);
+    stroke("solid", path(head), 1);
+    if (tail.length > 1) stroke("tail", path(tail), 1 - td);
+    if (td > 0 && pts.length > cut + 1) out.push(["pace", "path", { d: path(pts.slice(cut, cut + 2)), fill: "none", stroke: "oklch(.93 .15 162)", "stroke-width": 2, "stroke-dasharray": "3 3", opacity: op(td) }]);
+    let pi = 0; for (let i = 0; i < pts.length && i <= ri; i++) if ((td < .5 || i < NOW_I) && cur[i] > (cur[pi] ?? 0)) pi = i;
     const pk = [x(pi), y(cur[pi])];
-    g += `<circle cx="${pk[0]}" cy="${pk[1]}" r="3.5" fill="oklch(.95 .12 162)"/><text x="${pk[0]}" y="${pk[1] - 10}" text-anchor="middle" fill="oklch(.95 .1 162)">Peak ${Math.round(cur[pi])}</text>`;
-    if (today) {
-      g += `<g class="now"><line x1="${last[0]}" x2="${last[0]}" y1="${T - 4}" y2="${T + ih}"/></g><circle cx="${last[0]}" cy="${last[1]}" r="4" fill="oklch(.06 .003 200)" stroke="oklch(.93 .15 162)" stroke-width="2"/><text x="${last[0] + 7}" y="${T - 6}">now ${clock().slice(0, 5)} · pace</text>`;
+    out.push(["pkd", "circle", { cx: f(pk[0]), cy: f(pk[1]), r: 3.5, fill: "oklch(.95 .12 162)" }],
+      ["pkt", "text", { x: f(pk[0]), y: f(pk[1] - 10), "text-anchor": "middle", fill: "oklch(.95 .1 162)" }, `Peak ${Math.round(cur[pi])}`]);
+    if (td > .001 && cur[NOW_I] != null) {
+      const nx = x(NOW_I), ny = y(cur[NOW_I]);
+      out.push(["nowl", "line", { class: "nowl", x1: f(nx), x2: f(nx), y1: T - 4, y2: T + ih, opacity: op(.7 * td) }],
+        ["nowd", "circle", { cx: f(nx), cy: f(ny), r: 4, fill: "oklch(.06 .003 200)", stroke: "oklch(.93 .15 162)", "stroke-width": 2, opacity: op(td) }],
+        ["nowt", "text", { x: f(nx + 7), y: T - 6, opacity: op(td) }, `now ${clock().slice(0, 5)} · pace`]);
     }
   }
-  // legend
-  const lx = ph ? L : W - Rp - 270;
-  g += `<g transform="translate(${lx} 16)"><rect width="16" height="8" y="-7" fill="oklch(.9 .16 162)" opacity=".85"/><text x="22" y="1">${S.range === "today" ? "Today" : "Avg day"}</text>` +
-       `<line x1="${ph ? 100 : 110}" x2="${ph ? 120 : 130}" y1="-3" y2="-3" stroke="oklch(.75 .12 162)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="${ph ? 126 : 136}" y="1">${S.range === "today" ? "Last Saturday" : "Prior period"}</text></g>`;
+  // legend, its wording cross-faded between the two layouts
+  const lx = ph ? L : W - Rp - 270, words = [["Today", "Last Saturday", td], ["Avg day", "Prior period", 1 - td]];
+  out.push(["lgr", "rect", { x: lx, y: 9, width: 16, height: 8, fill: "oklch(.9 .16 162)", opacity: .85 }],
+    ["lgl", "line", { x1: lx + (ph ? 100 : 110), x2: lx + (ph ? 120 : 130), y1: 13, y2: 13, stroke: "oklch(.75 .12 162)", "stroke-width": 1.5, "stroke-dasharray": "4 4" }]);
+  for (const [a, b, o] of words) if (o > .001) out.push([`lg1${a}`, "text", { x: lx + 22, y: 17, opacity: op(o) }, a], [`lg2${b}`, "text", { x: lx + (ph ? 126 : 136), y: 17, opacity: op(o) }, b]);
   if (CH.hover >= 0) {
-    const i = CH.hover, v = cur[i];
-    g += `<line x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${T + ih}" stroke="#fff" stroke-opacity=".55"/>`;
-    if (v != null) g += `<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="#fff"/>`;
-    g += `<circle cx="${x(i)}" cy="${y(prev[i])}" r="3.5" fill="none" stroke="#fff" stroke-width="1.5"/>`;
+    const i = CH.hover, v = i <= r ? cur[i] : null;
+    out.push(["hl", "line", { x1: f(x(i)), x2: f(x(i)), y1: T, y2: T + ih, stroke: "#fff", "stroke-opacity": .55 }]);
+    if (v != null) out.push(["hd", "circle", { cx: f(x(i)), cy: f(y(v)), r: 4.5, fill: "#fff" }]);
+    out.push(["hp", "circle", { cx: f(x(i)), cy: f(y(prev[i])), r: 3.5, fill: "none", stroke: "#fff", "stroke-width": 1.5 }]);
     tip.hidden = false;
     tip.innerHTML = `${String(HRS[i]).padStart(2, "0")}:00–${String(HRS[i] + 1).padStart(2, "0")}:00<br>${v == null ? "not yet" : S.range === "today" && i === NOW_I ? `${Math.round(M.sofar)} so far · pace ${Math.round(v)}/h` : Math.round(v) + " deliveries"}<br><span style="opacity:.75">${Math.round(prev[i])} ${S.range === "today" ? "last Sat" : "prior"}</span>`;
     const tw = tip.offsetWidth, tx = x(i) + 12 + tw > W - 6 ? x(i) - 12 - tw : x(i) + 12;
     tip.style.left = tx + "px"; tip.style.top = (T + 6) + "px";
   } else tip.hidden = true;
-  svg.innerHTML = g;
+  paint(out);
 }
-function renderChart(m) {
-  const to = m.cur, prev = m.prev;
-  CH.prev = prev;
-  CH.stop?.();
-  if (!CH.shown || RM()) { CH.shown = to.slice(); drawChart(); }
+function renderChart(m, dip = 0) {
+  const to = m.cur, toPrev = m.prev, sc = scaleFor(to, toPrev), reach = lastIdx(to), td = S.range === "today" ? 1 : 0;
+  CH.stop?.(); CH.stop = null;
+  const settle = () => { Object.assign(CH, { cur: to.slice(), prev: toPrev.slice(), top: sc.top, grid: [{ step: sc.step, a: 1 }], reach, td }); drawChart(); };
+  if (!CH.cur || RM()) settle();
   else {
-    const from = CH.shown.slice(), t0 = { t: 0 };
+    const f = { cur: CH.cur.slice(), prev: CH.prev.slice(), top: CH.top, grid: CH.grid, reach: CH.reach, td: CH.td }, ms = dip ? 640 : 420;
+    let t = 0;
     CH.stop = animate((dt) => {
-      t0.t = Math.min(1, t0.t + dt / .42); const e = ease(t0.t);
-      CH.shown = to.map((v, i) => v == null ? (from[i] != null && t0.t < .5 ? from[i] * (1 - t0.t * 2) : null) : (from[i] ?? 0) + (v - (from[i] ?? 0)) * e);
+      t = Math.min(1, t + dt * 1000 / ms);
+      if (t >= 1) { CH.stop = null; settle(); return false; }
+      const e = ease(t), d = 1 - dip * Math.sin(Math.PI * t);
+      // an hour that only one side has keeps that side's value; the reach decides whether it shows
+      CH.cur = to.map((v, i) => { const a = f.cur[i], w = v == null ? a : a == null ? v : a + (v - a) * e; return w == null ? null : w * d; });
+      CH.prev = toPrev.map((v, i) => f.prev[i] + (v - f.prev[i]) * e);
+      CH.top = f.top + (sc.top - f.top) * e;
+      CH.reach = f.reach + (reach - f.reach) * e;
+      CH.td = f.td + (td - f.td) * e;
+      let has = false;
+      CH.grid = f.grid.map((g) => g.step === sc.step ? (has = true, { step: g.step, a: g.a + (1 - g.a) * e }) : { step: g.step, a: g.a * (1 - e) });
+      if (!has) CH.grid.push({ step: sc.step, a: e });
       drawChart();
-      if (t0.t >= 1) { CH.shown = to.slice(); drawChart(); CH.stop = null; return false; }
     });
   }
   const done = to.filter((v, i) => v != null && (S.range !== "today" || i < NOW_I)), pk = Math.max(...done);
   chartEl.setAttribute("aria-label", `Area chart, ${S.range === "today" ? "deliveries per hour today" : "average deliveries per hour"}, ${REG_N[S.region]}. Peak ${Math.round(pk)} at ${HRS[to.indexOf(done.find((v) => v === pk))]}:00. Use arrow keys to read each hour.`);
-  $("#chart-meta").textContent = S.range === "today" ? "Today vs last Saturday" : `Average day, ${RANGES[S.range].n} vs prior period`;
+  xswap($("#chart-meta"), S.range === "today" ? "Today vs last Saturday" : `Average day, ${RANGES[S.range].n} vs prior period`);
 }
-new ResizeObserver(() => CH.shown && drawChart()).observe(chartEl);
+new ResizeObserver(() => CH.cur && drawChart()).observe(chartEl);
 const hoverAt = (cx) => { const r = chartEl.getBoundingClientRect(), L = 44, iw = r.width - 60; CH.hover = clamp(Math.round((cx - r.left - L) / iw * (HRS.length - 1)), 0, HRS.length - 1); drawChart(); };
 chartEl.addEventListener("pointermove", (e) => hoverAt(e.clientX));
 chartEl.addEventListener("pointerdown", (e) => hoverAt(e.clientX));
@@ -1028,8 +1174,8 @@ function renderGauge(m) {
   const g = $("#gauge");
   g.setAttribute("aria-valuenow", pct.toFixed(0));
   g.setAttribute("aria-valuetext", `${pct.toFixed(0)}%, ${m.onRoad} of ${m.fleet} bikes on the road`);
-  $("#odo").textContent = `${m.onRoad}/${m.fleet} BIKES`;
-  $("#g-meta").textContent = S.range === "today" ? `${m.charging} charging · ${m.shop} in workshop` : "Average over operating hours";
+  xswap($("#odo"), `${m.onRoad}/${m.fleet} BIKES`);
+  xswap($("#g-meta"), S.range === "today" ? `${m.charging} charging · ${m.shop} in workshop` : "Average over operating hours");
 }
 
 /* ------------ e-paper table + soft keys ------------ */
@@ -1058,11 +1204,11 @@ function syncKeys() {
 function selUI() {
   RK.forEach((k) => k.tr.classList.toggle("sel", !!k.id && S.sel.has(k.id)));
   const n = S.sel.size, vis = VIS.filter((r) => S.sel.has(r.id)).length;
-  $("#sel-n").innerHTML = `<b>${n}</b> selected`;
+  xswap($("#sel-c"), String(n));
   $("#ck-all").setAttribute("aria-checked", vis === 0 ? "false" : vis === VIS.length ? "true" : "mixed");
   for (const id of ["reassign", "hold"]) $("#" + id).setAttribute("aria-disabled", String(n === 0));
-  $("#reassign .cap").textContent = n ? `Reassign riders (${n})` : "Reassign riders";
-  $("#hold .cap").textContent = n ? `Hold routes (${n})` : "Hold routes";
+  xswap($("#reassign .kl"), n ? `Reassign riders (${n})` : "Reassign riders");
+  xswap($("#hold .kl"), n ? `Hold routes (${n})` : "Hold routes");
 }
 const spark = (r) => { const R0 = rng(r.id + S.range); let v = 50, pts = []; for (let i = 0; i < 7; i++) { v += (R0() - .45 + r.otd * .02) * 14; pts.push(v); }
   const mn = Math.min(...pts), mx = Math.max(...pts), Y = (p) => 20 - (p - mn) / (mx - mn || 1) * 16;
@@ -1098,14 +1244,19 @@ function fillTable(m) {
   syncKeys(); selUI();
   const inp = $("#search"), none = S.q.trim() && !VIS.length;
   inp.setAttribute("aria-invalid", String(!!none));
-  $("#tbl-meta").textContent = none ? "No matching routes" : `By drops · ${RANGES[S.range].n} · ${REG_N[S.region]}`;
-  const t = clock(); $("#ep-stamp").textContent = `Panel refreshed ${t.slice(0, 5)}`;
+  xswap($("#tbl-meta"), none ? "No matching routes" : `By drops · ${RANGES[S.range].n} · ${REG_N[S.region]}`);
+  const t = clock(); xswap($("#ep-stamp"), `Panel refreshed ${t.slice(0, 5)}`);
 }
+// The e-paper redraws under a dark flash: rows swap while the flash covers them. The swap waits on an
+// animation (not a timer), so it keeps time with the flash, and redraws asked for mid-flash share it.
 const flashEl = $("#flash");
+let fillJob = null;
 function renderTable(m, flash = true) {
-  if (!flash || RM()) return fillTable(m);
+  if (!flash || RM()) { fillJob = null; return fillTable(m); }
+  if (fillJob) { fillJob.m = m; return; }
+  const job = fillJob = { m };
   flashEl.animate([{ opacity: 0 }, { opacity: .92, offset: .3 }, { opacity: .92, offset: .45 }, { opacity: 0 }], { duration: 300, easing: "linear" });
-  setTimeout(() => fillTable(m), 110);
+  flashEl.animate([], { duration: 110 }).finished.then(() => { if (fillJob === job) { fillJob = null; fillTable(job.m); } }, () => {});
 }
 
 /* ------------ status line ------------ */
@@ -1113,17 +1264,16 @@ const clock = () => { const s = S.clock; return [s / 3600 | 0, (s / 60 | 0) % 60
 let stT;
 function status(msg, beep) {
   const el = $("#status"), dot = $("#st-dot");
-  el.textContent = msg; dot.classList.add("on");
-  if (!RM()) el.animate([{ opacity: .2 }, { opacity: 1 }], { duration: 160, easing: "steps(3)" });
+  xswap(el, msg, VFD); dot.classList.add("on");
   if (beep) feedback.play("beep", { intensity: .6 });
   clearTimeout(stT); stT = setTimeout(() => dot.classList.remove("on"), 1400);
 }
 
 /* ------------ render all ------------ */
 let M;
-function render({ table = true, flash = true } = {}) {
+function render({ table = true, flash = true, dip = false } = {}) {
   M = compute();
-  renderKpis(M); renderLadders(M); renderChart(M); renderGauge(M);
+  renderKpis(M, dip ? .1 : 0); renderLadders(M); renderChart(M, dip ? .15 : 0); renderGauge(M);
   if (table) renderTable(M, flash);
 }
 
@@ -1138,7 +1288,7 @@ const tabCtl = TABS.map((b) => {
 });
 function setTab(t) {
   if (S.tab === t) return;
-  S.tab = t; $("#vtitle").textContent = TAB_T[t];
+  S.tab = t; xswap($("#vtitle"), TAB_T[t]);
   $("#view").setAttribute("aria-labelledby", "t-" + t);
   renderKpis(M); status(`View ${TAB_T[t]}`);
 }
@@ -1160,7 +1310,7 @@ function closeMenu(focus = true) { if (rl.hidden) return; rl.hidden = true; rb.s
 function pick(i) {
   const v = opts[i].dataset.v; closeMenu();
   opts.forEach((o, k) => o.setAttribute("aria-selected", String(k === i)));
-  $("#range-val").textContent = RANGES[v].n;
+  xswap($("#range-val"), RANGES[v].n);
   if (v !== S.range) { S.range = v; feedback.play("detent"); render(); status(`Range ${RANGES[v].n} · ${REG_N[S.region]}`); }
 }
 opts.forEach((o, k) => o.setAttribute("aria-selected", String(o.dataset.v === S.range)));
@@ -1203,26 +1353,32 @@ function tick() {
   for (const z of Object.keys(S.extra)) S.extra[z] += r() < .75 ? 1 + (r() * Z[z].base / 30 | 0) : 0;
   S.jit = clamp(S.jit + (r() - .5) * .25, -1, 1); S.uj = clamp(S.uj + (r() - .5) * .03, -.08, .08); S.clock += 15;
   render({ table: false });
-  $("#status").textContent = `Live ${clock()} · ${Math.round(M.tot).toLocaleString("en-GB")} deliveries`;
+  xswap($("#status"), `Live ${clock()} · ${Math.round(M.tot).toLocaleString("en-GB")} deliveries`, VFD);
 }
 document.addEventListener("visibilitychange", () => document.hidden ? stopLive() : startLive(false));
 reduceMotion.addEventListener?.("change", () => RM() ? stopLive("Live paused · reduced motion") : startLive(true));
 
 /* ------------ search ------------ */
 const sIn = $("#search");
-sIn.addEventListener("input", () => { S.q = sIn.value; feedback.play("tick", { intensity: .25, minGapMs: 30 }); fillTable(M); });
-sIn.addEventListener("keydown", (e) => { if (e.key === "Escape" && sIn.value) { sIn.value = ""; S.q = ""; fillTable(M); } });
+sIn.addEventListener("input", () => { S.q = sIn.value; feedback.play("tick", { intensity: .25, minGapMs: 30 }); renderTable(M); });
+sIn.addEventListener("keydown", (e) => { if (e.key === "Escape" && sIn.value) { sIn.value = ""; S.q = ""; renderTable(M); } });
 
 /* ------------ buttons ------------ */
 const btn = (id, o) => new PressController($(id), { sound: "key", soundUp: "keyUp", ...o });
 btn("#refresh", { sound: "click", onActivate: () => {
   const d = $("#refresh"); d.classList.remove("spin"); void d.offsetWidth; d.classList.add("spin");
-  KP.forEach((P) => { P.D.cur = P.D.cur * .9; }); CH.shown = CH.shown.map((v) => v == null ? null : v * .85);
-  render(); status(`Synced ${clock()}`, true);
+  render({ dip: true }); status(`Synced ${clock()}`, true);
 } });
 btn("#dismiss", { sound: "clack", onActivate: () => {
-  const a = $("#alert"); a.classList.add("out"); status("Alert dismissed");
-  setTimeout(() => { a.remove(); $("#export").focus(); }, RM() ? 0 : 260);
+  const a = $("#alert"); status("Alert dismissed");
+  const gone = () => { a.remove(); $("#export").focus(); };
+  if (RM() || !a.isConnected) return gone();
+  // fade and lift away, then fold the space shut so the modules below glide up instead of jumping
+  const cs = getComputedStyle(a), h = a.offsetHeight + "px", box = { height: h, marginBottom: cs.marginBottom, paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom };
+  a.style.pointerEvents = "none";
+  a.animate([{ ...box, opacity: 1, transform: "none" }, { ...box, opacity: 0, transform: "translateY(-.4em) scale(.99)", offset: .4 },
+    { height: "0px", marginBottom: "0px", paddingTop: "0px", paddingBottom: "0px", opacity: 0, transform: "translateY(-.4em) scale(.99)" }],
+    { duration: 520, easing: "cubic-bezier(.3,.6,.2,1)", fill: "forwards" }).finished.then(gone, gone);
 } });
 function bulk(kind) {
   if (!S.sel.size) return;

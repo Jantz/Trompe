@@ -146,8 +146,10 @@ export class TrMeter extends TrompeElement {
         min-width: 0;
         --_axis: to right;
         --_cross: to bottom;
-        --_v: 0;
+        --_mv: 0;
         --_pi: -1;
+        /* --_mv is registered: segments light in a quick sweep, like a meter's ballistics */
+        transition: --_mv var(--tr-motion-duration-lamp, 90ms) linear;
       }
       :host([orientation='vertical']) .band,
       :host([mode='spectrum']) .band {
@@ -196,13 +198,13 @@ export class TrMeter extends TrompeElement {
       .lit {
         position: absolute;
         inset: 0;
-        clip-path: inset(calc((1 - var(--_v)) * 100%) -1em -1em -1em);
+        clip-path: inset(calc((1 - var(--_mv)) * 100%) -1em -1em -1em);
       }
       :host(:not([orientation='vertical']):not([mode='spectrum'])) .lit {
-        clip-path: inset(-1em calc((1 - var(--_v)) * 100%) -1em -1em);
+        clip-path: inset(-1em calc((1 - var(--_mv)) * 100%) -1em -1em);
       }
       :host(:not([orientation='vertical']):not([mode='spectrum'])) .band:dir(rtl) .lit {
-        clip-path: inset(-1em -1em -1em calc((1 - var(--_v)) * 100%));
+        clip-path: inset(-1em -1em -1em calc((1 - var(--_mv)) * 100%));
       }
       .peak {
         position: absolute;
@@ -488,7 +490,7 @@ export class TrMeter extends TrompeElement {
       const lit = Math.round(f * n);
       const band = this.bandEls[i]!;
       if (lit !== this.shownLit[i]) {
-        band.style.setProperty('--_v', String(lit / n));
+        band.style.setProperty('--_mv', String(lit / n));
         this.shownLit[i] = lit;
       }
       const peakEl = this.peakEls[i];

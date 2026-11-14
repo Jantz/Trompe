@@ -93,7 +93,10 @@ export class TrButton extends FormControl {
         transition:
           --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
           translate var(--tr-motion-duration-return, 354ms) var(--tr-motion-easing-return, ease-out),
-          background-color var(--tr-motion-duration-release, 160ms);
+          background-color var(--tr-motion-duration-release, 160ms),
+          color var(--tr-motion-duration-release, 160ms),
+          border-color var(--tr-motion-duration-release, 160ms),
+          opacity var(--tr-motion-duration-release, 160ms);
       }
       :host([tone='accent']) .surface {
         --_base: var(--tr-color-accent);
@@ -143,7 +146,10 @@ export class TrButton extends FormControl {
         border-radius: 50%;
         background: color-mix(in oklch, var(--_ink) 25%, transparent);
         box-shadow: inset 0 1px 1px color-mix(in oklch, var(--_sh) 40%, transparent);
-        transition: background-color var(--tr-motion-duration-release, 160ms), box-shadow var(--tr-motion-duration-release, 160ms);
+        transition:
+          background-color var(--tr-motion-duration-release, 160ms),
+          box-shadow var(--tr-motion-duration-release, 160ms),
+          opacity var(--tr-motion-duration-release, 160ms) ease-out;
       }
       :host([pressed]) .lamp {
         background: var(--tr-button-lamp-color, var(--tr-color-accent));
@@ -159,8 +165,7 @@ export class TrButton extends FormControl {
         position: relative;
       }
       ::slotted(*),
-      .label,
-      .lamp {
+      .label {
         transition: opacity var(--tr-motion-duration-release, 160ms) ease-out;
       }
       :host([loading]) .label,

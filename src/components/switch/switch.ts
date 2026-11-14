@@ -79,7 +79,10 @@ export class TrSwitch extends FormControl {
         width: var(--_w);
         height: var(--_h);
         border-radius: var(--tr-switch-track-radius, var(--tr-radius-pill, 999px));
-        transition: background-color var(--tr-motion-duration-travel, 220ms);
+        transition:
+          background-color var(--tr-motion-duration-travel, 220ms),
+          border-color var(--tr-motion-duration-travel, 220ms),
+          --_on-glow var(--tr-motion-duration-travel, 220ms);
         /* the slot is lit from inside on: a soft glow pooling around the thumb's resting place */
         --_layer: radial-gradient(
           ellipse 70% 90% at 30% 50%,
@@ -99,6 +102,9 @@ export class TrSwitch extends FormControl {
         font: 600 calc(var(--_h) * 0.36) / 1 var(--tr-font-family-mono, monospace);
         color: var(--_ink);
         pointer-events: none;
+        transition:
+          opacity var(--tr-motion-duration-travel, 220ms) ease-out,
+          color var(--tr-motion-duration-travel, 220ms);
       }
       .mark-on {
         left: calc(var(--_h) * 0.36);

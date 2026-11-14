@@ -145,8 +145,8 @@ export class TrAvatar extends TrompeElement {
           0 0 0 max(1.5px, calc(var(--_size) * 0.04)) var(--tr-color-surface, #fff),
           0 0 calc(2px + var(--_r) * 5px) color-mix(in oklch, var(--_lamp) 75%, transparent);
         transition:
-          background var(--tr-motion-duration-lamp, 120ms),
-          box-shadow var(--tr-motion-duration-lamp, 120ms),
+          --_lamp var(--tr-motion-duration-release, 160ms) ease-out,
+          box-shadow var(--tr-motion-duration-release, 160ms) ease-out,
           scale var(--tr-motion-duration-travel, 220ms) var(--tr-motion-easing-spring, ease-out);
       }
       @starting-style {
@@ -156,10 +156,12 @@ export class TrAvatar extends TrompeElement {
       }
       .status[data-status='away'] { --_lamp: var(--tr-color-warning, oklch(80% 0.15 80)); }
       .status[data-status='busy'] { --_lamp: var(--tr-color-danger, oklch(60% 0.2 25)); }
+      /* an unlit lamp: grey, no glow (same gradient, so the change fades) */
       .status[data-status='offline'] {
-        --_lamp: color-mix(in oklch, var(--tr-color-ink-muted, #888) 60%, var(--tr-color-surface, #fff));
-        background: color-mix(in oklch, var(--tr-color-ink-muted, #888) 45%, var(--tr-color-surface, #fff));
-        box-shadow: 0 0 0 max(1.5px, calc(var(--_size) * 0.04)) var(--tr-color-surface, #fff);
+        --_lamp: color-mix(in oklch, var(--tr-color-ink-muted, #888) 50%, var(--tr-color-surface, #fff));
+        box-shadow:
+          0 0 0 max(1.5px, calc(var(--_size) * 0.04)) var(--tr-color-surface, #fff),
+          0 0 0 transparent;
       }
       @media (forced-colors: active) {
         .avatar {
