@@ -47,6 +47,14 @@
       "types": "./dist/components/choice/choice-card.d.ts",
       "default": "./dist/components/choice/choice-card.js"
     },
+    "./components/chip-group": {
+      "types": "./dist/components/chip/chip-group.d.ts",
+      "default": "./dist/components/chip/chip-group.js"
+    },
+    "./components/step": {
+      "types": "./dist/components/stepper/step.d.ts",
+      "default": "./dist/components/stepper/step.js"
+    },
     "./components/*": {
       "types": "./dist/components/*/*.d.ts",
       "default": "./dist/components/*/*.js"

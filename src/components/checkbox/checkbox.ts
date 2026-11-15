@@ -4,6 +4,7 @@ import { FormControl } from '../../internal/form-control.js';
 import { define } from '../../internal/trompe-element.js';
 import type { Size } from '../../internal/types.js';
 import { PressController } from '../../interaction/press.js';
+import { SizeTransition, crossfadeText } from '../../interaction/smooth.js';
 
 /**
  * A checkbox set into the surface: an empty recessed well that, when checked, fills with a
@@ -21,6 +22,8 @@ import { PressController } from '../../interaction/press.js';
  * @csspart key - The raised key that fills the well when checked or indeterminate.
  * @csspart mark - The check (or dash) glyph.
  * @csspart label - Wrapper around the label slot.
+ * @csspart hint - The help text under the label.
+ * @csspart error - The error message under the label.
  *
  * @cssprop --tr-checkbox-size - Edge length of the box. Defaults to 1.25em.
  * @cssprop --tr-checkbox-radius - Corner radius of the box. Defaults to 0.3em.
@@ -33,6 +36,7 @@ import { PressController } from '../../interaction/press.js';
  * @example <tr-checkbox checked>Email me updates</tr-checkbox>
  * @example <tr-checkbox name="terms" required>I accept the terms</tr-checkbox>
  * @example <tr-checkbox indeterminate material="metal">Select all</tr-checkbox>
+ * @example <tr-checkbox name="terms" required error="Accept the terms to continue.">I accept the terms</tr-checkbox>
  */
 export class TrCheckbox extends FormControl {
   /** Physical press: quick taps stay visible, dragging off cancels, Space holds (see docs/interaction.md). */
@@ -73,10 +77,71 @@ export class TrCheckbox extends FormControl {
         --_curve: 0;
         flex: none;
         position: relative;
+        /* centred on the first line of the label, so a hint or error below never moves it */
+        align-self: flex-start;
+        margin-top: max(0px, calc((1.3em - var(--_s)) / 2));
         width: var(--_s);
         height: var(--_s);
         border-radius: var(--_rad);
-        transition: --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out);
+        transition:
+          --_tr-z var(--tr-motion-duration-release, 160ms) var(--tr-motion-easing-spring, ease-out),
+          border-color var(--tr-motion-duration-release, 160ms) ease-out;
+      }
+      :host([data-user-invalid]) .box {
+        border-color: var(--tr-color-danger);
+      }
+      .text {
+        display: flex;
+        flex-direction: column;
+        align-self: flex-start;
+        min-width: 0;
+      }
+      .text:not(.has) {
+        display: none;
+      }
+      /* messages wrap within the label's width, so an error never widens the checkbox */
+      .messages {
+        contain: inline-size;
+      }
+      .stack {
+        display: grid;
+      }
+      .msg {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.35em;
+        margin-top: calc(0.25em / 0.8125);
+        font-size: 0.8125em;
+        line-height: 1.35;
+        user-select: text;
+        transition:
+          opacity var(--tr-motion-duration-release, 160ms) ease-out,
+          translate var(--tr-motion-duration-travel, 220ms) cubic-bezier(0.2, 0.7, 0.2, 1),
+          display var(--tr-motion-duration-release, 160ms) allow-discrete;
+      }
+      .msg[hidden] {
+        display: none;
+        opacity: 0;
+        translate: 0 -0.3em;
+        transition-timing-function: ease-in;
+      }
+      @starting-style {
+        .msg {
+          opacity: 0;
+          translate: 0 -0.3em;
+        }
+      }
+      .hint {
+        color: color-mix(in oklch, currentColor 72%, transparent);
+      }
+      .error {
+        --_err-ink: var(--tr-color-danger-ink, #fff);
+        color: color-mix(in oklch, var(--tr-color-danger) 78%, currentColor);
+        font-weight: var(--tr-font-weight-strong, 600);
+      }
+      .error svg {
+        flex: none;
+        margin-top: 0.12em;
       }
       :host(:hover) .box {
         --_tr-z: -1.4;
@@ -181,6 +246,23 @@ export class TrCheckbox extends FormControl {
   /** Size of the checkbox and its label. */
   @property({ reflect: true }) size: Size = 'md';
 
+  /** Help text under the label. */
+  @property({ reflect: true }) hint = '';
+
+  /**
+   * Error message under the label. Setting it marks the checkbox invalid (a custom validity
+   * error, so the form does not submit) and gives the box a danger edge; clear it to remove.
+   */
+  @property({ reflect: true }) error = '';
+
+  /** The hint/error area glides to its new height instead of pushing content in one frame. */
+  protected readonly messageSize = new SizeTransition(this, () => ({
+    outer: this.renderRoot?.querySelector<HTMLElement>('.messages'),
+    inner: this.renderRoot?.querySelector<HTMLElement>('.stack'),
+  }));
+  /** Kept after the error clears, so the message fades out with its words still in it. */
+  private shownError = '';
+
   /** The state a form reset restores. Captured on first connect only (`checked` reflects). */
   private defaultChecked: boolean | null = null;
   private hasLabel = false;
@@ -199,6 +281,7 @@ export class TrCheckbox extends FormControl {
   }
 
   protected override render() {
+    const msgs = !!(this.hint || this.error || this.shownError);
     return html`<span part="box" class="box surface focus-ring">
         <span part="key" class="key surface">
           <svg part="mark" class="mark" viewBox="0 0 16 16" aria-hidden="true">
@@ -207,15 +290,37 @@ export class TrCheckbox extends FormControl {
           </svg>
         </span>
       </span>
-      <span part="label" class="label ${this.hasLabel ? 'has-label' : ''}"><slot @slotchange=${this.onSlotChange}></slot></span>`;
+      <span class="text ${this.hasLabel || msgs ? 'has' : ''}">
+        <span part="label" class="label ${this.hasLabel ? 'has-label' : ''}"><slot @slotchange=${this.onSlotChange}></slot></span>
+        <span class="messages">
+          <span class="stack">
+            <span part="hint" class="msg hint" ?hidden=${!this.hint}>${this.hint}</span>
+            <span part="error" class="msg error" ?hidden=${!this.error}>
+              <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor" /><path d="M8 4.2v4.6M8 10.9v.9" stroke="var(--_err-ink, #fff)" stroke-width="1.8" stroke-linecap="round" /></svg>
+              <span class="error-text">${this.error || this.shownError}</span>
+            </span>
+          </span>
+        </span>
+      </span>`;
   }
 
   protected override updated(changed: PropertyValues): void {
     super.updated(changed);
+    if (changed.get('hint') && this.hint) crossfadeText(this.renderRoot.querySelector<HTMLElement>('.hint'), changed.get('hint') as string);
     this.aria('aria-checked', this.indeterminate ? 'mixed' : String(this.checked));
     this.aria('aria-required', this.required ? 'true' : null);
+    this.aria('aria-description', [this.error, this.hint].filter(Boolean).join('. ') || null);
+    this.aria('aria-invalid', this.error ? 'true' : null);
+    if (changed.has('error')) {
+      if (this.error) {
+        this.shownError = this.error;
+        this.setAttribute('data-user-invalid', '');
+      } else if (changed.get('error')) this.removeAttribute('data-user-invalid');
+    }
     this.internals.setFormValue(this.checked ? this.value : null, String(this.checked));
-    if (this.required && !this.checked) {
+    if (this.error) {
+      this.internals.setValidity({ customError: true }, this.error);
+    } else if (this.required && !this.checked) {
       this.internals.setValidity({ valueMissing: true }, 'Check this box to continue.');
     } else {
       this.internals.setValidity({});
