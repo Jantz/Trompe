@@ -158,7 +158,20 @@ function install() {
       await frame();
       await frame();
     },
+    /** The deepest element at a viewport point (through shadow roots and the page scroll), as a label. */
+    at(x, y, page) {
+      const sx = page ? x - scrollX : x;
+      const sy = page ? y - scrollY : y;
+      let el = document.elementFromPoint(sx, sy);
+      while (el?.shadowRoot) {
+        const inner = el.shadowRoot.elementFromPoint(sx, sy);
+        if (!inner || inner === el) break;
+        el = inner;
+      }
+      return el ? label(el) : null;
+    },
     async diff(pngs, threshold = 24) {
+      let width = 1;
       const imgs = await Promise.all(
         pngs.map(async (b64) => {
           // Decoded here rather than fetched as a data: URL, which a page's CSP may block.
@@ -170,6 +183,7 @@ function install() {
           const c = new OffscreenCanvas(bmp.width, bmp.height);
           const g = c.getContext('2d', { willReadFrequently: true });
           g.drawImage(bmp, 0, 0);
+          width = bmp.width;
           return g.getImageData(0, 0, bmp.width, bmp.height).data;
         }),
       );
@@ -179,17 +193,32 @@ function install() {
       // not a visible change and must not count as one.
       const lum = (d, i) => 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
       const spread = (d, i) => Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]);
-      const count = (x, y) => {
+      const count = (x, y, box) => {
         let n = 0;
         const len = Math.min(x.length, y.length);
         for (let i = 0; i < len; i += 4) {
-          if (Math.abs(lum(x, i) - lum(y, i)) > threshold) n++;
-          else if (spread(x, i) > 32 && spread(y, i) > 32 && (Math.abs(x[i] - y[i]) > threshold || Math.abs(x[i + 1] - y[i + 1]) > threshold || Math.abs(x[i + 2] - y[i + 2]) > threshold)) n++;
+          const hit =
+            Math.abs(lum(x, i) - lum(y, i)) > threshold ||
+            (spread(x, i) > 32 && spread(y, i) > 32 && (Math.abs(x[i] - y[i]) > threshold || Math.abs(x[i + 1] - y[i + 1]) > threshold || Math.abs(x[i + 2] - y[i + 2]) > threshold));
+          if (!hit) continue;
+          n++;
+          if (box) {
+            const px = (i / 4) % width;
+            const py = Math.floor(i / 4 / width);
+            if (px < box.x0) box.x0 = px;
+            if (py < box.y0) box.y0 = py;
+            if (px > box.x1) box.x1 = px;
+            if (py > box.y1) box.y1 = py;
+          }
         }
         return n;
       };
       const [a, b, c] = imgs;
-      return { instantPx: count(a, b), totalPx: count(a, c), residualPx: count(b, c) };
+      const box = { x0: Infinity, y0: Infinity, x1: -1, y1: -1 };
+      const instantPx = count(a, b, box);
+      // where the instant pixels are, so a finding can say which part of the page popped
+      const instantBox = instantPx ? { x: box.x0, y: box.y0, w: box.x1 - box.x0 + 1, h: box.y1 - box.y0 + 1 } : null;
+      return { instantPx, instantBox, totalPx: count(a, c), residualPx: count(b, c) };
     },
   };
 }
@@ -255,11 +284,25 @@ export async function measureChange(page, trigger, opts = {}) {
     });
     const px = await page.evaluate((imgs) => window.__trMotion.diff(imgs), [before, mid, after]);
     if (opts.saveFrames) opts.saveFrames({ before, frozen: mid, after });
+    let instantAt = null;
+    if (px.instantBox) {
+      const b = px.instantBox;
+      const ox = clip?.x ?? 0;
+      const oy = clip?.y ?? 0;
+      instantAt = {
+        ...b,
+        x: b.x + ox,
+        y: b.y + oy,
+        // a clip is in page coordinates, a plain screenshot in viewport coordinates
+        el: await page.evaluate(([x, y, p]) => window.__trMotion.at(x, y, p), [ox + b.x + b.w / 2, oy + b.y + b.h / 2, !!clip]).catch(() => null),
+      };
+    }
     const instant = px.totalPx < 1 ? (px.instantPx > 0 ? 1 : 0) : Math.min(1, px.instantPx / px.totalPx);
     return {
       instant: Math.round(instant * 1000) / 1000,
       changedPx: px.totalPx,
       instantPx: px.instantPx,
+      instantAt,
       shift: Math.round(frozen.shift.score * 10000) / 10000,
       shiftSources: frozen.shift.sources.slice(0, 8),
       moved: frozen.moved,
@@ -298,8 +341,9 @@ export function motionIssues(m, limits = {}) {
   const l = { ...MOTION_LIMITS, ...limits };
   const out = [];
   const add = (kind, message) => out.push({ kind, message });
-  if (m.changedPx >= l.minPx && m.instant > l.instant) add('instant', `${Math.round(m.instant * 100)}% of the change (${m.instantPx}px) appeared without animation`);
-  if (m.changedPx < l.minPx && m.instantPx >= l.minPx) add('instant', `${m.instantPx}px flashed in the frozen frame`);
+  const where = m.instantAt ? ` around ${m.instantAt.el ? `${m.instantAt.el}, ` : ''}${m.instantAt.w}×${m.instantAt.h} at ${m.instantAt.x},${m.instantAt.y}` : '';
+  if (m.changedPx >= l.minPx && m.instant > l.instant) add('instant', `${Math.round(m.instant * 100)}% of the change (${m.instantPx}px) appeared without animation${where}`);
+  if (m.changedPx < l.minPx && m.instantPx >= l.minPx) add('instant', `${m.instantPx}px flashed in the frozen frame${where}`);
   // Under a view transition the page is shown as animated snapshots; DOM jumps underneath are hidden.
   if (m.viewTransition) return out;
   if (m.shift > l.shift) add('shift', `layout shift ${m.shift}: ${m.shiftSources.map((s) => `${s.el} (dy ${s.dy}, dh ${s.dh})`).join('; ')}`);

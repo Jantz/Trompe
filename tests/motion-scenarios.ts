@@ -212,6 +212,11 @@ export const scenarios: MotionScenario[] = [
   { name: 'slider: becomes disabled', markup: '<tr-slider id="t" label="Volume" value="40" style="width:320px"></tr-slider>', trigger: attr('#t', 'disabled', '') },
   { name: 'knob: value set by code', markup: '<tr-knob id="t" label="Gain" value="8"></tr-knob>', trigger: set('#t', 'value', 64) },
   { name: 'knob: becomes disabled', markup: '<tr-knob id="t" label="Gain" value="40"></tr-knob>', trigger: attr('#t', 'disabled', '') },
+  {
+    name: 'checkbox: error appears',
+    markup: `<tr-checkbox id="t" name="terms">I accept the terms</tr-checkbox>${AFTER}`,
+    trigger: attr('#t', 'error', 'Accept the terms to continue.'),
+  },
   { name: 'progress: tone change', markup: '<tr-progress id="t" label="Disk" value="80"></tr-progress>', trigger: attr('#t', 'tone', 'danger') },
   { name: 'meter: value change', markup: '<tr-meter id="t" label="Level" value="0.2"></tr-meter>', trigger: set('#t', 'value', 0.8) },
   { name: 'badge: tone change', markup: '<tr-badge id="t" tone="neutral">Pending</tr-badge>', trigger: attr('#t', 'tone', 'success') },

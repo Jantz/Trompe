@@ -205,3 +205,12 @@ test('series, values and labels accept the attribute syntax as property values',
   });
   expect(errors).toEqual([]);
 });
+
+test('baseline="data" starts an area chart near its lowest value instead of at zero', async ({ page }) => {
+  await mount(page, `<tr-chart id="z" type="area" label="Value" values="146000,147500,149000,148200"></tr-chart>
+    <tr-chart id="d" type="area" baseline="data" label="Value" values="146000,147500,149000,148200"></tr-chart>`);
+  await settle(page);
+  const lowest = (sel: string) => page.locator(`${sel} text.ylabel`).allTextContents().then((t) => t.map((x) => Number(x.replace(/[^\d.-]/g, '')) * (/k$/i.test(x.trim()) ? 1000 : 1)));
+  expect(Math.min(...(await lowest('#z')))).toBe(0);
+  expect(Math.min(...(await lowest('#d')))).toBeGreaterThan(100000);
+});

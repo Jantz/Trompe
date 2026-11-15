@@ -432,6 +432,14 @@ export class TrChart extends TrompeElement {
   /** Lowest value on the y axis. Default: 0 for bars and areas, a rounded minimum for lines. */
   @property({ type: Number, reflect: true }) min?: number;
 
+  /**
+   * Where the y axis starts when `min` is not set: `zero`, or `data` for a rounded minimum
+   * near the lowest value, so a portfolio worth 140k–150k is not a flat line on an axis from 0.
+   * Default: zero for bars and areas, and for lines whose data starts near zero. Bars always
+   * start at zero.
+   */
+  @property({ reflect: true }) baseline?: 'zero' | 'data';
+
   /** Highest value on the y axis. Default: a rounded maximum. */
   @property({ type: Number, reflect: true }) max?: number;
 
@@ -1000,7 +1008,7 @@ export class TrChart extends TrompeElement {
       for (const v of m.values) for (const x of v) if (Number.isFinite(x)) ((lo = Math.min(lo, x)), (hi = Math.max(hi, x)));
     }
     if (!Number.isFinite(lo)) ((lo = 0), (hi = 1));
-    const zeroBased = bar || this.type === 'area' || (lo >= 0 && lo <= hi * 0.35);
+    const zeroBased = bar || this.baseline === 'zero' || (this.baseline !== 'data' && (this.type === 'area' || (lo >= 0 && lo <= hi * 0.35)));
     if (zeroBased && !spark) {
       lo = Math.min(lo, 0);
       hi = Math.max(hi, 0);

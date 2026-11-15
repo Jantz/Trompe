@@ -50,6 +50,8 @@ test.describe('motion probe catches what is not animated', () => {
       const m = await measureChange(page, (p) => p.evaluate(`(${change.toString()})(document.getElementById('t'))`), { clip: { x: 0, y: 0, width: 800, height: 600 } });
       expect(m.instant).toBeGreaterThan(MOTION_LIMITS.instant);
       expect(motionProblems(m).length).toBeGreaterThan(0);
+      // the finding says where: the element under the instant pixels
+      expect(m.instantAt?.el).toContain('#t');
     });
   }
 });

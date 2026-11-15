@@ -69,6 +69,21 @@ test.describe('tr-checkbox', () => {
     expect(results.violations).toEqual([]);
   });
 
+  test('error and hint: described, invalid, and the box does not move', async ({ page }) => {
+    await mount(page, '<form id="f"><tr-checkbox id="c" name="terms" hint="We never share it.">I accept the terms</tr-checkbox></form>');
+    const c = page.locator('#c');
+    await expect(c).toHaveAttribute('aria-description', 'We never share it.');
+    const box = () => c.evaluate((el) => el.shadowRoot!.querySelector('.box')!.getBoundingClientRect().top);
+    const before = await box();
+    await c.evaluate((el) => el.setAttribute('error', 'Accept the terms to continue.'));
+    await expect(c).toHaveAttribute('aria-invalid', 'true');
+    await expect(c).toHaveAttribute('aria-description', 'Accept the terms to continue.. We never share it.');
+    expect(await c.evaluate((el) => (el as unknown as { checkValidity(): boolean }).checkValidity())).toBe(false);
+    expect(await box()).toBe(before);
+    await c.evaluate((el) => el.removeAttribute('error'));
+    expect(await c.evaluate((el) => (el as unknown as { checkValidity(): boolean }).checkValidity())).toBe(true);
+  });
+
   test('visual: states, materials and themes', async ({ page }) => {
     const row = `<div style="display:flex;flex-wrap:wrap;gap:20px;padding:12px;align-items:center;background:var(--tr-color-canvas);color:var(--tr-color-ink)">
       <tr-checkbox>Off</tr-checkbox><tr-checkbox checked>On</tr-checkbox><tr-checkbox indeterminate>Mixed</tr-checkbox>
