@@ -11,6 +11,7 @@ export { materials, finishes, profiles, realismPresets, depthLevels } from './ge
 export { TrButton } from './components/button/button.js';
 export { TrSwitch } from './components/switch/switch.js';
 export { TrSlider } from './components/slider/slider.js';
+export { TrRangeSlider } from './components/range-slider/range-slider.js';
 export { TrKnob } from './components/knob/knob.js';
 export { TrInput } from './components/input/input.js';
 export { TrPanel } from './components/panel/panel.js';
@@ -51,6 +52,11 @@ export { registerIcons, iconNames } from './components/icon/icons.js';
 export { TrChoiceGroup } from './components/choice/choice-group.js';
 export { TrChoiceCard } from './components/choice/choice-card.js';
 export { TrPagination, pageSlots } from './components/pagination/pagination.js';
+export { TrChip } from './components/chip/chip.js';
+export { TrChipGroup } from './components/chip/chip-group.js';
+export { TrStepper, TrStep } from './components/stepper/stepper.js';
+export type { StepState } from './components/stepper/stepper.js';
+export { TrFileDrop, parseFileSize, formatFileSize } from './components/file-drop/file-drop.js';
 
 // Motion: smooth size changes, enter/exit, text cross-fades and page-wide View Transitions.
 export { SizeTransition, enter, exit, removeAnimated, insertAnimated, crossfadeText, viewTransition, autoViewTransitions, afterExit } from './interaction/smooth.js';

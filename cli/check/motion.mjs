@@ -362,7 +362,7 @@ export function motionProblems(m, limits = {}) {
 /** Controls a person can click or toggle, in the light DOM. */
 const CLICKABLE = [
   'tr-button', 'tr-switch', 'tr-checkbox', 'tr-radio', 'tr-tab', 'tr-segmented tr-option', 'tr-list[selectable] tr-list-item',
-  'tr-nav-item', 'tr-select', 'tr-menu-item', 'tr-choice-card', 'tr-date-picker', 'button', '[role="button"]', '[role="tab"]', '[role="switch"]', 'summary',
+  'tr-nav-item', 'tr-select', 'tr-menu-item', 'tr-choice-card', 'tr-date-picker', 'tr-chip', 'tr-stepper[clickable] tr-step', 'button', '[role="button"]', '[role="tab"]', '[role="switch"]', 'summary',
   'input[type="checkbox"]', 'input[type="radio"]', 'a[href^="#"]',
 ].join(',');
 

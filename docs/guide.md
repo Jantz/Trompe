@@ -132,8 +132,12 @@ import 'trompe/skins.css';
 | Progress, goal, timer ring | `tr-progress` (`variant="ring"`, `show-value`, `value-text="1:30"` for the cap) |
 | One of a few options | `tr-segmented` (short labels) or `tr-radio-group` (longer labels) |
 | One of many options | `tr-select` + `tr-option` (`hint`, `error` as on `tr-input`) |
-| On / off setting | `tr-switch`; a list of options: `tr-checkbox` |
+| On / off setting | `tr-switch`; a list of options: `tr-checkbox` (`hint`, `error` for consent boxes) |
 | Amount on a scale | `tr-slider` |
+| From … to … filter (price, hours) | `tr-range-slider` (`low`, `high`, `min-gap`) |
+| Time slots, filters, tags | `tr-chip-group` + `tr-chip` (`multiple`, `removable`, `count`) |
+| Steps of a multi-step flow | `tr-stepper` + `tr-step` (`current`, `clickable`, `linear`) |
+| Upload, attachment, receipt | `tr-file-drop` (`accept`, `max-size`, `multiple`) |
 | Text, time of day | `tr-input` (`type="search"` + `clearable` for search, `type="time"` for "07:30"), `tr-textarea` |
 | Sections of one screen | `tr-tabs` + `tr-tab` + `tr-tab-panel` |
 | App navigation | `tr-nav` + `tr-nav-item` (`current`, badges in the `end` slot) |
@@ -142,14 +146,14 @@ import 'trompe/skins.css';
 | Confirmation, form in a layer | `tr-dialog` (`show()`, `close()`, footer slot for actions) |
 | Hints on icons | `tr-tooltip` |
 | Icons | `tr-icon name="search"` (150+ built in; `variant` printed, engraved, embossed, lit) |
-| Charts, sparklines | `tr-chart` (`type` line, area, bar, sparkline; a `<table>` inside or `data`) |
+| Charts, sparklines | `tr-chart` (`type` line, area, bar, sparkline; a `<table>` inside or `data`; `baseline="data"` to zoom) |
 | Date, date range | `tr-date-picker` (field + popover), `tr-calendar` (always on screen) |
 | Plans, shipping options, templates | `tr-choice-group` + `tr-choice-card` (`multiple` for several) |
 | Pages of results | `tr-pagination` (`total` + `page-size`, or `pages`) |
 | Instrument looks only | `tr-display` (LCD/VFD), `tr-led`, `tr-meter`, `tr-knob` |
 
-Not in Trompe yet (build with plain HTML/CSS and Trompe tokens): skeletons, file drop areas,
-steppers for multi-step flows (use `tr-progress` or `tr-segmented` as the step indicator).
+Not in Trompe yet (build with plain HTML/CSS and Trompe tokens): skeletons. For loading data, prefer
+`loading` on `tr-chart` and `tr-button`, or reserve the room with `min-height`.
 
 ### Icons
 `<tr-icon name="search"></tr-icon>` draws one of 150+ built-in icons (`iconNames()` lists them) at 1em, in the text colour, so it lines up in `slot="start"`/`"end"` of tr-button, tr-input, tr-list-item, tr-menu-item, tr-badge and `slot="icon"` of tr-nav-item. Don't hand-draw SVGs.
@@ -165,6 +169,7 @@ Use `<tr-chart>` for line, area and bar charts and inline sparklines. Don't hand
 - Set `label`, plus `currency="EUR"` or `unit="kg"` so values and the readout are formatted. `stacked` for parts of a total.
 - The box keeps its height: set `--tr-chart-height` (default 16em). Set `loading` while fetching instead of swapping in a spinner, so nothing shifts.
 - Colours come from the skin (series 1 is the accent). Override with `--tr-chart-color-N` or a series `color`.
+- The value axis starts at zero for bars, areas and values near zero. `baseline="data"` fits it to the data (a weight or price line), `baseline="zero"` forces zero.
 
 ### Dates
 Use `<tr-date-picker label="Check-in" name="checkin">` for a date field, and add `range` for check-in to check-out. The value is always `yyyy-mm-dd` (with `range`, `2026-11-03/2026-11-09`), whatever the person types: "3 Nov 2026" or "03/11/2026" in their locale, or a pick from the calendar. `min`, `max` and `required` validate like a native input. Block days such as weekends or booked dates with a property: `picker.isDateDisabled = (d) => d.getDay() === 0`.
@@ -180,6 +185,31 @@ clickable cards with your own selection styling.
 `<tr-pagination total="240" page-size="20" page="3">` (or `pages="12"`); listen for `change`
 (`e.detail.page`). It keeps its width while paging and turns into "Page 3 of 12" on narrow screens by
 itself. In Vue, Svelte and JSX, bind the numbers (`:page="3"`).
+
+### Ranges
+For "from … to …" filters (price, dates in hours, sizes) use `<tr-range-slider label="Price" min="0" max="1000" step="10" low="280" high="620" currency="EUR">`, not two `tr-slider`s.
+Each cap is its own slider ("Minimum price", "Maximum price"); `min-gap` keeps them apart. Listen for `input`/`change` and read `low` and `high`.
+In a form it submits two entries under `name` (`formData.getAll('price')`). `value` is "low,high". In Vue, Svelte and JSX bind the numbers (`:low="280"`).
+
+### Chips
+Use `<tr-chip-group label="Time" name="slot" value="09:30">` with one `<tr-chip>` per option for compact choices such as time slots or filters. It works like a radio group, or like checkboxes with `multiple`, and submits with forms (`required`, `hint`, `error` as on `tr-input`).
+`count="12"` shows a result count that cross-fades when it changes.
+Removable tags (`<tr-chip removable>`) show an × key, and Backspace or Delete removes them too. The chip animates out and its neighbours glide into place. Listen for `removed` to drop the item from your data, or call `preventDefault()` on `remove` to keep it.
+A `<tr-chip>` on its own is a toggle button.
+
+### Step indicator
+`<tr-stepper current="1" clickable>` with one `<tr-step>` per step (label in the default slot, `slot="description"` for a hint). Set `current` (from 0) or `value`. Steps before it read complete, and `error` or `disabled` mark a single step.
+Picking a step fires a cancelable `change` (`detail.index`, `detail.value`). `linear` allows only steps already reached. `next()` and `previous()` move it from your own buttons.
+Too narrow for every step, it becomes "Step 2 of 5 · Label" with a progress tube. `compact` forces that form and `orientation="vertical"` stacks the steps.
+
+### File drop
+`<tr-file-drop label="Receipt" name="receipt" accept=".pdf,image/*" max-size="10MB" required>` is a recessed tray that is also a button: click it or press Enter or Space to choose a file, or drop files on it.
+Add `multiple` (and `max-files`) for a list of files, each with its own Remove button. Files go into the form's FormData under `name`.
+Files that are too large, the wrong type or too many are refused, and the error line says why. Listen for `change` (`detail.files`) and `remove`, or set `el.files` from code.
+Use `compact` for a one-line tray in tight forms, and `error="…"` to show a server-side failure.
+
+### Checkbox messages
+`tr-checkbox` takes `hint` and `error` like `tr-input`, for consent boxes ("You must accept the terms"). The message appears under the label without moving the box.
 
 ### Rings with your own centre
 `tr-progress variant="ring"` takes `slot="center"` for richer content than one value, such as a number
